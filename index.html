@@ -1378,7 +1378,6 @@ let cdTimer = null;
 let cdRemaining = 3;
 let pendingOrderData = null;
 let isLoggedIn = false;
-  localStorage.setItem('haretna_session', 'admin');  // ← THIS IS WRONG
 
 // Admin-editable offers and trending
 let OFFERS = [
@@ -3117,18 +3116,32 @@ async function loadMenuFromAPI() {
 // =====================================================================
 // INIT
 // =====================================================================
-window.addEventListener('load', () => {
-  // Session restore
+window.addEventListener('load', async () => {
+  // Load menu from API first
+  await loadMenuFromAPI();
+
+  // Restore admin session if previously logged in
   if (localStorage.getItem('haretna_session') === 'admin') {
-    isLoggedIn = true;
-    showView('admin');
-    loadAdminOrders();
+    const token = getToken();
+    if (token) {
+      try {
+        await apiFetch('/api/auth/me');
+        isLoggedIn = true;
+        connectAdminSocket();
+        showView('admin');
+        await loadAdminOrders();
+        renderAdmin();
+      } catch {
+        // Token expired — clear session and show landing
+        clearToken();
+        localStorage.removeItem('haretna_session');
+      }
+    } else {
+      localStorage.removeItem('haretna_session');
+    }
   }
 
   drawQR(document.getElementById('landQR'), 0);
-
-  // Load menu from API
-  await loadMenuFromAPI();
 
   // Check URL for table param (QR code URL support)
   const params = new URLSearchParams(window.location.search);
@@ -3141,17 +3154,6 @@ window.addEventListener('load', () => {
     renderMenu();
     showView('customerMenu');
     setTimeout(initCallBanner, 800);
-  }
-
-  // Re-authenticate if token exists
-  const token = getToken();
-  if (token) {
-    try {
-      await apiFetch('/api/auth/me');
-      // token is still valid — don't auto-open admin, just keep token
-    } catch {
-      clearToken();
-    }
   }
 });
 </script>
