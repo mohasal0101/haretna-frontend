@@ -1080,7 +1080,7 @@ body::after{
   <div class="admin-topbar">
     <div class="at-logo">🖼️ Menu Manager <small>Photos & Categories</small></div>
     <div class="at-btns">
-      <button class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);" onclick="saveToFile()">💾 Save to File</button>
+      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>💾 Save</button>
       <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back</button>
     </div>
   </div>
@@ -2670,6 +2670,27 @@ function renderMMGrid(catId) {
   }).join('');
 }
 
+// Track pending uploads: itemId -> File object
+let mmPendingUploads = {};
+
+function mmEnableSave() {
+  const btn = document.getElementById('mmSaveBtn');
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }
+}
+
+function mmDisableSave() {
+  const btn = document.getElementById('mmSaveBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
 async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
@@ -2678,39 +2699,67 @@ async function handleMMUpload(id, input) {
   const reader = new FileReader();
   reader.onload = e => {
     customImages[id] = e.target.result;
+    mmPendingUploads[id] = file; // store file for when Save is clicked
     renderMMGrid(_mmActiveCat);
+    mmEnableSave(); // enable Save button
   };
   reader.readAsDataURL(file);
+}
 
-  // Upload to backend
-  try {
-    toast('Uploading... ');
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    const res = await fetch(`${API_URL}/api/upload/menu-item/${id}`, {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + getToken() },
-      body: formData
-    });
-    
-    const data = await res.json();
-    if (data.imageUrl) {
-      customImages[id] = data.imageUrl; // Use the Cloudinary URL
-      renderMMGrid(_mmActiveCat);
-      toast('Photo saved! ');
-    } else {
-      toast('Upload failed — photo saved locally only ');
+async function mmSaveChanges() {
+  if (Object.keys(mmPendingUploads).length === 0) return;
+
+  const btn = document.getElementById('mmSaveBtn');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const [id, file] of Object.entries(mmPendingUploads)) {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch(`${API_URL}/api/upload/menu-item/${id}`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.imageUrl) {
+        customImages[id] = data.imageUrl;
+        successCount++;
+      } else {
+        failCount++;
+      }
+    } catch (err) {
+      console.error('Upload error for', id, err);
+      failCount++;
     }
-  } catch (err) {
-    toast('Upload failed — photo saved locally only ');
-    console.error('Upload error:', err);
+  }
+
+  mmPendingUploads = {}; // clear pending
+  renderMMGrid(_mmActiveCat);
+
+  if (failCount === 0) {
+    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved to database!`);
+    mmDisableSave();
+    btn.textContent = '💾 Save';
+  } else {
+    toast(`⚠️ ${successCount} saved, ${failCount} failed`);
+    btn.textContent = '💾 Save';
+    mmEnableSave();
   }
 }
 
 function removeMMImage(id) {
   delete customImages[id];
+  delete mmPendingUploads[id];
   renderMMGrid(_mmActiveCat);
+  mmEnableSave();
   toast('Photo removed');
 }
 // =====================================================================
