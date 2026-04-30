@@ -55,6 +55,24 @@
 html,body{height:100%;overflow-x:hidden;}
 body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;visibility:hidden;}
 body.ready{visibility:visible;}
+
+/* ── Notification sidebar ─────────────────────────────── */
+.admin-with-sidebar{display:flex;height:calc(100vh - 58px);overflow:hidden;}
+.notif-sidebar{width:260px;min-width:260px;background:var(--chalk);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.notif-sidebar-head{padding:12px 14px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:1.5px;color:var(--gold2);text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.notif-sidebar-head .notif-count{background:var(--gold);color:var(--bg);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;}
+.notif-list{flex:1;overflow-y:auto;padding:8px;}
+.notif-item{background:rgba(200,149,42,.08);border:1px solid rgba(200,149,42,.25);border-radius:6px;padding:10px 12px;margin-bottom:8px;position:relative;}
+.notif-item.notif-new{border-color:var(--gold);animation:newPulse .8s ease 3;}
+.notif-icon{font-size:22px;margin-bottom:4px;}
+.notif-msg{font-size:11px;color:var(--cream2);font-family:'Rubik',sans-serif;line-height:1.4;}
+.notif-table{font-size:13px;font-weight:700;color:var(--gold2);margin-bottom:2px;}
+.notif-time{font-size:9px;color:var(--text3);margin-top:4px;}
+.notif-dismiss{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0;}
+.notif-dismiss:hover{color:var(--gold);}
+.notif-empty{padding:24px 12px;text-align:center;color:var(--text3);font-size:11px;}
+.admin-main{flex:1;overflow-y:auto;padding:16px;}
+@media(max-width:700px){.notif-sidebar{display:none;}}
 button,input,textarea,select{font-family:'Rubik',sans-serif;}
 img{display:block;}
 
@@ -1040,22 +1058,35 @@ body::after{
       <button class="at-btn" onclick="doLogout()">← Exit</button>
     </div>
   </div>
-  <div class="admin-body">
-    <div class="stats-bar">
-      <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New</div></div>
-      <div class="stat-card"><div class="stat-n" id="sPreparing">0</div><div class="stat-l">Preparing</div></div>
-      <div class="stat-card"><div class="stat-n" id="sDone">0</div><div class="stat-l">Ready/Done</div></div>
-      <div class="stat-card"><div class="stat-n" id="sRevenue">JD 0</div><div class="stat-l">Revenue</div></div>
+  <div class="admin-with-sidebar">
+    <!-- ── Notification Sidebar ── -->
+    <div class="notif-sidebar">
+      <div class="notif-sidebar-head">
+        🔔 Table Requests
+        <span class="notif-count" id="notifCount">0</span>
+      </div>
+      <div class="notif-list" id="notifList">
+        <div class="notif-empty">No requests yet</div>
+      </div>
     </div>
-    <div class="filter-row" id="filterRow">
-      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-      <button class="filter-btn" onclick="setFilter('new',this)">🔴 New</button>
-      <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing</button>
-      <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready</button>
-      <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done</button>
-      <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out</button>
+    <!-- ── Main Orders Area ── -->
+    <div class="admin-main">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New</div></div>
+        <div class="stat-card"><div class="stat-n" id="sPreparing">0</div><div class="stat-l">Preparing</div></div>
+        <div class="stat-card"><div class="stat-n" id="sDone">0</div><div class="stat-l">Ready/Done</div></div>
+        <div class="stat-card"><div class="stat-n" id="sRevenue">JD 0</div><div class="stat-l">Revenue</div></div>
+      </div>
+      <div class="filter-row" id="filterRow">
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('new',this)">🔴 New</button>
+        <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing</button>
+        <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done</button>
+        <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out</button>
+      </div>
+      <div class="orders-grid" id="ordersGrid"></div>
     </div>
-    <div class="orders-grid" id="ordersGrid"></div>
   </div>
 </div>
 
@@ -2263,27 +2294,16 @@ function renderAdmin() {
     if (newOnes.length) { playAlertSound(); newOnes.forEach(o=>o.isNew=false); }
   }
 
-  let filtered = adminFilter==='all' ? orders.filter(o=>o.status!=='cashed') : orders.filter(o=>o.status===adminFilter);
+  let filtered = adminFilter==='all' ? orders.filter(o=>o.status!=='cashed' && !o.isCall) : orders.filter(o=>o.status===adminFilter && !o.isCall);
+  renderNotifSidebar();
   const grid = document.getElementById('ordersGrid');
   if (!filtered.length) {
     grid.innerHTML = `<div class="admin-empty"><div class="ae-ar">📭</div><p>No orders in this category.<br>لا توجد طلبات هنا</p></div>`;
     return;
   }
   grid.innerHTML = filtered.map(o=>{
-    const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed',call:'sp-new'}[o.status]||'sp-new';
-    const statusLabel = {new:'New 🔴',preparing:'Preparing 🟡',ready:'Ready 🟢',sent:'Ready 🟢',done:'Done ⚪',cashed:'Cashed ✅',call:'Request 🔔'}[o.status]||'New';
-    if (o.isCall) {
-      return `<div class="order-card is-new" id="ocard-${o.id}" style="border-left:4px solid var(--gold);">
-        <div class="oc-h">
-          <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}</div><div class="oc-time">${o.time}</div></div>
-          <span class="status-pill sp-new">Request 🔔</span>
-        </div>
-        <div style="padding:8px 0;"><span class="oc-call-badge">${o.callMsg}</span></div>
-        <div class="oc-foot"><div></div>
-          <div class="oc-action-btns"><button class="oa-btn oa-done" onclick="dismissCall('${o.id}')">✓ Dismiss</button></div>
-        </div>
-      </div>`;
-    }
+    const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
+    const statusLabel = {new:'New 🔴',preparing:'Preparing 🟡',ready:'Ready 🟢',sent:'Ready 🟢',done:'Done ⚪',cashed:'Cashed ✅'}[o.status]||'New';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
         <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}</div><div class="oc-time">${o.time}</div></div>
@@ -2671,7 +2691,6 @@ function renderMMGrid(catId) {
   }).join('');
 }
 
-// Track pending uploads: itemId -> compressed Blob
 let mmPendingUploads = {};
 
 function mmEnableSave() {
@@ -2704,10 +2723,7 @@ function compressImage(file, maxWidth, quality) {
 async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
-
-  // Compress to max 800px wide, 75% JPEG quality
   const compressed = await compressImage(file, 800, 0.75);
-
   const reader = new FileReader();
   reader.onload = e => {
     customImages[id] = e.target.result;
@@ -2720,50 +2736,33 @@ async function handleMMUpload(id, input) {
 
 async function mmSaveChanges() {
   if (Object.keys(mmPendingUploads).length === 0) return;
-
   const btn = document.getElementById('mmSaveBtn');
   btn.textContent = '⏳ Saving...';
   btn.disabled = true;
   btn.style.opacity = '0.6';
-
-  let successCount = 0;
-  let failCount = 0;
-
+  let successCount = 0, failCount = 0;
   for (const [id, blob] of Object.entries(mmPendingUploads)) {
     try {
       const formData = new FormData();
       formData.append('image', blob, 'photo.jpg');
-
       const res = await fetch(`${API_URL}/api/upload/menu-item/${id}`, {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + getToken() },
         body: formData,
       });
-
       const data = await res.json();
-      if (data.imageUrl) {
-        customImages[id] = data.imageUrl;
-        successCount++;
-      } else {
-        failCount++;
-      }
-    } catch (err) {
-      console.error('Upload error for', id, err);
-      failCount++;
-    }
+      if (data.imageUrl) { customImages[id] = data.imageUrl; successCount++; }
+      else failCount++;
+    } catch (err) { console.error('Upload error for', id, err); failCount++; }
   }
-
   mmPendingUploads = {};
   renderMMGrid(_mmActiveCat);
-
   if (failCount === 0) {
     toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved!`);
-    mmDisableSave();
-    btn.textContent = '💾 Save';
+    mmDisableSave(); btn.textContent = '💾 Save';
   } else {
     toast(`⚠️ ${successCount} saved, ${failCount} failed`);
-    btn.textContent = '💾 Save';
-    mmEnableSave();
+    btn.textContent = '💾 Save'; mmEnableSave();
   }
 }
 
@@ -2885,6 +2884,8 @@ const CALL_LABELS = {
 };
 let callCooldowns = {}; // type -> timestamp
 
+const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
+
 function sendTableCall(type) {
   const now = Date.now();
   if (callCooldowns[type] && now - callCooldowns[type] < 30000) {
@@ -2898,20 +2899,7 @@ function sendTableCall(type) {
   const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
   const callMsg  = `${CALL_LABELS[type]} Table ${currentTable}`;
 
-  const callOrder = {
-    id: Date.now(),
-    table: currentTable,
-    isCall: true,
-    callType: type,
-    callMsg: callMsg,
-    status: 'new',
-    time: callTime,
-    date: new Date().toISOString().split('T')[0],
-    isNew: true,
-    items: [], note: '', sub: 0, tax: 0, grand: 0,
-  };
-
-  // Connect a customer socket if not already connected, and emit the call
+  // Send via socket to admin
   if (typeof io !== 'undefined') {
     if (!window._customerSocket || !window._customerSocket.connected) {
       window._customerSocket = io(API_URL);
@@ -2924,21 +2912,46 @@ function sendTableCall(type) {
     });
   }
 
-  // Push locally so it shows if admin is on the same device
-  orders.unshift(callOrder);
-  playAlertSound();
-
+  // NO sound on customer side — just close popup and toast
   _callPopupOpen = false;
   const popup = document.getElementById('callPopup');
   if (popup) popup.classList.remove('open');
   toast(`✓ ${CALL_LABELS[type].split(' at')[0]} sent!`);
-  setTimeout(() => { callOrder.isNew = false; }, 8000);
 }
 
 function dismissCall(id) {
-  orders = orders.filter(o=>o.id!==id);
+  orders = orders.filter(o => o.id !== id);
   renderAdmin();
+  renderNotifSidebar();
   toast('Request dismissed ✓');
+}
+
+// =====================================================================
+// NOTIFICATION SIDEBAR
+// =====================================================================
+
+function renderNotifSidebar() {
+  const calls = orders.filter(o => o.isCall);
+  const countEl = document.getElementById('notifCount');
+  const listEl  = document.getElementById('notifList');
+  if (!listEl) return;
+
+  if (countEl) countEl.textContent = calls.length;
+
+  if (!calls.length) {
+    listEl.innerHTML = '<div class="notif-empty">No requests yet</div>';
+    return;
+  }
+
+  listEl.innerHTML = calls.map(c => `
+    <div class="notif-item ${c.isNew ? 'notif-new' : ''}" id="notif-${c.id}">
+      <button class="notif-dismiss" onclick="dismissCall('${c.id}')" title="Dismiss">✕</button>
+      <div class="notif-icon">${CALL_ICONS[c.callType] || '🔔'}</div>
+      <div class="notif-table">Table ${c.table}</div>
+      <div class="notif-msg">${c.callMsg}</div>
+      <div class="notif-time">${c.time}</div>
+    </div>
+  `).join('');
 }
 
 // =====================================================================
@@ -3223,25 +3236,18 @@ async function loadMenuFromAPI() {
 // =====================================================================
 // Prevent accidental refresh/close while logged in
 window.addEventListener('beforeunload', (event) => {
-  if (isLoggedIn) {
-    event.preventDefault();
-    event.returnValue = '';
-  }
+  if (isLoggedIn) { event.preventDefault(); event.returnValue = ''; }
 });
 
 window.addEventListener('load', async () => {
-  // Load menu from API first (needed for both admin and customer)
   await loadMenuFromAPI();
-
   drawQR(document.getElementById('landQR'), 0);
 
-  // Check URL for table param (QR scan — customer side)
   const params = new URLSearchParams(window.location.search);
   const tableParam = params.get('table');
   const cafeParam  = params.get('cafe');
 
   if (cafeParam === CAFE_ID && tableParam) {
-    // Customer arrived via QR code
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
     document.getElementById('tableSelect').value = tableParam;
@@ -3249,7 +3255,6 @@ window.addEventListener('load', async () => {
     showView('customerMenu');
     setTimeout(initCallBanner, 800);
   } else if (localStorage.getItem('haretna_session') === 'admin') {
-    // Try to restore admin session silently
     const token = getToken();
     if (token) {
       try {
@@ -3260,7 +3265,6 @@ window.addEventListener('load', async () => {
         renderAdmin();
         showView('admin');
       } catch {
-        // Token expired
         clearToken();
         localStorage.removeItem('haretna_session');
         showView('landing');
@@ -3273,7 +3277,6 @@ window.addEventListener('load', async () => {
     showView('landing');
   }
 
-  // Reveal page — prevents flash of wrong view
   document.body.classList.add('ready');
 });
 </script>
