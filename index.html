@@ -3116,6 +3116,14 @@ async function loadMenuFromAPI() {
 // =====================================================================
 // INIT
 // =====================================================================
+// Prevent accidental page refresh/close while logged in
+window.addEventListener('beforeunload', (event) => {
+  if (isLoggedIn) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+
 window.addEventListener('load', async () => {
   // Load menu from API first
   await loadMenuFromAPI();
@@ -3132,7 +3140,6 @@ window.addEventListener('load', async () => {
         await loadAdminOrders();
         renderAdmin();
       } catch {
-        // Token expired — clear session and show landing
         clearToken();
         localStorage.removeItem('haretna_session');
       }
@@ -3143,7 +3150,6 @@ window.addEventListener('load', async () => {
 
   drawQR(document.getElementById('landQR'), 0);
 
-  // Check URL for table param (QR code URL support)
   const params = new URLSearchParams(window.location.search);
   const tableParam = params.get('table');
   const cafeParam = params.get('cafe');
