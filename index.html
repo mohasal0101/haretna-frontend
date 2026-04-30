@@ -1377,8 +1377,8 @@ let adminFilter = 'all';
 let cdTimer = null;
 let cdRemaining = 3;
 let pendingOrderData = null;
-let isLoggedIn = true;
-  localStorage.setItem('haretna_session', 'admin');
+let isLoggedIn = false;
+  localStorage.setItem('haretna_session', 'admin');  // ← THIS IS WRONG
 
 // Admin-editable offers and trending
 let OFFERS = [
@@ -1425,6 +1425,7 @@ async function doLogin() {
     });
     setToken(data.token);
     isLoggedIn = true;
+    localStorage.setItem('haretna_session', 'admin');
     document.getElementById('loginUser').value = '';
     document.getElementById('loginPass').value = '';
     connectAdminSocket();
@@ -1440,7 +1441,8 @@ async function doLogin() {
 
 function doLogout() {
   isLoggedIn = false;
-  localStorage.removeItem('haretna_session'); // ← ADD THIS
+  localStorage.removeItem('haretna_session');
+  clearToken();
   showView('landing');
 }
 
@@ -3115,15 +3117,15 @@ async function loadMenuFromAPI() {
 // =====================================================================
 // INIT
 // =====================================================================
-window.addEventListener('load', async () => {
+window.addEventListener('load', () => {
+  // Session restore
   if (localStorage.getItem('haretna_session') === 'admin') {
     isLoggedIn = true;
-    seedDemo();
     showView('admin');
-    renderAdmin();
+    loadAdminOrders();
+  }
 
-    
-    drawQR(document.getElementById('landQR'), 0);
+  drawQR(document.getElementById('landQR'), 0);
 
   // Load menu from API
   await loadMenuFromAPI();
