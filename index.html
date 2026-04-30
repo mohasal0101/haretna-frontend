@@ -1377,7 +1377,8 @@ let adminFilter = 'all';
 let cdTimer = null;
 let cdRemaining = 3;
 let pendingOrderData = null;
-let isLoggedIn = false;
+let isLoggedIn = true;
+  localStorage.setItem('haretna_session', 'admin');
 
 // Admin-editable offers and trending
 let OFFERS = [
@@ -1439,8 +1440,7 @@ async function doLogin() {
 
 function doLogout() {
   isLoggedIn = false;
-  clearToken();
-  if (adminSocket) { adminSocket.disconnect(); adminSocket = null; }
+  localStorage.removeItem('haretna_session'); // ← ADD THIS
   showView('landing');
 }
 
@@ -2669,16 +2669,42 @@ function renderMMGrid(catId) {
   }).join('');
 }
 
-function handleMMUpload(id, input) {
+async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
+
+  // Show local preview immediately
   const reader = new FileReader();
   reader.onload = e => {
     customImages[id] = e.target.result;
     renderMMGrid(_mmActiveCat);
-    toast('Photo updated! 📷');
   };
   reader.readAsDataURL(file);
+
+  // Upload to backend
+  try {
+    toast('Uploading... ');
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const res = await fetch(`${API_URL}/api/upload/menu-item/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: formData
+    });
+    
+    const data = await res.json();
+    if (data.imageUrl) {
+      customImages[id] = data.imageUrl; // Use the Cloudinary URL
+      renderMMGrid(_mmActiveCat);
+      toast('Photo saved! ');
+    } else {
+      toast('Upload failed — photo saved locally only ');
+    }
+  } catch (err) {
+    toast('Upload failed — photo saved locally only ');
+    console.error('Upload error:', err);
+  }
 }
 
 function removeMMImage(id) {
@@ -3090,7 +3116,14 @@ async function loadMenuFromAPI() {
 // INIT
 // =====================================================================
 window.addEventListener('load', async () => {
-  drawQR(document.getElementById('landQR'), 0);
+  if (localStorage.getItem('haretna_session') === 'admin') {
+    isLoggedIn = true;
+    seedDemo();
+    showView('admin');
+    renderAdmin();
+
+    
+    drawQR(document.getElementById('landQR'), 0);
 
   // Load menu from API
   await loadMenuFromAPI();
