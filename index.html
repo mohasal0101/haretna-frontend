@@ -53,7 +53,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow-x:hidden;}
-body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;visibility:hidden;}
+body.ready{visibility:visible;}
 button,input,textarea,select{font-family:'Rubik',sans-serif;}
 img{display:block;}
 
@@ -2670,40 +2671,54 @@ function renderMMGrid(catId) {
   }).join('');
 }
 
-// Track pending uploads: itemId -> File object
+// Track pending uploads: itemId -> compressed Blob
 let mmPendingUploads = {};
 
 function mmEnableSave() {
   const btn = document.getElementById('mmSaveBtn');
-  if (btn) {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-  }
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
 }
 
 function mmDisableSave() {
   const btn = document.getElementById('mmSaveBtn');
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-    btn.style.cursor = 'not-allowed';
-  }
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+}
+
+// Compress image to max width & quality before upload
+function compressImage(file, maxWidth, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => resolve(file);
+    img.src = url;
+  });
 }
 
 async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
 
+  // Compress before storing/uploading (800px wide, 75% quality)
+  const compressed = await compressImage(file, 800, 0.75);
+
   // Show local preview immediately
   const reader = new FileReader();
   reader.onload = e => {
     customImages[id] = e.target.result;
-    mmPendingUploads[id] = file; // store file for when Save is clicked
+    mmPendingUploads[id] = compressed;
     renderMMGrid(_mmActiveCat);
-    mmEnableSave(); // enable Save button
+    mmEnableSave();
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(compressed);
 }
 
 async function mmSaveChanges() {
@@ -2717,15 +2732,15 @@ async function mmSaveChanges() {
   let successCount = 0;
   let failCount = 0;
 
-  for (const [id, file] of Object.entries(mmPendingUploads)) {
+  for (const [id, blob] of Object.entries(mmPendingUploads)) {
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', blob, 'photo.jpg');
 
       const res = await fetch(`${API_URL}/api/upload/menu-item/${id}`, {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + getToken() },
-        body: formData
+        body: formData,
       });
 
       const data = await res.json();
@@ -2741,7 +2756,7 @@ async function mmSaveChanges() {
     }
   }
 
-  mmPendingUploads = {}; // clear pending
+  mmPendingUploads = {};
   renderMMGrid(_mmActiveCat);
 
   if (failCount === 0) {
@@ -2879,28 +2894,45 @@ function sendTableCall(type) {
     toast('Already sent! Please wait a moment.'); return;
   }
   callCooldowns[type] = now;
-  const btn = document.getElementById('call'+type.charAt(0).toUpperCase()+type.slice(1));
-  if (btn) { btn.classList.add('sent'); setTimeout(()=>btn.classList.remove('sent'), 30000); }
+
+  const btn = document.getElementById('call' + type.charAt(0).toUpperCase() + type.slice(1));
+  if (btn) { btn.classList.add('sent'); setTimeout(() => btn.classList.remove('sent'), 30000); }
 
   const callOrder = {
     id: Date.now(),
     table: currentTable,
     isCall: true,
+    callType: type,
     callMsg: `${CALL_LABELS[type]} Table ${currentTable}`,
     status: 'new',
-    time: new Date().toLocaleTimeString('en-JO',{hour:'2-digit',minute:'2-digit'}),
+    time: new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
     date: new Date().toISOString().split('T')[0],
     isNew: true,
-    items: [], note:'', sub:0, tax:0, grand:0,
+    items: [], note: '', sub: 0, tax: 0, grand: 0,
   };
+
+  // Send to admin via socket
+  if (typeof io !== 'undefined') {
+    if (!window._customerSocket) {
+      window._customerSocket = io(API_URL);
+    }
+    window._customerSocket.emit('table:call', {
+      table: currentTable,
+      type,
+      message: callOrder.callMsg,
+      time: callOrder.time,
+    });
+  }
+
+  // Also push locally in case admin is on same device
   orders.unshift(callOrder);
   playAlertSound();
-  // Close the call popup
+
   _callPopupOpen = false;
   const popup = document.getElementById('callPopup');
   if (popup) popup.classList.remove('open');
   toast(`✓ ${CALL_LABELS[type].split(' at')[0]} sent!`);
-  setTimeout(()=>{ callOrder.isNew=false; },8000);
+  setTimeout(() => { callOrder.isNew = false; }, 8000);
 }
 
 function dismissCall(id) {
@@ -3112,6 +3144,25 @@ function connectAdminSocket() {
     }
     renderMenu();
   });
+
+  adminSocket.on('table:call', ({ table, type, message, time }) => {
+    const callOrder = {
+      id: Date.now(),
+      table: String(table),
+      isCall: true,
+      callType: type,
+      callMsg: message,
+      status: 'new',
+      time: time,
+      date: new Date().toISOString().split('T')[0],
+      isNew: true,
+      items: [], note: '', sub: 0, tax: 0, grand: 0,
+    };
+    orders.unshift(callOrder);
+    playAlertSound();
+    renderAdmin();
+    toast(`🔔 ${message}!`);
+  });
 }
 
 // =====================================================================
@@ -3165,7 +3216,7 @@ async function loadMenuFromAPI() {
 // =====================================================================
 // INIT
 // =====================================================================
-// Prevent accidental page refresh/close while logged in
+// Prevent accidental refresh/close while logged in
 window.addEventListener('beforeunload', (event) => {
   if (isLoggedIn) {
     event.preventDefault();
@@ -3174,42 +3225,51 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 window.addEventListener('load', async () => {
-  // Load menu from API first
+  // Load menu from API first (needed for both admin and customer)
   await loadMenuFromAPI();
-
-  // Restore admin session if previously logged in
-  if (localStorage.getItem('haretna_session') === 'admin') {
-    const token = getToken();
-    if (token) {
-      try {
-        await apiFetch('/api/auth/me');
-        isLoggedIn = true;
-        connectAdminSocket();
-        showView('admin');
-        await loadAdminOrders();
-        renderAdmin();
-      } catch {
-        clearToken();
-        localStorage.removeItem('haretna_session');
-      }
-    } else {
-      localStorage.removeItem('haretna_session');
-    }
-  }
 
   drawQR(document.getElementById('landQR'), 0);
 
+  // Check URL for table param (QR scan — customer side)
   const params = new URLSearchParams(window.location.search);
   const tableParam = params.get('table');
-  const cafeParam = params.get('cafe');
+  const cafeParam  = params.get('cafe');
+
   if (cafeParam === CAFE_ID && tableParam) {
+    // Customer arrived via QR code
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
     document.getElementById('tableSelect').value = tableParam;
     renderMenu();
     showView('customerMenu');
     setTimeout(initCallBanner, 800);
+  } else if (localStorage.getItem('haretna_session') === 'admin') {
+    // Try to restore admin session silently
+    const token = getToken();
+    if (token) {
+      try {
+        await apiFetch('/api/auth/me');
+        isLoggedIn = true;
+        connectAdminSocket();
+        await loadAdminOrders();
+        renderAdmin();
+        showView('admin');
+      } catch {
+        // Token expired
+        clearToken();
+        localStorage.removeItem('haretna_session');
+        showView('landing');
+      }
+    } else {
+      localStorage.removeItem('haretna_session');
+      showView('landing');
+    }
+  } else {
+    showView('landing');
   }
+
+  // Reveal page — prevents flash of wrong view
+  document.body.classList.add('ready');
 });
 </script>
 </body>
