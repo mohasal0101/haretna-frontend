@@ -2678,13 +2678,11 @@ function mmEnableSave() {
   const btn = document.getElementById('mmSaveBtn');
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
 }
-
 function mmDisableSave() {
   const btn = document.getElementById('mmSaveBtn');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
 }
 
-// Compress image to max width & quality before upload
 function compressImage(file, maxWidth, quality) {
   return new Promise(resolve => {
     const img = new Image();
@@ -2707,10 +2705,9 @@ async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
 
-  // Compress before storing/uploading (800px wide, 75% quality)
+  // Compress to max 800px wide, 75% JPEG quality
   const compressed = await compressImage(file, 800, 0.75);
 
-  // Show local preview immediately
   const reader = new FileReader();
   reader.onload = e => {
     customImages[id] = e.target.result;
@@ -2760,7 +2757,7 @@ async function mmSaveChanges() {
   renderMMGrid(_mmActiveCat);
 
   if (failCount === 0) {
-    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved to database!`);
+    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved!`);
     mmDisableSave();
     btn.textContent = '💾 Save';
   } else {
@@ -2898,33 +2895,36 @@ function sendTableCall(type) {
   const btn = document.getElementById('call' + type.charAt(0).toUpperCase() + type.slice(1));
   if (btn) { btn.classList.add('sent'); setTimeout(() => btn.classList.remove('sent'), 30000); }
 
+  const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
+  const callMsg  = `${CALL_LABELS[type]} Table ${currentTable}`;
+
   const callOrder = {
     id: Date.now(),
     table: currentTable,
     isCall: true,
     callType: type,
-    callMsg: `${CALL_LABELS[type]} Table ${currentTable}`,
+    callMsg: callMsg,
     status: 'new',
-    time: new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+    time: callTime,
     date: new Date().toISOString().split('T')[0],
     isNew: true,
     items: [], note: '', sub: 0, tax: 0, grand: 0,
   };
 
-  // Send to admin via socket
+  // Connect a customer socket if not already connected, and emit the call
   if (typeof io !== 'undefined') {
-    if (!window._customerSocket) {
+    if (!window._customerSocket || !window._customerSocket.connected) {
       window._customerSocket = io(API_URL);
     }
     window._customerSocket.emit('table:call', {
       table: currentTable,
-      type,
-      message: callOrder.callMsg,
-      time: callOrder.time,
+      type: type,
+      message: callMsg,
+      time: callTime,
     });
   }
 
-  // Also push locally in case admin is on same device
+  // Push locally so it shows if admin is on the same device
   orders.unshift(callOrder);
   playAlertSound();
 
@@ -3145,7 +3145,12 @@ function connectAdminSocket() {
     renderMenu();
   });
 
+  // Listen for table call notifications from customers
   adminSocket.on('table:call', ({ table, type, message, time }) => {
+    // Avoid duplicate if admin is on same device as customer
+    const alreadyExists = orders.find(o => o.isCall && o.callMsg === message && o.table === String(table));
+    if (alreadyExists) return;
+
     const callOrder = {
       id: Date.now(),
       table: String(table),
