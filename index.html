@@ -1666,14 +1666,6 @@ const FLAVORS_MAP = [
   { keywords: ['frappe','frappé'],flavors: ['Mocha', 'Caramel', 'Vanilla', 'Hazelnut', 'Matcha'] },
 ];
 
-function getFlavorsForItem(itemName) {
-  const name = (itemName || '').toLowerCase();
-  for (const entry of FLAVORS_MAP) {
-    if (entry.keywords.some(k => name.includes(k))) return entry.flavors;
-  }
-  return [];
-}
-
 let _selectedFlavor = null;
 
 // =====================================================================
@@ -2502,14 +2494,17 @@ function saveAddons() {
 }
 
 // Override getFlavorsForItem to use admin-defined add-ons first, then fallback to FLAVORS_MAP
-const _originalGetFlavors = getFlavorsForItem;
 function getFlavorsForItem(itemName, itemId) {
   // Admin-defined add-ons take priority
   if (itemId && ADDONS[itemId] && ADDONS[itemId].options.length > 0) {
     return ADDONS[itemId].options;
   }
   // Fallback to keyword map
-  return _originalGetFlavors(itemName);
+  const name = (itemName || '').toLowerCase();
+  for (const entry of FLAVORS_MAP) {
+    if (entry.keywords.some(k => name.includes(k))) return entry.flavors;
+  }
+  return [];
 }
 
 function findItem(id) {
@@ -2861,6 +2856,14 @@ async function confirmOrder() {
 // ADMIN — API connected
 // =====================================================================
 
+// Set of order IDs the admin has dismissed — persists in localStorage
+let _dismissedOrderIds = new Set();
+try { const s = localStorage.getItem('haretna_dismissed'); if (s) _dismissedOrderIds = new Set(JSON.parse(s)); } catch(e){}
+
+function _saveDismissed() {
+  try { localStorage.setItem('haretna_dismissed', JSON.stringify([..._dismissedOrderIds])); } catch(e){}
+}
+
 // Load all active orders from API
 async function loadAdminOrders() {
   try {
@@ -2909,7 +2912,7 @@ async function loadAdminOrders() {
         stacked.push({...o, items: o.items.map(i=>({...i}))});
       }
     }
-    orders = stacked;
+    orders = stacked.filter(o => !_dismissedOrderIds.has(String(o.id)));
   } catch (e) {
     console.error('Failed to load orders:', e.message);
   }
@@ -3013,12 +3016,14 @@ function dismissOrder(id) {
   showConfirm({
     icon: '🗑️',
     title: `Remove ${label}?`,
-    msg: 'This removes the order from your board view only. It stays in the database and won\'t affect history.',
+    msg: 'This removes the order from your board. It will not reappear on refresh until the table places a new order.',
     okLabel: 'Remove',
     onOk: () => {
+      _dismissedOrderIds.add(String(id));
+      _saveDismissed();
       orders = orders.filter(o => o.id !== id);
       renderAdmin();
-      toast('Order removed from view');
+      toast('Order removed from board');
     }
   });
 }
@@ -3085,8 +3090,10 @@ async function cashOut(id) {
     if (o) {
       history.unshift({...o, status:'cashed'});
       orders = orders.filter(x=>x.id!==id);
+      _dismissedOrderIds.delete(String(id));
+      _saveDismissed();
       renderAdmin();
-      toast(`Table ${o.table} — Cashed out ✅`);
+      toast(`Table ${o.table} — Cashed out`);
     }
   } catch (e) { toast('Error: ' + e.message); }
 }
@@ -3966,6 +3973,9 @@ function connectAdminSocket() {
         date: new Date(order.createdAt).toISOString().split('T')[0],
         isNew: true, isCall: false, hasNewItems: false,
       };
+      // Clear any previous dismissal for this order id so it shows up fresh
+      _dismissedOrderIds.delete(String(order.id));
+      _saveDismissed();
       orders.unshift(mapped);
       playAlertSound();
       renderAdmin();
