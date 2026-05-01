@@ -72,7 +72,20 @@ body.ready{visibility:visible;}
 .notif-dismiss:hover{color:var(--gold);}
 .notif-empty{padding:24px 12px;text-align:center;color:var(--text3);font-size:11px;}
 .admin-main{flex:1;overflow-y:auto;padding:16px;}
-@media(max-width:700px){.notif-sidebar{display:none;}}
+@media(max-width:700px){
+  .notif-sidebar{
+    display:flex;
+    width:100%;min-width:unset;
+    border-right:none;border-bottom:1px solid var(--border);
+    flex-direction:row;align-items:center;
+    max-height:52px;overflow:hidden;
+    transition:max-height .3s ease;
+  }
+  .notif-sidebar.expanded{max-height:300px;flex-direction:column;align-items:stretch;}
+  .notif-sidebar-head{cursor:pointer;flex:1;border-bottom:none;}
+  .notif-list{width:100%;}
+  .admin-with-sidebar{flex-direction:column;}
+}
 button,input,textarea,select{font-family:'Rubik',sans-serif;}
 img{display:block;}
 
@@ -1188,7 +1201,7 @@ body::after{
   <div class="admin-with-sidebar">
     <!-- ── Notification Sidebar ── -->
     <div class="notif-sidebar">
-      <div class="notif-sidebar-head">
+      <div class="notif-sidebar-head" onclick="this.closest('.notif-sidebar').classList.toggle('expanded')">
         🔔 Table Requests
         <span class="notif-count" id="notifCount">0</span>
       </div>
@@ -1586,6 +1599,9 @@ let _selectedFlavor = null;
 function showView(id) {
   // Teardown floating cat btn if leaving customer menu
   if (id !== 'customerMenu') teardownFloatingCatBtn();
+  // Start/stop live sync for customers
+  if (id === 'customerMenu' && !isLoggedIn) startCustomerSync();
+  else stopCustomerSync();
   document.querySelectorAll('.view').forEach(v => {
     v.classList.remove('active');
   });
@@ -2248,6 +2264,47 @@ function findItemInMenu(id) {
   return null;
 }
 
+// =====================================================================
+// LIVE OFFERS + TRENDING SYNC FOR CUSTOMERS
+// Polls every 30s so customers always see latest offers and trending
+// =====================================================================
+let _customerSyncInterval = null;
+
+async function startCustomerSync() {
+  if (_customerSyncInterval) clearInterval(_customerSyncInterval);
+  _customerSyncInterval = setInterval(async () => {
+    // Only sync when customer menu is visible (not admin, not other views)
+    if (isLoggedIn) return;
+    const menuView = document.getElementById('customerMenu');
+    if (!menuView || !menuView.classList.contains('active')) return;
+    try {
+      const [offersData, trendingData] = await Promise.all([
+        apiFetch('/api/offers'),
+        apiFetch('/api/menu/trending'),
+      ]);
+      const newOffers = offersData.map(o => ({
+        id: o.id, title: o.titleEn, titleAr: o.titleAr,
+        desc: o.descriptionEn, price: o.price || 0,
+        itemIds: o.itemIds || [], active: o.isActive,
+      }));
+      const newTrending = trendingData.map(i => i.id);
+      // Only re-render if something actually changed
+      const offersChanged = JSON.stringify(newOffers.map(o=>({id:o.id,active:o.active}))) !==
+                            JSON.stringify(OFFERS.map(o=>({id:o.id,active:o.active})));
+      const trendingChanged = JSON.stringify(newTrending) !== JSON.stringify(ADMIN_TRENDING_IDS);
+      if (offersChanged || trendingChanged) {
+        OFFERS = newOffers;
+        ADMIN_TRENDING_IDS = newTrending;
+        renderMenu();
+      }
+    } catch(e) { /* silent fail */ }
+  }, 30000); // every 30 seconds
+}
+
+function stopCustomerSync() {
+  if (_customerSyncInterval) { clearInterval(_customerSyncInterval); _customerSyncInterval = null; }
+}
+
 function findItem(id) {
   for (const cat of MENU) {
     const item = cat.items.find(i=>i.id===id);
@@ -2675,7 +2732,7 @@ function renderAdmin() {
       <div class="oc-items">
         ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
           <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);">x${i.qty}</span>
-          <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
+          <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
           <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
           <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
         </div>`).join('')}
@@ -2879,6 +2936,8 @@ async function closeOffersPanel() {
   OFFERS.forEach(o => {
     apiFetch(`/api/offers/${o.id}`, { method: 'PATCH', body: JSON.stringify({ isActive: o.active }) }).catch(()=>{});
   });
+  // Broadcast to customers so they see changes instantly
+  if (adminSocket) adminSocket.emit('offers:updated', {});
   document.getElementById('offersPanel').style.display='none';
   renderMenu();
 }
@@ -3194,6 +3253,8 @@ function closeTrendingPanel() {
 }
 function saveTrendingAndClose() {
   try { localStorage.setItem('haretna_trending', JSON.stringify(ADMIN_TRENDING_IDS)); } catch(e){}
+  // Broadcast to customers via socket
+  if (adminSocket) adminSocket.emit('trending:updated', { ids: ADMIN_TRENDING_IDS });
   closeTrendingPanel();
   renderMenu();
   toast('Trending updated!');
@@ -3326,10 +3387,28 @@ function sendTableCall(type) {
     renderNotifSidebar();
   }
 
-  // Also send via socket so other devices (dedicated admin tablet) receive it
+  // Send via socket to admin
   if (typeof io !== 'undefined') {
     if (!window._customerSocket || !window._customerSocket.connected) {
       window._customerSocket = io(API_URL);
+      // Listen for live menu updates pushed by admin
+      window._customerSocket.on('trending:updated', ({ ids }) => {
+        if (isLoggedIn) return;
+        ADMIN_TRENDING_IDS = ids;
+        renderMenu();
+      });
+      window._customerSocket.on('offers:updated', async () => {
+        if (isLoggedIn) return;
+        try {
+          const offersData = await apiFetch('/api/offers');
+          OFFERS = offersData.map(o => ({
+            id: o.id, title: o.titleEn, titleAr: o.titleAr,
+            desc: o.descriptionEn, price: o.price || 0,
+            itemIds: o.itemIds || [], active: o.isActive,
+          }));
+          renderMenu();
+        } catch(e) {}
+      });
     }
     window._customerSocket.emit('table:call', {
       table: currentTable,
@@ -3363,7 +3442,15 @@ function renderNotifSidebar() {
   const listEl  = document.getElementById('notifList');
   if (!listEl) return;
 
-  if (countEl) countEl.textContent = calls.length;
+  if (countEl) {
+    countEl.textContent = calls.length;
+    // Pulse count badge if there are pending calls
+    countEl.style.animation = calls.length > 0 ? 'pulse 1.5s infinite' : '';
+  }
+
+  // Auto-expand sidebar on mobile when calls arrive
+  const sidebar = document.querySelector('.notif-sidebar');
+  if (sidebar && calls.length > 0) sidebar.classList.add('expanded');
 
   if (!calls.length) {
     listEl.innerHTML = '<div class="notif-empty">No requests yet</div>';
