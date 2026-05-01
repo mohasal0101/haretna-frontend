@@ -325,7 +325,7 @@ body::after{
 /* ============================================================
    CART DRAWER
    ============================================================ */
-.cart-overlay{position:fixed;inset:0;z-index:400;display:none;}
+.cart-overlay{position:fixed;inset:0;z-index:800;display:none;}
 .cart-overlay.open{display:block;}
 .cart-bg{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);}
 .cart-panel{position:absolute;right:0;top:0;bottom:0;width:min(370px,100vw);background:var(--chalk);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideR .3s ease;}
@@ -640,7 +640,7 @@ body::after{
 /* ============================================================
    STICKY CART BAR
    ============================================================ */
-#cartBar{position:fixed;bottom:0;left:0;right:0;z-index:900;background:linear-gradient(135deg,#6b3f0e,var(--gold2));padding:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+#cartBar{position:fixed;bottom:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#6b3f0e,var(--gold2));padding:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
 #cartBarInner{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cb-icon{font-size:20px;flex-shrink:0;}
@@ -913,6 +913,7 @@ body::after{
       <div class="cv-title-ar" id="cvTitleAr"></div>
     </div>
     <span class="cv-icon" id="cvIcon"></span>
+    <button class="cart-btn" onclick="openCart()" style="margin-left:8px;">🛒 <span class="cart-badge" id="cvCartBadge">0</span></button>
   </div>
   <div class="cv-body" id="cvBody"></div>
 </div>
@@ -2266,6 +2267,8 @@ function updateCardUI(id) {
 function updateCartBadge() {
   const n = Object.values(cart).reduce((s,e)=>s+e.qty,0);
   document.getElementById('cartBadge').textContent = n;
+  const cv = document.getElementById('cvCartBadge');
+  if (cv) cv.textContent = n;
 }
 
 // =====================================================================
@@ -2681,7 +2684,7 @@ function renderAdmin() {
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
-          ${o.status==='new'?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
+          ${(o.status==='new'||o.status==='preparing')?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
           ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
           ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
           ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
