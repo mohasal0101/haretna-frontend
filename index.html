@@ -197,23 +197,23 @@ body::after{
    FLOATING CATEGORY PICKER
    ============================================================ */
 #floatCatBtn{
-  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   z-index:500;display:none;
-  background:var(--chalk2);border:1px solid var(--border2);
-  border-radius:999px;
-  padding:10px 20px 10px 16px;
-  box-shadow:0 4px 24px rgba(0,0,0,.55),0 0 0 1px rgba(200,149,42,.12) inset;
+  background:var(--chalk);border:1px solid var(--border2);border-bottom:none;
+  border-radius:14px 14px 0 0;
+  padding:10px 24px 10px 18px;
+  box-shadow:0 -2px 16px rgba(0,0,0,.35),0 0 0 1px rgba(200,149,42,.1) inset;
   cursor:pointer;
-  display:none;
   align-items:center;gap:9px;
   font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;
   color:var(--cream2);white-space:nowrap;
-  transition:transform .15s,box-shadow .15s;
+  transition:bottom .3s cubic-bezier(.4,0,.2,1),transform .15s,box-shadow .15s;
   -webkit-tap-highlight-color:transparent;
 }
-#floatCatBtn:active{transform:translateX(-50%) scale(.96);}
+#floatCatBtn:active{transform:translateX(-50%) scale(.97);}
 #floatCatBtn.visible{display:flex;}
-#floatCatBtn .fcb-icon{font-size:18px;line-height:1;}
+#floatCatBtn.cart-bar-up{bottom:56px;}
+#floatCatBtn .fcb-icon{font-size:16px;line-height:1;}
 #floatCatBtn .fcb-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);margin-left:2px;transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -361,6 +361,8 @@ body::after{
 .trend-price{font-size:10px;color:var(--gold2);font-weight:700;}
 
 .cart-foot{padding:12px 14px 20px;border-top:1px solid var(--border);background:var(--chalk2);}
+.cart-overlay.open .cart-foot{padding-bottom:20px;}
+#cartBar.visible ~ * .cart-foot, .cart-foot.bar-up{padding-bottom:76px;}
 .cart-totals{margin-bottom:10px;}
 .ct-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
 .ct-label{color:var(--text3);}
@@ -492,6 +494,7 @@ body::after{
 
 .oc-items{padding:8px 12px;}
 .oc-item-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;border-bottom:1px solid rgba(74,64,56,.4);}
+.oc-item-row.oc-item-new{background:rgba(200,149,42,.06);border-radius:4px;padding:4px 6px;margin:1px -6px;border-bottom:1px solid rgba(200,149,42,.2);}
 .oc-item-row:last-child{border:none;}
 .oc-item-icon{font-size:15px;}
 .oc-item-name{flex:1;color:var(--cream2);font-family:'Rubik',sans-serif;font-size:10px;}
@@ -582,6 +585,60 @@ body::after{
 .op-total-price{font-family:'Rubik',sans-serif;font-size:18px;font-weight:700;color:var(--gold2);}
 .op-add-btn{flex:1.2;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:13px 20px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;-webkit-tap-highlight-color:transparent;}
 .op-close-btn{background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+
+/* ============================================================
+   ITEM DETAIL POPUP
+   ============================================================ */
+#itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
+#itemPopupOverlay.open{display:flex;}
+#itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
+.ip-handle{width:36px;height:3px;background:var(--border2);border-radius:2px;margin:12px auto 6px;flex-shrink:0;}
+.ip-img-wrap{width:100%;max-height:200px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
+.ip-img-wrap img{width:100%;height:200px;object-fit:cover;display:block;}
+.ip-img-empty{width:100%;height:140px;display:flex;align-items:center;justify-content:center;background:var(--chalk3);}
+.ip-img-empty svg{opacity:.2;}
+.ip-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ip-title-en{font-family:'Rubik',sans-serif;font-size:16px;font-weight:700;color:var(--cream2);letter-spacing:.5px;margin-bottom:2px;}
+.ip-title-ar{font-family:'Rubik',sans-serif;font-size:18px;color:var(--cream3);margin-bottom:6px;}
+.ip-desc{font-size:12px;color:var(--text3);line-height:1.5;}
+.ip-price{font-family:'Rubik',sans-serif;font-size:20px;font-weight:700;color:var(--gold2);margin-top:6px;}
+.ip-footer{padding:14px 16px 18px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.ip-qty-ctrl{display:flex;align-items:center;gap:10px;background:var(--chalk2);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 8px;}
+.ip-qty-btn{background:none;border:none;color:var(--gold2);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;-webkit-tap-highlight-color:transparent;}
+.ip-qty-n{font-family:'Rubik',sans-serif;font-size:16px;color:var(--cream);min-width:20px;text-align:center;}
+.ip-add-btn{flex:1;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:13px 20px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;-webkit-tap-highlight-color:transparent;}
+.ip-add-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ip-close-btn{background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.ip-oos-badge{position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;padding:4px 10px;border-radius:20px;text-transform:uppercase;}
+.ip-note-wrap{padding:0 16px 10px;flex-shrink:0;}
+.ip-note-toggle{background:none;border:1px dashed var(--border2);color:var(--text3);width:100%;padding:8px 12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-align:left;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.ip-note-toggle:hover,.ip-note-toggle.active{border-color:var(--gold);color:var(--gold2);background:rgba(200,149,42,.06);}
+.ip-note-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);border-radius:var(--radius);padding:8px 12px;font-size:12px;font-family:'Rubik',sans-serif;resize:none;outline:none;transition:border-color .2s;box-sizing:border-box;margin-top:6px;display:none;}
+.ip-note-input:focus{border-color:var(--gold);}
+.ip-note-input::placeholder{color:var(--text3);opacity:.7;}
+.ip-admin-bar{padding:8px 16px;background:rgba(200,149,42,.07);border-bottom:1px solid rgba(200,149,42,.2);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ip-admin-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;flex:1;}
+.ip-edit-btn{background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.4);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;padding:5px 12px;border-radius:var(--radius);cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.ip-edit-btn:hover{background:rgba(200,149,42,.25);}
+/* Item edit form inside popup */
+.ip-edit-form{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--chalk2);flex-shrink:0;}
+.ip-edit-form input,.ip-edit-form textarea{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:8px 11px;border-radius:var(--radius);font-size:12px;font-family:'Rubik',sans-serif;box-sizing:border-box;margin-bottom:7px;outline:none;transition:border-color .2s;}
+.ip-edit-form input:focus,.ip-edit-form textarea:focus{border-color:var(--gold);}
+.ip-edit-form textarea{resize:none;height:60px;}
+.ip-edit-form label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:3px;}
+.ip-edit-save{background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:9px 20px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;width:100%;text-transform:uppercase;}
+
+/* ============================================================
+   STICKY CART BAR
+   ============================================================ */
+#cartBar{position:fixed;bottom:0;left:0;right:0;z-index:900;background:linear-gradient(135deg,#6b3f0e,var(--gold2));padding:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+#cartBar.visible{transform:translateY(0);pointer-events:all;}
+#cartBarInner{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cb-icon{font-size:20px;flex-shrink:0;}
+.cb-count{font-family:'Rubik',sans-serif;font-size:11px;color:rgba(30,20,10,.8);letter-spacing:.5px;}
+.cb-label{flex:1;font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:var(--bg);letter-spacing:.5px;}
+.cb-total{font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--bg);}
+.cb-arrow{font-size:18px;color:rgba(30,20,10,.7);flex-shrink:0;}
 
 .cart-row-bundle{border-left:3px solid var(--gold2);}
 .cr-combo-tag{background:var(--gold2);color:var(--bg);font-size:8px;font-family:'Rubik',sans-serif;letter-spacing:1px;padding:1px 5px;border-radius:4px;vertical-align:middle;margin-left:4px;}
@@ -876,6 +933,61 @@ body::after{
   </div>
 </div>
 
+<!-- ITEM DETAIL POPUP -->
+<div id="itemPopupOverlay" onclick="closeItemPopup()">
+  <div id="itemPopup" onclick="event.stopPropagation()">
+    <div class="ip-handle"></div>
+    <div id="ipAdminBar" class="ip-admin-bar" style="display:none;">
+      <span class="ip-admin-label">Admin · Edit Item</span>
+      <button class="ip-edit-btn" onclick="toggleItemEdit()">Edit Details</button>
+    </div>
+    <div id="ipEditForm" class="ip-edit-form" style="display:none;">
+      <label>English Name</label>
+      <input id="ipEditEn" type="text" placeholder="Name in English"/>
+      <label>Arabic Name · الاسم بالعربي</label>
+      <input id="ipEditAr" type="text" placeholder="الاسم بالعربي" style="direction:rtl;"/>
+      <label>Description</label>
+      <textarea id="ipEditDesc" placeholder="Short description…"></textarea>
+      <label>Price (JD)</label>
+      <input id="ipEditPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
+      <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes</button>
+    </div>
+    <div id="ipImgWrap" class="ip-img-wrap"></div>
+    <div class="ip-header">
+      <div class="ip-title-en" id="ipTitleEn"></div>
+      <div class="ip-title-ar" id="ipTitleAr"></div>
+      <div class="ip-desc" id="ipDesc"></div>
+      <div class="ip-price" id="ipPrice"></div>
+    </div>
+    <div class="ip-note-wrap">
+      <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note</button>
+      <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce…"></textarea>
+    </div>
+    <div class="ip-footer">
+      <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
+      <div class="ip-qty-ctrl" id="ipQtyCtrl">
+        <button class="ip-qty-btn" onclick="ipChangeQty(-1)">−</button>
+        <span class="ip-qty-n" id="ipQtyN">1</span>
+        <button class="ip-qty-btn" onclick="ipChangeQty(1)">+</button>
+      </div>
+      <button class="ip-add-btn" id="ipAddBtn" onclick="ipAddToCart()">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY CART BAR -->
+<div id="cartBar">
+  <div id="cartBarInner" onclick="openCart()">
+    <span class="cb-icon">🛒</span>
+    <div style="flex:1;">
+      <div class="cb-count" id="cbCount">1 item</div>
+      <div class="cb-label">View Cart</div>
+    </div>
+    <div class="cb-total" id="cbTotal">JD 0.00</div>
+    <span class="cb-arrow">›</span>
+  </div>
+</div>
+
 <!-- SALES SUMMARY MODAL -->
 <div id="salesOverlay" onclick="closeSalesModal()">
   <div id="salesModal" onclick="event.stopPropagation()">
@@ -994,8 +1106,8 @@ body::after{
 
 <!-- FLOATING CATEGORY BUTTON -->
 <button id="floatCatBtn" onclick="openCatPicker()">
-  <span class="fcb-icon" id="fcbIcon">🍳</span>
-  <span class="fcb-label" id="fcbLabel">Breakfast</span>
+  <span class="fcb-icon" id="fcbIcon">☰</span>
+  <span class="fcb-label">Categories</span>
   <span class="fcb-arrow">▲</span>
 </button>
 
@@ -1613,7 +1725,7 @@ function renderItemHTML(item, isAdmin) {
     : `<div class="img-empty"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
   const uploadPart = isAdmin ? `<div class="item-img-upload" onclick="event.stopPropagation();triggerImgUpload('${item.id}')">📷</div>` : '';
   return `
-    <div class="item-card${qty>0?' in-cart':''}${oos?' out-of-stock':''}" id="icard-${item.id}">
+    <div class="item-card${qty>0?' in-cart':''}${oos?' out-of-stock':''}" id="icard-${item.id}" onclick="openItemPopup('${item.id}')">
       ${oos?'<div class="out-badge">Out of Stock</div>':''}
       <div class="item-img-wrap">
         ${imgContent}${uploadPart}
@@ -1627,7 +1739,7 @@ function renderItemHTML(item, isAdmin) {
       <div class="item-right">
         <div class="item-price">JD ${item.price.toFixed(2)}</div>
         <div class="qty-show${qty>0?' on':''}" id="qshow-${item.id}">×${qty}</div>
-        <button class="add-item-btn" type="button" onclick="addItem('${item.id}')">+</button>
+        <button class="add-item-btn" type="button" onclick="event.stopPropagation();addItem('${item.id}')">+</button>
       </div>
     </div>`;
 }
@@ -1718,7 +1830,6 @@ function updateFloatBtn(catId) {
   const cat = _allCats.find(c=>c.id===catId);
   if (!cat) return;
   document.getElementById('fcbIcon').textContent = cat.icon;
-  document.getElementById('fcbLabel').textContent = cat.en;
 }
 
 function openCatPicker() {
@@ -1729,9 +1840,9 @@ function openCatPicker() {
       <div class="cpm-en">${cat.en}</div>
       <div class="cpm-ar">${cat.ar}</div>
     </div>`).join('');
-  // Mark current
-  const currentLabel = document.getElementById('fcbLabel').textContent;
-  const currentCat = _allCats.find(c=>c.en===currentLabel);
+  // Mark current based on icon
+  const currentIcon = document.getElementById('fcbIcon').textContent;
+  const currentCat = _allCats.find(c=>c.icon===currentIcon);
   if (currentCat) {
     grid.querySelector(`[data-cat="${currentCat.id}"]`)?.classList.add('current');
   }
@@ -1815,6 +1926,7 @@ function addItem(itemId) {
   const {item} = res;
   cart[itemId] ? cart[itemId].qty++ : (cart[itemId] = {item, qty:1});
   updateCartBadge();
+  updateCartBar();
   updateCardUI(itemId);
   // Also refresh qty in cat view if open
   if (_activeCatViewId) {
@@ -1824,7 +1936,7 @@ function addItem(itemId) {
     if (qs) { qs.textContent=`×${qty}`; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-  toast(`${item.icon} ${item.en} added!`);
+  toast(`${item.en} added!`);
 }
 
 let _currentPopupOfferId = null;
@@ -1895,7 +2007,177 @@ function addOfferToCart(offerId) {
     };
   }
   updateCartBadge();
-  toast(`🏷️ ${offer.title} added to cart!`);
+  updateCartBar();
+  toast('Offer added to cart!');
+}
+
+// =====================================================================
+// ITEM DETAIL POPUP
+// =====================================================================
+let _currentPopupItemId = null;
+let _ipQty = 1;
+
+function openItemPopup(itemId) {
+  const res = findItemInMenu(itemId);
+  if (!res) return;
+  const {item} = res;
+  _currentPopupItemId = itemId;
+  _ipQty = 1;
+
+  const adminBar = document.getElementById('ipAdminBar');
+  const editForm = document.getElementById('ipEditForm');
+  if (isLoggedIn) { adminBar.style.display='flex'; } else { adminBar.style.display='none'; }
+  editForm.style.display = 'none';
+
+  const imgWrap = document.getElementById('ipImgWrap');
+  const imgSrc = customImages[itemId];
+  const oos = outOfStock.has(itemId);
+  imgWrap.innerHTML = imgSrc
+    ? `${oos?'<div class="ip-oos-badge">Out of Stock</div>':''}<img src="${imgSrc}" alt="${item.en}">`
+    : `<div class="ip-img-empty">${oos?'<div class="ip-oos-badge" style="position:relative;display:inline-block;margin-bottom:8px;">Out of Stock</div>':''}<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+
+  document.getElementById('ipTitleEn').textContent = item.en;
+  document.getElementById('ipTitleAr').textContent = item.ar;
+  document.getElementById('ipDesc').textContent = item.desc || '';
+  document.getElementById('ipDesc').style.display = item.desc ? 'block' : 'none';
+  document.getElementById('ipPrice').textContent = 'JD ' + item.price.toFixed(2);
+  document.getElementById('ipQtyN').textContent = _ipQty;
+
+  // Reset note
+  const noteInput = document.getElementById('ipNoteInput');
+  const noteToggle = document.getElementById('ipNoteToggle');
+  if (noteInput) { noteInput.value = ''; noteInput.style.display = 'none'; }
+  if (noteToggle) { noteToggle.textContent = '+ Add a note'; noteToggle.classList.remove('active'); }
+
+  const addBtn = document.getElementById('ipAddBtn');
+  addBtn.disabled = oos;
+  addBtn.textContent = oos ? 'Out of Stock' : 'Add to Cart';
+
+  document.getElementById('itemPopupOverlay').classList.add('open');
+}
+
+function closeItemPopup() {
+  document.getElementById('itemPopupOverlay').classList.remove('open');
+  document.getElementById('ipEditForm').style.display = 'none';
+  _currentPopupItemId = null;
+}
+
+function ipChangeQty(d) {
+  _ipQty = Math.max(1, _ipQty + d);
+  document.getElementById('ipQtyN').textContent = _ipQty;
+}
+
+function toggleIpNote() {
+  const inp = document.getElementById('ipNoteInput');
+  const btn = document.getElementById('ipNoteToggle');
+  const showing = inp.style.display !== 'none';
+  inp.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '+ Add a note' : '- Remove note';
+  btn.classList.toggle('active', !showing);
+  if (!showing) inp.focus();
+}
+
+function ipAddToCart() {
+  if (!_currentPopupItemId) return;
+  if (outOfStock.has(_currentPopupItemId)) return;
+  const res = findItemInMenu(_currentPopupItemId);
+  if (!res) return;
+  const {item} = res;
+  const note = (document.getElementById('ipNoteInput')?.value || '').trim();
+  if (cart[_currentPopupItemId]) {
+    cart[_currentPopupItemId].qty += _ipQty;
+    if (note) cart[_currentPopupItemId].note = note;
+  } else {
+    cart[_currentPopupItemId] = {item, qty: _ipQty, note: note || ''};
+  }
+  updateCartBadge();
+  updateCartBar();
+  updateCardUI(_currentPopupItemId);
+  if (_activeCatViewId) {
+    const qs = document.getElementById('qshow-'+_currentPopupItemId);
+    const card = document.getElementById('icard-'+_currentPopupItemId);
+    const qty = cart[_currentPopupItemId]?.qty||0;
+    if (qs) { qs.textContent='x'+qty; qs.classList.toggle('on',qty>0); }
+    if (card) card.classList.toggle('in-cart',qty>0);
+  }
+  toast(item.en + ' x' + _ipQty + ' added!');
+  closeItemPopup();
+}
+
+function toggleItemEdit() {
+  const form = document.getElementById('ipEditForm');
+  const visible = form.style.display !== 'none';
+  if (!visible) {
+    const res = findItemInMenu(_currentPopupItemId);
+    if (!res) return;
+    const {item} = res;
+    document.getElementById('ipEditEn').value = item.en;
+    document.getElementById('ipEditAr').value = item.ar;
+    document.getElementById('ipEditDesc').value = item.desc || '';
+    document.getElementById('ipEditPrice').value = item.price;
+  }
+  form.style.display = visible ? 'none' : 'block';
+}
+
+function saveItemEdit() {
+  if (!_currentPopupItemId) return;
+  const en = document.getElementById('ipEditEn').value.trim();
+  const ar = document.getElementById('ipEditAr').value.trim();
+  const desc = document.getElementById('ipEditDesc').value.trim();
+  const price = parseFloat(document.getElementById('ipEditPrice').value);
+  if (!en) { toast('Name cannot be empty'); return; }
+  if (isNaN(price) || price < 0) { toast('Invalid price'); return; }
+  const res = findItemInMenu(_currentPopupItemId);
+  if (!res) return;
+  const {item} = res;
+  item.en = en; item.ar = ar; item.desc = desc || null; item.price = price;
+  document.getElementById('ipTitleEn').textContent = en;
+  document.getElementById('ipTitleAr').textContent = ar;
+  document.getElementById('ipDesc').textContent = desc;
+  document.getElementById('ipDesc').style.display = desc ? 'block' : 'none';
+  document.getElementById('ipPrice').textContent = 'JD ' + price.toFixed(2);
+  document.getElementById('ipEditForm').style.display = 'none';
+  renderMenu();
+  toast('Item updated!');
+}
+
+// =====================================================================
+// CART BAR
+// =====================================================================
+function syncCartFootPadding() {
+  const cartBar = document.getElementById('cartBar');
+  const cartFoot = document.querySelector('.cart-foot');
+  if (!cartBar || !cartFoot) return;
+  const barH = cartBar.classList.contains('visible') ? cartBar.offsetHeight : 0;
+  cartFoot.style.paddingBottom = barH > 0 ? (barH + 12) + 'px' : '';
+}
+
+function updateCartBar() {
+  const count = cartCount();
+  const bar = document.getElementById('cartBar');
+  const floatBtn = document.getElementById('floatCatBtn');
+  if (!bar) return;
+  if (count > 0) {
+    bar.classList.add('visible');
+    if (floatBtn) floatBtn.classList.add('cart-bar-up');
+    const sub = cartSub();
+    document.getElementById('cbCount').textContent = count + ' item' + (count!==1?'s':'');
+    document.getElementById('cbTotal').textContent = 'JD ' + (sub*1.16).toFixed(2);
+    syncCartFootPadding();
+  } else {
+    bar.classList.remove('visible');
+    if (floatBtn) floatBtn.classList.remove('cart-bar-up');
+    syncCartFootPadding();
+  }
+}
+
+// Internal alias so popup code doesn't conflict with existing findItem
+function findItemInMenu(id) {
+  for (const cat of MENU) {
+    const item = cat.items.find(i=>i.id===id);
+    if (item) return {item, catId: cat.id};
+  }
+  return null;
 }
 
 function findItem(id) {
@@ -2016,6 +2298,13 @@ function closeLightbox() {
 // =====================================================================
 function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
+  // If cart bar is visible it sits at bottom — push cart foot up so Place Order is never hidden
+  const cartBar = document.getElementById('cartBar');
+  const cartFoot = document.querySelector('.cart-foot');
+  if (cartBar && cartFoot) {
+    const barH = cartBar.classList.contains('visible') ? cartBar.offsetHeight : 0;
+    cartFoot.style.paddingBottom = barH > 0 ? (barH + 12) + 'px' : '';
+  }
   renderCart();
 }
 function closeCart() {
@@ -2076,6 +2365,7 @@ function changeQty(id, d) {
   cart[id].qty += d;
   if (cart[id].qty<=0) delete cart[id];
   updateCartBadge();
+  updateCartBar();
   if (!wasBundle) updateCardUI(id);
   else renderMenu(); // refresh offer cards to reflect cart state
   renderCart();
@@ -2216,13 +2506,15 @@ async function confirmOrder() {
 
     // Show confirm card
     document.getElementById('orderConfirmCard').innerHTML =
-      d.entries.map(i=>`<div class="oc-row"><span class="oc-l">${i.icon} ${i.en} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('') +
+      d.entries.map(i=>`<div class="oc-row"><span class="oc-l">${i.en} x${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('') +
       `<div class="oc-row"><span class="oc-l">Tax</span><span>JD ${d.tax.toFixed(2)}</span></div>
        <div class="oc-row"><span>Total</span><span>JD ${d.grand.toFixed(2)}</span></div>`;
 
     cart = {};
     document.getElementById('cartNote').value = '';
     updateCartBadge();
+    updateCartBar();
+    renderMenu(); // reset all item qty indicators to 0
     pendingOrderData = null;
     showView('orderConfirm');
   } catch (e) {
@@ -2291,7 +2583,7 @@ function renderAdmin() {
 
   if (isLoggedIn) {
     const newOnes = orders.filter(o=>o.isNew);
-    if (newOnes.length) { playAlertSound(); newOnes.forEach(o=>o.isNew=false); }
+    if (newOnes.length) { playAlertSound(); newOnes.forEach(o=>{ o.isNew=false; }); }
   }
 
   let filtered = adminFilter==='all' ? orders.filter(o=>o.status!=='cashed' && !o.isCall) : orders.filter(o=>o.status===adminFilter && !o.isCall);
@@ -2304,15 +2596,16 @@ function renderAdmin() {
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
     const statusLabel = {new:'New 🔴',preparing:'Preparing 🟡',ready:'Ready 🟢',sent:'Ready 🟢',done:'Done ⚪',cashed:'Cashed ✅'}[o.status]||'New';
+    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}</div><div class="oc-time">${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">${o.time}</div></div>
         <span class="status-pill ${sp}">${statusLabel}</span>
       </div>
       <div class="oc-items">
-        ${o.items.map(i=>`<div class="oc-item-row">
+        ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
           <span class="oc-item-icon">${i.icon}</span>
-          <span class="oc-item-name">${i.en}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">📝 ${i.note}</span>`:''}</span>
+          <span class="oc-item-name">${i.en}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">📝 ${i.note}</span>`:''}</span>
           <span class="oc-item-qty">×${i.qty}</span>
           <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
           <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">✕</button>
@@ -2502,6 +2795,7 @@ function openOffersPanel() {
   document.getElementById('offersPanel').style.display='block';
 }
 function closeOffersPanel() {
+  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
   document.getElementById('offersPanel').style.display='none';
   renderMenu();
 }
@@ -2529,8 +2823,8 @@ function renderOffersList() {
     </div>`;
   }).join('');
 }
-function toggleOffer(idx, active) { OFFERS[idx].active = active; }
-function deleteOffer(idx) { OFFERS.splice(idx,1); renderOffersList(); }
+function toggleOffer(idx, active) { OFFERS[idx].active = active; try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){} }
+function deleteOffer(idx) { OFFERS.splice(idx,1); try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){} renderOffersList(); }
 
 function renderOfferItemPicker() {
   const catFilter = document.getElementById('newOfferCatFilter').value;
@@ -2567,6 +2861,7 @@ function addOffer() {
   if (isNaN(p)||p<=0) { toast('Please enter a valid combo price'); return; }
   if (!_newOfferItemIds.length) { toast('Please select at least one item'); return; }
   OFFERS.push({id:'offer'+Date.now(), title:t, titleAr:ta||t, desc:d, itemIds:[..._newOfferItemIds], price:p, active:true});
+  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
   document.getElementById('newOfferTitle').value='';
   document.getElementById('newOfferTitleAr').value='';
   document.getElementById('newOfferDesc').value='';
@@ -2786,9 +3081,10 @@ function closeTrendingPanel() {
   document.getElementById('trendingPanel').style.display='none';
 }
 function saveTrendingAndClose() {
+  try { localStorage.setItem('haretna_trending', JSON.stringify(ADMIN_TRENDING_IDS)); } catch(e){}
   closeTrendingPanel();
   renderMenu();
-  toast('Trending updated! 🔥');
+  toast('Trending updated!');
 }
 function renderTrendingItemList() {
   const catFilter = document.getElementById('trendCatFilter').value;
@@ -2966,7 +3262,7 @@ function getAudioCtx() {
 }
 
 function playAlertSound() {
-  if (!soundEnabled) return;
+  if (!soundEnabled || !isLoggedIn) return;
   try {
     const ctx = getAudioCtx();
     const play = (freq, start, dur) => {
@@ -3118,21 +3414,65 @@ function connectAdminSocket() {
   adminSocket.emit('admin:join');
 
   adminSocket.on('order:new', (order) => {
-    const mapped = {
-      id: order.id,
-      table: String(order.tableNumber),
-      items: order.items.map(i => ({ id: i.menuItemId, _itemId: i.id, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
-      note: order.note || '',
-      sub: order.subtotal, tax: order.tax, grand: order.total,
-      status: 'new',
-      time: new Date(order.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
-      date: new Date(order.createdAt).toISOString().split('T')[0],
-      isNew: true, isCall: false,
-    };
-    orders.unshift(mapped);
-    playAlertSound();
-    renderAdmin();
-    toast(`🔴 New order — Table ${order.tableNumber}!`);
+    const incomingItems = order.items.map(i => ({
+      id: i.menuItemId, _itemId: i.id, en: i.nameEn, ar: i.nameAr,
+      icon: i.icon, price: i.unitPrice, qty: i.quantity, isNew: true,
+    }));
+
+    // Check if there's already an active (non-cashed, non-done) order for this table
+    const existing = orders.find(o =>
+      !o.isCall &&
+      o.table === String(order.tableNumber) &&
+      !['cashed','done'].includes(o.status)
+    );
+
+    if (existing) {
+      // Merge: stack new items onto the existing order card
+      incomingItems.forEach(newItem => {
+        const match = existing.items.find(i => i.id === newItem.id);
+        if (match) {
+          match.qty += newItem.qty;
+          match.isNew = true; // re-flag as new
+        } else {
+          existing.items.push(newItem);
+        }
+      });
+      // Recalculate totals
+      existing.sub   = order.subtotal  !== undefined ? existing.sub + order.subtotal  : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
+      existing.tax   = existing.sub * 0.16;
+      existing.grand = existing.sub + existing.tax;
+      existing.isNew = true;
+      existing.hasNewItems = true;
+      // Append note if different
+      if (order.note && order.note !== existing.note) {
+        existing.note = existing.note ? existing.note + ' | ' + order.note : order.note;
+      }
+      playAlertSound();
+      renderAdmin();
+      toast('New items added — Table ' + order.tableNumber + '!');
+      // Clear new-item highlights after 8s
+      setTimeout(() => {
+        existing.hasNewItems = false;
+        existing.items.forEach(i => i.isNew = false);
+        renderAdmin();
+      }, 8000);
+    } else {
+      const mapped = {
+        id: order.id,
+        table: String(order.tableNumber),
+        items: incomingItems,
+        note: order.note || '',
+        sub: order.subtotal, tax: order.tax, grand: order.total,
+        status: 'new',
+        time: new Date(order.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(order.createdAt).toISOString().split('T')[0],
+        isNew: true, isCall: false, hasNewItems: false,
+      };
+      orders.unshift(mapped);
+      playAlertSound();
+      renderAdmin();
+      toast('New order — Table ' + order.tableNumber + '!');
+    }
   });
 
   adminSocket.on('order:updated', (order) => {
@@ -3241,6 +3581,16 @@ window.addEventListener('beforeunload', (event) => {
 
 window.addEventListener('load', async () => {
   await loadMenuFromAPI();
+
+  // Restore admin-saved trending & offers from localStorage
+  try {
+    const savedTrending = localStorage.getItem('haretna_trending');
+    if (savedTrending) ADMIN_TRENDING_IDS = JSON.parse(savedTrending);
+  } catch(e){}
+  try {
+    const savedOffers = localStorage.getItem('haretna_offers');
+    if (savedOffers) OFFERS = JSON.parse(savedOffers);
+  } catch(e){}
   drawQR(document.getElementById('landQR'), 0);
 
   const params = new URLSearchParams(window.location.search);
