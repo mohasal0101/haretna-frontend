@@ -2734,13 +2734,15 @@ async function loadHistory(date) {
 function renderAdmin() {
   const active = orders.filter(o=>o.status!=='cashed');
   const newO = orders.filter(o=>o.status==='new' && !o.isCall).length;
-  const newItemsO = orders.filter(o=>o.hasNewItems && !o.isCall).length;
+  const newItemsQty = orders.filter(o=>!o.isCall).reduce((sum, o) => {
+    return sum + o.items.filter(i => i.isNew).reduce((s, i) => s + i.qty, 0);
+  }, 0);
   const prepO = orders.filter(o=>o.status==='preparing' && !o.isCall).length;
   const doneO = orders.filter(o=>['ready','sent','done'].includes(o.status) && !o.isCall).length;
   const rev = history.reduce((s,o)=>s+o.grand,0);
   document.getElementById('sNew').textContent = newO;
   const sNewItems = document.getElementById('sNewItems');
-  if (sNewItems) sNewItems.textContent = newItemsO;
+  if (sNewItems) sNewItems.textContent = newItemsQty;
   document.getElementById('sPreparing').textContent = prepO;
   document.getElementById('sDone').textContent = doneO;
   document.getElementById('sRevenue').textContent = `JD ${rev.toFixed(2)}`;
@@ -2800,6 +2802,9 @@ function setFilter(f, btn) {
 }
 
 function dismissOrder(id) {
+  const o = orders.find(x => x.id === id);
+  const label = o ? `Table ${o.table}` : 'this order';
+  if (!confirm(`Remove ${label} from the board?\n\nThis only removes it from view — the order stays in the database.`)) return;
   orders = orders.filter(o => o.id !== id);
   renderAdmin();
   toast('Order removed from view');
@@ -2811,11 +2816,21 @@ async function setOrderStatus(id, status) {
     const o = orders.find(o=>o.id===id);
     if (o) {
       o.status = status.toLowerCase();
-      // Clear new-item highlights when admin acknowledges by hitting Preparing
+      // Clear new-item highlights and merge duplicate rows when admin hits Preparing
       if (status === 'PREPARING') {
         o.isNew = false;
         o.hasNewItems = false;
-        o.items.forEach(i => i.isNew = false);
+        // Merge duplicate items (same id) into one row with combined qty
+        const merged = [];
+        o.items.forEach(item => {
+          const existing = merged.find(m => m.id === item.id);
+          if (existing) {
+            existing.qty += item.qty;
+          } else {
+            merged.push({...item, isNew: false});
+          }
+        });
+        o.items = merged;
       }
       renderAdmin();
       toast(`Table ${o.table} → ${status}`);
@@ -2824,6 +2839,10 @@ async function setOrderStatus(id, status) {
 }
 
 async function removeOrderItem(orderId, itemId) {
+  const o = orders.find(o=>o.id===orderId);
+  const item = o?.items.find(i=>(i._itemId||i.id)===itemId);
+  const itemName = item ? stripEmoji(item.en) : 'this item';
+  if (!confirm(`Remove "${itemName}" from Table ${o?.table||''}?\n\nThis cannot be undone.`)) return;
   try {
     const result = await apiFetch(`/api/orders/${orderId}/items/${itemId}`, { method: 'DELETE' });
     if (result.deleted) {
@@ -3691,15 +3710,11 @@ function connectAdminSocket() {
     );
 
     if (existing) {
-      // Merge: stack new items onto the existing order card
+      // Add new items as separate NEW rows — don't merge qty yet
+      // This lets admin see exactly what's new vs what was already ordered
       incomingItems.forEach(newItem => {
-        const match = existing.items.find(i => i.id === newItem.id);
-        if (match) {
-          match.qty += newItem.qty;
-          match.isNew = true;
-        } else {
-          existing.items.push(newItem);
-        }
+        // Always push as a new separate entry tagged isNew
+        existing.items.push({...newItem, isNew: true, _newQty: newItem.qty});
       });
       // Recalculate totals
       existing.sub   = order.subtotal !== undefined ? existing.sub + order.subtotal : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
@@ -3710,10 +3725,7 @@ function connectAdminSocket() {
       // Reset status back to 'preparing' so kitchen knows new items arrived
       if (['ready','sent'].includes(existing.status)) {
         existing.status = 'preparing';
-        // Sync status change to backend
         try { apiFetch(`/api/orders/${existing.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'PREPARING' }) }); } catch(e){}
-      } else if (existing.status === 'new') {
-        // keep as new — already flagged
       }
       // Append note if different
       if (order.note && order.note !== existing.note) {
@@ -3721,7 +3733,7 @@ function connectAdminSocket() {
       }
       playAlertSound();
       renderAdmin();
-      toast('New items added — Table ' + order.tableNumber + '! Status reset to Preparing.');
+      toast('New items added — Table ' + order.tableNumber + '!');
     } else {
       const mapped = {
         id: order.id,
