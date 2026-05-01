@@ -2674,8 +2674,8 @@ function renderAdmin() {
       </div>
       <div class="oc-items">
         ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
-          <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
-          <span class="oc-item-qty">x${i.qty}</span>
+          <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);">x${i.qty}</span>
+          <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
           <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
           <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
         </div>`).join('')}
@@ -2684,7 +2684,7 @@ function renderAdmin() {
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
-          ${(o.status==='new'||o.status==='preparing')?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
+          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
           ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
           ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
           ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
@@ -2873,8 +2873,12 @@ function openOffersPanel() {
   updateSelectedOfferItems();
   document.getElementById('offersPanel').style.display='block';
 }
-function closeOffersPanel() {
+async function closeOffersPanel() {
   try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
+  // Sync active states to DB in the background
+  OFFERS.forEach(o => {
+    apiFetch(`/api/offers/${o.id}`, { method: 'PATCH', body: JSON.stringify({ isActive: o.active }) }).catch(()=>{});
+  });
   document.getElementById('offersPanel').style.display='none';
   renderMenu();
 }
@@ -2902,8 +2906,19 @@ function renderOffersList() {
     </div>`;
   }).join('');
 }
-function toggleOffer(idx, active) { OFFERS[idx].active = active; try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){} }
-function deleteOffer(idx) { OFFERS.splice(idx,1); try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){} renderOffersList(); }
+async function toggleOffer(idx, active) {
+  OFFERS[idx].active = active;
+  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
+  const id = OFFERS[idx].id;
+  try { await apiFetch(`/api/offers/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive: active }) }); } catch(e){}
+}
+async function deleteOffer(idx) {
+  const id = OFFERS[idx].id;
+  OFFERS.splice(idx, 1);
+  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
+  try { await apiFetch(`/api/offers/${id}`, { method: 'DELETE' }); } catch(e){}
+  renderOffersList();
+}
 
 function renderOfferItemPicker() {
   const catFilter = document.getElementById('newOfferCatFilter').value;
@@ -2931,7 +2946,7 @@ function updateSelectedOfferItems() {
   }).join('');
 }
 
-function addOffer() {
+async function addOffer() {
   const t = document.getElementById('newOfferTitle').value.trim();
   const ta = document.getElementById('newOfferTitleAr').value.trim();
   const d = document.getElementById('newOfferDesc').value.trim();
@@ -2939,8 +2954,26 @@ function addOffer() {
   if (!t) { toast('Please enter a title'); return; }
   if (isNaN(p)||p<=0) { toast('Please enter a valid combo price'); return; }
   if (!_newOfferItemIds.length) { toast('Please select at least one item'); return; }
-  OFFERS.push({id:'offer'+Date.now(), title:t, titleAr:ta||t, desc:d, itemIds:[..._newOfferItemIds], price:p, active:true});
+
+  const newOffer = {id:'offer'+Date.now(), title:t, titleAr:ta||t, desc:d, itemIds:[..._newOfferItemIds], price:p, active:true};
+
+  // Try to save to DB
+  try {
+    const res = await apiFetch('/api/offers', {
+      method: 'POST',
+      body: JSON.stringify({
+        titleEn: t, titleAr: ta||t,
+        descriptionEn: d, descriptionAr: d,
+        price: p, isActive: true,
+        itemIds: [..._newOfferItemIds],
+      }),
+    });
+    if (res && res.id) newOffer.id = res.id; // use DB-assigned id
+  } catch(e) { console.warn('Offer DB save failed, using localStorage:', e.message); }
+
+  OFFERS.push(newOffer);
   try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
+
   document.getElementById('newOfferTitle').value='';
   document.getElementById('newOfferTitleAr').value='';
   document.getElementById('newOfferDesc').value='';
@@ -2949,7 +2982,7 @@ function addOffer() {
   renderOfferItemPicker();
   updateSelectedOfferItems();
   renderOffersList();
-  toast('Combo offer added! 🏷️');
+  toast('Combo offer added!');
 }
 
 // =====================================================================
@@ -3668,8 +3701,8 @@ async function loadMenuFromAPI() {
       titleAr: o.titleAr,
       desc: o.descriptionEn,
       descAr: o.descriptionAr,
-      itemIds: [],
-      price: 0,
+      itemIds: o.itemIds || [],
+      price: o.price || 0,
       active: o.isActive,
     }));
   } catch (e) {
