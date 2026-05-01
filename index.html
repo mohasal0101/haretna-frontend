@@ -1212,7 +1212,8 @@ body::after{
     <!-- ── Main Orders Area ── -->
     <div class="admin-main">
       <div class="stats-bar">
-        <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New</div></div>
+        <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New Orders</div></div>
+        <div class="stat-card"><div class="stat-n" id="sNewItems" style="color:var(--gold2);">0</div><div class="stat-l">New Items Added</div></div>
         <div class="stat-card"><div class="stat-n" id="sPreparing">0</div><div class="stat-l">Preparing</div></div>
         <div class="stat-card"><div class="stat-n" id="sDone">0</div><div class="stat-l">Ready/Done</div></div>
         <div class="stat-card"><div class="stat-n" id="sRevenue">JD 0</div><div class="stat-l">Revenue</div></div>
@@ -2658,7 +2659,7 @@ async function confirmOrder() {
 async function loadAdminOrders() {
   try {
     const data = await apiFetch('/api/orders');
-    orders = data.map(o => ({
+    const raw = data.map(o => ({
       id: o.id,
       table: String(o.tableNumber),
       items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id })),
@@ -2667,9 +2668,42 @@ async function loadAdminOrders() {
       status: o.status.toLowerCase(),
       time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
       date: new Date(o.createdAt).toISOString().split('T')[0],
-      isNew: false,
-      isCall: false,
+      isNew: false, isCall: false, hasNewItems: false,
     }));
+
+    // Stack multiple orders from the same table into one card
+    const stacked = [];
+    for (const o of raw) {
+      const existing = stacked.find(s =>
+        !s.isCall &&
+        s.table === o.table &&
+        !['cashed','done'].includes(s.status)
+      );
+      if (existing) {
+        // Merge items
+        o.items.forEach(newItem => {
+          const match = existing.items.find(i => i.id === newItem.id);
+          if (match) match.qty += newItem.qty;
+          else existing.items.push({...newItem});
+        });
+        // Add totals
+        existing.sub += o.sub;
+        existing.tax += o.tax;
+        existing.grand += o.grand;
+        // Append note
+        if (o.note && o.note !== existing.note) {
+          existing.note = existing.note ? existing.note + ' | ' + o.note : o.note;
+        }
+        // Keep earliest time, worst status (new > preparing > ready > done)
+        const statusRank = {new:0,preparing:1,ready:2,sent:2,done:3};
+        if ((statusRank[o.status]??4) < (statusRank[existing.status]??4)) {
+          existing.status = o.status;
+        }
+      } else {
+        stacked.push({...o, items: o.items.map(i=>({...i}))});
+      }
+    }
+    orders = stacked;
   } catch (e) {
     console.error('Failed to load orders:', e.message);
   }
@@ -2699,11 +2733,14 @@ async function loadHistory(date) {
 
 function renderAdmin() {
   const active = orders.filter(o=>o.status!=='cashed');
-  const newO = orders.filter(o=>o.status==='new').length;
-  const prepO = orders.filter(o=>o.status==='preparing').length;
-  const doneO = orders.filter(o=>['ready','sent','done'].includes(o.status)).length;
+  const newO = orders.filter(o=>o.status==='new' && !o.isCall).length;
+  const newItemsO = orders.filter(o=>o.hasNewItems && !o.isCall).length;
+  const prepO = orders.filter(o=>o.status==='preparing' && !o.isCall).length;
+  const doneO = orders.filter(o=>['ready','sent','done'].includes(o.status) && !o.isCall).length;
   const rev = history.reduce((s,o)=>s+o.grand,0);
   document.getElementById('sNew').textContent = newO;
+  const sNewItems = document.getElementById('sNewItems');
+  if (sNewItems) sNewItems.textContent = newItemsO;
   document.getElementById('sPreparing').textContent = prepO;
   document.getElementById('sDone').textContent = doneO;
   document.getElementById('sRevenue').textContent = `JD ${rev.toFixed(2)}`;
@@ -2727,7 +2764,10 @@ function renderAdmin() {
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
         <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">${o.time}</div></div>
-        <span class="status-pill ${sp}">${statusLabel}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="status-pill ${sp}">${statusLabel}</span>
+          <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
+        </div>
       </div>
       <div class="oc-items">
         ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
@@ -2757,6 +2797,12 @@ function setFilter(f, btn) {
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderAdmin();
+}
+
+function dismissOrder(id) {
+  orders = orders.filter(o => o.id !== id);
+  renderAdmin();
+  toast('Order removed from view');
 }
 
 async function setOrderStatus(id, status) {
@@ -3676,12 +3722,6 @@ function connectAdminSocket() {
       playAlertSound();
       renderAdmin();
       toast('New items added — Table ' + order.tableNumber + '! Status reset to Preparing.');
-      // Clear new-item highlights after 8s
-      setTimeout(() => {
-        existing.hasNewItems = false;
-        existing.items.forEach(i => i.isNew = false);
-        renderAdmin();
-      }, 8000);
     } else {
       const mapped = {
         id: order.id,
