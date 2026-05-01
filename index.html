@@ -220,9 +220,10 @@ body::after{
 
 /* Category picker modal */
 #catPickerOverlay{
-  position:fixed;inset:0;z-index:490;
+  position:fixed;inset:0;z-index:7000;
   display:none;align-items:flex-end;justify-content:center;
-  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  touch-action:none;
 }
 #catPickerOverlay.open{display:flex;}
 #catPickerModal{
@@ -232,6 +233,7 @@ body::after{
   padding:14px 14px 32px;
   animation:shUp .28s ease;
   max-height:75vh;overflow-y:auto;
+  position:relative;z-index:7001;
 }
 .cpm-handle{width:36px;height:3px;background:var(--border2);border-radius:2px;margin:0 auto 14px;}
 .cpm-title{font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:3px;color:var(--text3);text-align:center;text-transform:uppercase;margin-bottom:14px;}
@@ -1885,11 +1887,13 @@ function openCatPicker() {
   }
   document.getElementById('catPickerOverlay').classList.add('open');
   document.getElementById('floatCatBtn').classList.add('open');
+  document.getElementById('floatCatBtn').style.pointerEvents = 'none';
 }
 
 function closeCatPicker() {
   document.getElementById('catPickerOverlay').classList.remove('open');
   document.getElementById('floatCatBtn').classList.remove('open');
+  document.getElementById('floatCatBtn').style.pointerEvents = '';
 }
 
 // =====================================================================
@@ -2658,7 +2662,7 @@ function renderAdmin() {
   }
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
-    const statusLabel = {new:'New 🔴',preparing:'Preparing 🟡',ready:'Ready 🟢',sent:'Ready 🟢',done:'Done ⚪',cashed:'Cashed ✅'}[o.status]||'New';
+    const statusLabel = {new:'New',preparing:'Preparing',ready:'Ready',sent:'Ready',done:'Done',cashed:'Cashed'}[o.status]||'New';
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
@@ -2667,21 +2671,20 @@ function renderAdmin() {
       </div>
       <div class="oc-items">
         ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
-          <span class="oc-item-icon">${i.icon}</span>
-          <span class="oc-item-name">${i.en}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">📝 ${i.note}</span>`:''}</span>
-          <span class="oc-item-qty">×${i.qty}</span>
+          <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
+          <span class="oc-item-qty">x${i.qty}</span>
           <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
-          <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">✕</button>
+          <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
         </div>`).join('')}
       </div>
-      ${o.note?`<div class="oc-note">📝 ${o.note}</div>`:''}
+      ${o.note?`<div class="oc-note">${o.note}</div>`:''}
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
           ${o.status==='new'?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
           ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
           ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
-          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out 💳</button>`:''}
+          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
           <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt</button>
         </div>
       </div>
@@ -3524,24 +3527,32 @@ function connectAdminSocket() {
         const match = existing.items.find(i => i.id === newItem.id);
         if (match) {
           match.qty += newItem.qty;
-          match.isNew = true; // re-flag as new
+          match.isNew = true;
         } else {
           existing.items.push(newItem);
         }
       });
       // Recalculate totals
-      existing.sub   = order.subtotal  !== undefined ? existing.sub + order.subtotal  : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
+      existing.sub   = order.subtotal !== undefined ? existing.sub + order.subtotal : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
       existing.tax   = existing.sub * 0.16;
       existing.grand = existing.sub + existing.tax;
       existing.isNew = true;
       existing.hasNewItems = true;
+      // Reset status back to 'preparing' so kitchen knows new items arrived
+      if (['ready','sent'].includes(existing.status)) {
+        existing.status = 'preparing';
+        // Sync status change to backend
+        try { apiFetch(`/api/orders/${existing.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'PREPARING' }) }); } catch(e){}
+      } else if (existing.status === 'new') {
+        // keep as new — already flagged
+      }
       // Append note if different
       if (order.note && order.note !== existing.note) {
         existing.note = existing.note ? existing.note + ' | ' + order.note : order.note;
       }
       playAlertSound();
       renderAdmin();
-      toast('New items added — Table ' + order.tableNumber + '!');
+      toast('New items added — Table ' + order.tableNumber + '! Status reset to Preparing.');
       // Clear new-item highlights after 8s
       setTimeout(() => {
         existing.hasNewItems = false;
