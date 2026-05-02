@@ -2465,7 +2465,8 @@ async function startCustomerSync() {
         desc: o.descriptionEn, price: o.price || 0,
         itemIds: o.itemIds || [], active: o.isActive,
       }));
-      const newTrending = trendingData.map(i => i.id);
+      const allItems = MENU.flatMap(c => c.items);
+      const newTrending = trendingData.map(t => allItems.find(i => i._dbId === t.id)?.id).filter(Boolean);
       // Only re-render if something actually changed
       const offersChanged = JSON.stringify(newOffers.map(o=>({id:o.id,active:o.active}))) !==
                             JSON.stringify(OFFERS.map(o=>({id:o.id,active:o.active})));
@@ -3745,7 +3746,22 @@ function openTrendingPanel() {
 function closeTrendingPanel() {
   document.getElementById('trendingPanel').style.display='none';
 }
-function saveTrendingAndClose() {
+async function saveTrendingAndClose() {
+  // Save each trending item to DB with its order
+  try {
+    const allItems = MENU.flatMap(c => c.items);
+    await Promise.all(allItems.map(item => {
+      const isTrending = ADMIN_TRENDING_IDS.includes(item.id);
+      const trendingOrder = ADMIN_TRENDING_IDS.indexOf(item.id);
+      return apiFetch(`/api/menu/items/${item._dbId}/trending`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          isTrending,
+          trendingOrder: isTrending ? trendingOrder : null,
+        }),
+      }).catch(() => {});
+    }));
+  } catch(e) { console.warn('Failed to save trending to DB:', e.message); }
   // Broadcast to customers via socket
   if (adminSocket) adminSocket.emit('trending:updated', { ids: ADMIN_TRENDING_IDS });
   closeTrendingPanel();
@@ -3887,6 +3903,7 @@ function sendTableCall(type) {
       // Listen for live menu updates pushed by admin
       window._customerSocket.on('trending:updated', ({ ids }) => {
         if (isLoggedIn) return;
+        // ids are frontend item ids (already mapped before emitting)
         ADMIN_TRENDING_IDS = ids;
         renderMenu();
       });
@@ -4262,9 +4279,12 @@ async function loadMenuFromAPI() {
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
     // Load images from API into customImages
     MENU.flatMap(c=>c.items).forEach(i => { if (i.imageUrl) customImages[i.id] = i.imageUrl; });
-    // Load trending from API
+    // Load trending from API — map DB UUIDs back to frontend item ids
     const trending = await apiFetch('/api/menu/trending');
-    ADMIN_TRENDING_IDS = trending.map(i=>i.id);
+    const allItems = MENU.flatMap(c => c.items);
+    ADMIN_TRENDING_IDS = trending
+      .map(t => allItems.find(i => i._dbId === t.id)?.id)
+      .filter(Boolean);
     // Load offers
     const offersData = await apiFetch('/api/offers');
     OFFERS = offersData.map(o => ({
