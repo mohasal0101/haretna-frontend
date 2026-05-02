@@ -2350,11 +2350,13 @@ function ipAddToCart() {
   const noteRaw = (document.getElementById('ipNoteInput')?.value || '').trim();
   const flavorPart = _selectedFlavor.length ? `Flavor: ${_selectedFlavor.join(' & ')}` : '';
   const note = [flavorPart, noteRaw].filter(Boolean).join(' · ');
-  if (cart[_currentPopupItemId]) {
-    cart[_currentPopupItemId].qty += _ipQty;
-    if (note) cart[_currentPopupItemId].note = note;
+  // Key by itemId + flavor so different addon combos are separate cart entries
+  const cartKey = _currentPopupItemId + (flavorPart ? '::' + _selectedFlavor.join('&') : '');
+  if (cart[cartKey]) {
+    cart[cartKey].qty += _ipQty;
+    if (note) cart[cartKey].note = note;
   } else {
-    cart[_currentPopupItemId] = {item, qty: _ipQty, note: note || ''};
+    cart[cartKey] = {item, qty: _ipQty, note: note || '', _itemId: _currentPopupItemId};
   }
   updateCartBadge();
   updateCartBar();
@@ -2362,7 +2364,7 @@ function ipAddToCart() {
   if (_activeCatViewId) {
     const qs = document.getElementById('qshow-'+_currentPopupItemId);
     const card = document.getElementById('icard-'+_currentPopupItemId);
-    const qty = cart[_currentPopupItemId]?.qty||0;
+    const qty = Object.entries(cart).filter(([k])=>k===_currentPopupItemId||k.startsWith(_currentPopupItemId+'::')).reduce((s,[,e])=>s+e.qty,0);
     if (qs) { qs.textContent='x'+qty; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
@@ -2413,9 +2415,12 @@ function saveItemEdit() {
 function syncCartFootPadding() {
   const cartBar = document.getElementById('cartBar');
   const cartFoot = document.querySelector('.cart-foot');
-  if (!cartBar || !cartFoot) return;
-  const barH = cartBar.classList.contains('visible') ? cartBar.offsetHeight : 0;
-  cartFoot.style.paddingBottom = barH > 0 ? (barH + 8) + 'px' : '';
+  const menuBody = document.getElementById('menuBody');
+  const cvBody = document.querySelector('.cv-body');
+  const barH = (cartBar && cartBar.classList.contains('visible')) ? cartBar.offsetHeight : 0;
+  if (cartFoot) cartFoot.style.paddingBottom = barH > 0 ? (barH + 8) + 'px' : '';
+  if (menuBody) menuBody.style.paddingBottom = barH > 0 ? (barH + 24) + 'px' : '120px';
+  if (cvBody) cvBody.style.paddingBottom = barH > 0 ? (barH + 24) + 'px' : '120px';
 }
 
 function updateCartBar() {
@@ -2656,7 +2661,7 @@ function findItem(id) {
 function updateCardUI(id) {
   const card = document.getElementById('icard-'+id);
   const qs = document.getElementById('qshow-'+id);
-  const qty = cart[id]?.qty||0;
+  const qty = Object.entries(cart).filter(([k])=>k===id||k.startsWith(id+'::')).reduce((s,[,e])=>s+e.qty,0);
   if (card) card.classList.toggle('in-cart', qty>0);
   if (qs) { qs.textContent=`×${qty}`; qs.classList.toggle('on', qty>0); }
 }
@@ -2781,14 +2786,14 @@ function closeCart() {
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
   const totalsEl = document.getElementById('cartTotals');
-  const entries = Object.values(cart).filter(e=>e.qty>0);
+  const entries = Object.entries(cart).filter(([,e])=>e.qty>0);
   if (!entries.length) {
     bodyEl.innerHTML = `<div class="cart-empty"><div class="ce-ar">سلتك فارغة</div><p>Your cart is empty.<br>Add something from the menu!</p></div>`;
     totalsEl.innerHTML = '';
     document.getElementById('cartTrending').style.display='none';
     return;
   }
-  bodyEl.innerHTML = entries.map(({item, qty, isBundle, bundleItems, note})=>{
+  bodyEl.innerHTML = entries.map(([cartKey, {item, qty, isBundle, bundleItems, note}])=>{
     const img = isBundle
       ? `<div class="cr-img" style="display:flex;align-items:center;justify-content:center;background:rgba(200,149,42,.1);border:1px solid rgba(200,149,42,.2);font-size:18px;">🏷️</div>`
       : customImages[item.id]
@@ -2797,25 +2802,36 @@ function renderCart() {
     const subLine = isBundle && bundleItems?.length
       ? `<div class="cr-bundle-items">${bundleItems.map(i=>`${i.icon} ${i.en}`).join(' · ')}</div>`
       : '';
+    // Show flavor tags inline in cart
+    let flavorTagsHtml = '';
+    let freeNote = note || '';
+    const flavorMatch = freeNote.match(/^Flavor:\s*([^·]+)(·\s*(.*))?$/);
+    if (flavorMatch) {
+      const flavors = flavorMatch[1].trim().split(' & ');
+      flavorTagsHtml = `<div style="margin:3px 0;">${flavors.map(f=>`<span style="display:inline-block;font-size:9px;color:var(--gold2);background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);border-radius:3px;padding:1px 6px;margin-right:3px;">${f}</span>`).join('')}</div>`;
+      freeNote = (flavorMatch[3]||'').trim();
+    }
+    const safeKey = cartKey.replace(/'/g,"\\'");
     const noteSection = `<div class="cr-note-row">
-      <button class="cr-note-toggle" onclick="toggleItemNote('${item.id}')" title="Add note">✏️</button>
-      <input class="cr-note-input" id="note-${item.id}" placeholder="Note e.g. no onions…" value="${note||''}"
-        style="${note?'display:block':'display:none'}"
-        onchange="setItemNote('${item.id}',this.value)" oninput="setItemNote('${item.id}',this.value)"/>
-    </div>${note?`<div class="cr-note-display">📝 ${note}</div>`:''}`;
+      <button class="cr-note-toggle" onclick="toggleItemNote('${safeKey}')" title="Add note">✏️</button>
+      <input class="cr-note-input" id="note-${safeKey}" placeholder="Note e.g. no onions…" value="${freeNote||''}"
+        style="${freeNote?'display:block':'display:none'}"
+        onchange="setItemNote('${safeKey}',this.value)" oninput="setItemNote('${safeKey}',this.value)"/>
+    </div>${freeNote?`<div class="cr-note-display">📝 ${freeNote}</div>`:''}`;
     return `<div class="cart-row${isBundle?' cart-row-bundle':''}">
       ${img}
       <div class="cr-info" style="flex:1;min-width:0;">
         <div class="cr-name">${item.en}${isBundle?` <span class="cr-combo-tag">COMBO</span>`:''}</div>
         <div class="cr-ar">${item.ar}</div>
         ${subLine}
+        ${flavorTagsHtml}
         <div class="cr-sub">JD ${(item.price*qty).toFixed(2)}</div>
         ${noteSection}
       </div>
       <div class="qty-ctrl">
-        <button class="qty-btn" type="button" onclick="changeQty('${item.id}',-1)">−</button>
+        <button class="qty-btn" type="button" onclick="changeQty('${safeKey}',-1)">−</button>
         <span class="qty-n">${qty}</span>
-        <button class="qty-btn" type="button" onclick="changeQty('${item.id}',1)">+</button>
+        <button class="qty-btn" type="button" onclick="changeQty('${safeKey}',1)">+</button>
       </div>
     </div>`;
   }).join('');
@@ -2824,15 +2840,16 @@ function renderCart() {
     <div class="ct-row grand"><span class="ct-label">Total</span><span class="ct-val">JD ${sub.toFixed(2)}</span></div>`;
   renderTrending();
 }
-function changeQty(id, d) {
-  if (!cart[id]) return;
-  const wasBundle = cart[id].isBundle;
-  cart[id].qty += d;
-  if (cart[id].qty<=0) delete cart[id];
+function changeQty(cartKey, d) {
+  if (!cart[cartKey]) return;
+  const wasBundle = cart[cartKey].isBundle;
+  const realId = cart[cartKey]._itemId || cartKey.split('::')[0];
+  cart[cartKey].qty += d;
+  if (cart[cartKey].qty<=0) delete cart[cartKey];
   updateCartBadge();
   updateCartBar();
-  if (!wasBundle) updateCardUI(id);
-  else renderMenu(); // refresh offer cards to reflect cart state
+  if (!wasBundle) updateCardUI(realId);
+  else renderMenu();
   renderCart();
 }
 function cartSub() { return Object.values(cart).reduce((s,e)=>s+e.item.price*e.qty,0); }
