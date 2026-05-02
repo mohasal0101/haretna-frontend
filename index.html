@@ -700,6 +700,17 @@ body::after{
    CART BAR + CATEGORIES BUTTON
    ============================================================ */
 
+/* Permanent solid backdrop — blocks content behind bars when cart is active */
+#bottomBackdrop{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:70px;
+  background:var(--bg);
+  z-index:998;
+  pointer-events:none;
+  display:none;
+}
+
 /* Categories — always fixed at bottom center */
 #floatCatBtn{
   position:fixed;
@@ -1120,6 +1131,9 @@ body::after{
     </div>
   </div>
 </div>
+
+<!-- PERMANENT BOTTOM BACKDROP -->
+<div id="bottomBackdrop"></div>
 
 <!-- STICKY CART BAR -->
 <div id="cartBar">
@@ -1748,14 +1762,10 @@ let _selectedFlavor = null;
 // VIEW MANAGER
 // =====================================================================
 function showView(id) {
-  // Teardown floating cat btn if leaving customer menu
   if (id !== 'customerMenu') teardownFloatingCatBtn();
-  // Start/stop live sync for customers
   if (id === 'customerMenu' && !isLoggedIn) startCustomerSync();
   else stopCustomerSync();
-  document.querySelectorAll('.view').forEach(v => {
-    v.classList.remove('active');
-  });
+  document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
@@ -2387,9 +2397,11 @@ function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
   const btn = document.getElementById('floatCatBtn');
+  const bd = document.getElementById('bottomBackdrop');
   if (!bar) return;
   if (count > 0) {
     bar.classList.add('visible');
+    if (bd) bd.style.display = 'block';
     const sub = cartSub();
     const countEl = document.getElementById('cbCount');
     const totalEl = document.getElementById('cbTotal');
@@ -2398,7 +2410,6 @@ function updateCartBar() {
     bar.classList.remove('pulse');
     void bar.offsetWidth;
     bar.classList.add('pulse');
-    // Lift Categories button above the cart bar
     requestAnimationFrame(() => {
       if (btn) btn.style.bottom = bar.offsetHeight + 'px';
       syncCartFootPadding();
@@ -2406,6 +2417,7 @@ function updateCartBar() {
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
+    if (bd) bd.style.display = 'none';
     if (btn) btn.style.bottom = '';
     syncCartFootPadding();
   }
