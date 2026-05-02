@@ -2959,7 +2959,7 @@ async function confirmOrder() {
     // Encode per-item flavor notes indexed by position: "[0:Item Name]: Flavor: X | [1:Item Name]: Flavor: Y"
     const itemNotesParts = d.entries
       .filter(e => !e.isBundle && e.note)
-      .map((e, i) => `[${i}:${e.en}]: ${e.note}`);
+      .map((e, i) => `[${i}:${stripEmoji(e.en)}]: ${e.note}`);
     const fullNote = [itemNotesParts.join(' | '), d.note].filter(Boolean).join(' || ');
 
     const order = await apiFetch('/api/orders', {
@@ -3013,28 +3013,28 @@ function parseItemNotesFromOrderNote(orderNote, items) {
 // Apply flavor notes to items — splits merged same-ID items into separate rows when flavors differ
 function applyFlavorNotes(items, flavorEntries) {
   if (!flavorEntries.length) return items;
-  const result = [];
-  // Group flavor entries by name
-  const byName = {};
-  flavorEntries.forEach(e => {
-    if (!byName[e.name]) byName[e.name] = [];
-    byName[e.name].push(e.note);
-  });
+
+  const clean = s => (s||'').replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/gu,'').trim();
+
+  // Sort entries by index
+  const sorted = [...flavorEntries].sort((a,b) => a.idx - b.idx);
+
+  // Expand items by qty into individual units
+  const units = [];
   items.forEach(item => {
-    const name = item.en ? item.en.replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,'').trim() : '';
-    const notes = byName[name];
-    if (notes && notes.length > 1 && item.qty >= notes.length) {
-      // Split into separate rows, one per flavor
-      notes.forEach(note => {
-        result.push({...item, qty: 1, note});
-      });
-    } else if (notes && notes.length === 1) {
-      result.push({...item, note: notes[0]});
-    } else {
-      result.push(item);
-    }
+    for (let q = 0; q < item.qty; q++) units.push({...item, qty:1, note: item.note||''});
   });
-  return result;
+
+  // Assign each flavorEntry to the next unassigned unit with a matching name
+  const assigned = new Array(units.length).fill(null);
+  sorted.forEach(entry => {
+    const entryName = clean(entry.name);
+    const idx = units.findIndex((u, i) => assigned[i] === null && clean(u.en) === entryName);
+    if (idx !== -1) assigned[idx] = entry.note;
+  });
+
+  // Apply assignments
+  return units.map((u, i) => assigned[i] !== null ? {...u, note: assigned[i]} : u);
 }
 
 // =====================================================================
@@ -3057,12 +3057,13 @@ async function loadAdminOrders() {
       const items = o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id }));
       const { flavorEntries, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
       const hydratedItems = applyFlavorNotes(items, flavorEntries);
+      const hydratedGrand = hydratedItems.reduce((s,i)=>s+i.price*i.qty, 0);
       return {
         id: o.id,
         table: String(o.tableNumber),
         items: hydratedItems,
         note: cleanNote,
-        sub: o.subtotal, tax: o.tax, grand: o.total,
+        sub: o.subtotal, tax: o.tax, grand: hydratedGrand || o.total,
         status: o.status.toLowerCase(),
         time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
         date: new Date(o.createdAt).toISOString().split('T')[0],
