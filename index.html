@@ -225,8 +225,7 @@ body::after{
 }
 #floatCatBtn:active{transform:translateX(-50%) scale(.97);}
 #floatCatBtn.visible{display:flex;}
-#floatCatBtn.cart-bar-up{bottom:56px;}
-#floatCatBtn .fcb-icon{font-size:16px;line-height:1;}
+#floatCatBtn.cart-bar-up{bottom:88px;}
 #floatCatBtn .fcb-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);margin-left:2px;transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -253,14 +252,15 @@ body::after{
 .cpm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .cpm-item{
   background:var(--chalk2);border:1px solid var(--border);border-radius:8px;
-  padding:12px 8px 10px;text-align:center;cursor:pointer;
+  padding:14px 8px;text-align:center;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   transition:all .18s;-webkit-tap-highlight-color:transparent;
 }
 .cpm-item:active{transform:scale(.94);background:var(--chalk3);}
 .cpm-item.current{border-color:var(--gold);background:rgba(200,149,42,.08);}
-.cpm-icon{font-size:22px;margin-bottom:5px;}
+.cpm-icon{display:none;}
 .cpm-en{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:.5px;color:var(--cream2);line-height:1.3;}
-.cpm-ar{font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);margin-top:1px;}
+.cpm-ar{font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);margin-top:2px;}
 
 /* ============================================================
    CATEGORY VIEW (full-screen popup)
@@ -302,8 +302,8 @@ body::after{
 .cat-line{flex:1;height:1px;opacity:.35;}
 .cat-line-l{background:linear-gradient(to right,var(--gold),transparent);}
 .cat-line-r{background:linear-gradient(to left,var(--gold),transparent);}
-.cat-en{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:var(--gold2);letter-spacing:2px;text-transform:uppercase;}
-.cat-ar{font-family:'Rubik',sans-serif;font-size:16px;color:var(--cream3);}
+.cat-en{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:var(--gold2);letter-spacing:2px;text-transform:uppercase;text-align:center;}
+.cat-ar{font-family:'Rubik',sans-serif;font-size:16px;color:var(--cream3);text-align:center;}
 
 /* Item card */
 .item-card{display:flex;align-items:center;gap:10px;background:var(--chalk);border:1px solid var(--border);border-left:3px solid transparent;padding:10px 12px;margin-bottom:7px;border-radius:var(--radius);transition:all .2s;position:relative;overflow:hidden;}
@@ -699,14 +699,82 @@ body::after{
 /* ============================================================
    STICKY CART BAR
    ============================================================ */
-#cartBar{position:fixed;bottom:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#6b3f0e,var(--gold2));padding:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+#cartBar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:1000;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background:transparent;
+  transform:translateY(110%);
+  transition:transform .35s cubic-bezier(.34,1.26,.64,1);
+  pointer-events:none;
+}
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
-#cartBarInner{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.cb-icon{font-size:20px;flex-shrink:0;}
-.cb-count{font-family:'Rubik',sans-serif;font-size:11px;color:rgba(30,20,10,.8);letter-spacing:.5px;}
-.cb-label{flex:1;font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:var(--bg);letter-spacing:.5px;}
-.cb-total{font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--bg);}
-.cb-arrow{font-size:18px;color:rgba(30,20,10,.7);flex-shrink:0;}
+
+#cartBarInner{
+  max-width:500px;
+  margin:0 auto;
+  background:var(--gold2);
+  background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
+  border-radius:18px;
+  box-shadow:0 8px 32px rgba(0,0,0,.55), 0 2px 8px rgba(200,149,42,.3), inset 0 1px 0 rgba(255,255,255,.15);
+  display:flex;
+  align-items:center;
+  gap:0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  overflow:hidden;
+  position:relative;
+}
+#cartBarInner:active{transform:scale(.98);}
+
+/* Left zone — item count */
+.cb-left{
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1;
+}
+.cb-badge{
+  background:rgba(0,0,0,.2);
+  color:#fff;
+  font-family:'Rubik',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  min-width:26px;
+  height:26px;
+  border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 7px;
+  letter-spacing:.5px;
+  flex-shrink:0;
+}
+.cb-text{display:flex;flex-direction:column;}
+.cb-label{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:.3px;line-height:1.2;}
+.cb-sublabel{font-family:'Rubik',sans-serif;font-size:10px;color:rgba(20,12,4,.6);letter-spacing:.3px;margin-top:1px;}
+
+/* Divider */
+.cb-divider{width:1px;height:36px;background:rgba(0,0,0,.15);flex-shrink:0;}
+
+/* Right zone — total + arrow */
+.cb-right{
+  padding:14px 18px 14px 16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.cb-total{font-family:'Rubik',sans-serif;font-size:17px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:-.3px;}
+.cb-arrow{font-size:20px;color:rgba(20,12,4,.55);font-weight:300;line-height:1;}
+
+/* Pulse when item added */
+@keyframes cartBarPulse{
+  0%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 0 rgba(200,149,42,.6);}
+  60%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 12px rgba(200,149,42,0);}
+  100%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 0 rgba(200,149,42,0);}
+}
+#cartBar.pulse #cartBarInner{animation:cartBarPulse .5s ease-out;}
 
 .cart-row-bundle{border-left:3px solid var(--gold2);}
 .cr-combo-tag{background:var(--gold2);color:var(--bg);font-size:8px;font-family:'Rubik',sans-serif;letter-spacing:1px;padding:1px 5px;border-radius:4px;vertical-align:middle;margin-left:4px;}
@@ -1052,13 +1120,18 @@ body::after{
 <!-- STICKY CART BAR -->
 <div id="cartBar">
   <div id="cartBarInner" onclick="openCart()">
-    <span class="cb-icon">🛒</span>
-    <div style="flex:1;">
-      <div class="cb-count" id="cbCount">1 item</div>
-      <div class="cb-label">View Cart</div>
+    <div class="cb-left">
+      <div class="cb-badge" id="cbCount">0</div>
+      <div class="cb-text">
+        <div class="cb-label">Your Order</div>
+        <div class="cb-sublabel">Tap to view &amp; checkout</div>
+      </div>
     </div>
-    <div class="cb-total" id="cbTotal">JD 0.00</div>
-    <span class="cb-arrow">›</span>
+    <div class="cb-divider"></div>
+    <div class="cb-right">
+      <div class="cb-total" id="cbTotal">JD 0.00</div>
+      <div class="cb-arrow">›</div>
+    </div>
   </div>
 </div>
 
@@ -1215,7 +1288,6 @@ body::after{
 
 <!-- FLOATING CATEGORY BUTTON -->
 <button id="floatCatBtn" onclick="openCatPicker()">
-  <span class="fcb-icon" id="fcbIcon">☰</span>
   <span class="fcb-label">Categories</span>
   <span class="fcb-arrow">▲</span>
 </button>
@@ -1789,8 +1861,7 @@ function renderMenu() {
     html += `<div class="cat-section" id="sect-offers-section">
       <div class="cat-heading">
         <div class="cat-line cat-line-l"></div>
-        <span style="font-size:18px">🏷️</span>
-        <div><div class="cat-en">Offers</div><div class="cat-ar">العروض</div></div>
+        <div style="text-align:center;"><div class="cat-en">Offers</div><div class="cat-ar">العروض</div></div>
         <div class="cat-line cat-line-r"></div>
       </div>
       <div class="offers-grid">
@@ -1815,8 +1886,7 @@ function renderMenu() {
     html += `<div class="cat-section" id="sect-trending-section">
       <div class="cat-heading">
         <div class="cat-line cat-line-l"></div>
-        <span style="font-size:18px">🔥</span>
-        <div><div class="cat-en">Trending Now</div><div class="cat-ar">الأكثر طلباً</div></div>
+        <div style="text-align:center;"><div class="cat-en">Trending Now</div><div class="cat-ar">الأكثر طلباً</div></div>
         <div class="cat-line cat-line-r"></div>
       </div>
       <div class="trending-menu-grid">
@@ -1829,8 +1899,7 @@ function renderMenu() {
     <div class="cat-section" id="sect-${cat.id}">
       <div class="cat-heading">
         <div class="cat-line cat-line-l"></div>
-        <span style="font-size:18px">${cat.icon}</span>
-        <div><div class="cat-en">${cat.en}</div><div class="cat-ar">${cat.ar}</div></div>
+        <div style="text-align:center;"><div class="cat-en">${cat.en}</div><div class="cat-ar">${cat.ar}</div></div>
         <div class="cat-line cat-line-r"></div>
       </div>
       ${cat.items.map(item => renderItemHTML(item, isAdmin)).join('')}
@@ -1958,24 +2027,26 @@ function onMenuScroll() {
 }
 
 function updateFloatBtn(catId) {
-  const cat = _allCats.find(c=>c.id===catId);
-  if (!cat) return;
-  document.getElementById('fcbIcon').textContent = cat.icon;
+  // Icon removed — nothing to update, current cat tracked by scroll spy only
 }
 
 function openCatPicker() {
   const grid = document.getElementById('cpmGrid');
   grid.innerHTML = _allCats.map(cat=>`
     <div class="cpm-item" data-cat="${cat.id}" onclick="openCatView('${cat.id}')">
-      <div class="cpm-icon">${cat.icon}</div>
       <div class="cpm-en">${cat.en}</div>
       <div class="cpm-ar">${cat.ar}</div>
     </div>`).join('');
-  // Mark current based on icon
-  const currentIcon = document.getElementById('fcbIcon').textContent;
-  const currentCat = _allCats.find(c=>c.icon===currentIcon);
-  if (currentCat) {
-    grid.querySelector(`[data-cat="${currentCat.id}"]`)?.classList.add('current');
+  // Mark current based on scroll position
+  const header = document.querySelector('.cust-header');
+  const offset = (header ? header.offsetHeight : 58) + 60;
+  let currentCatId = _allCats[0]?.id;
+  for (const cat of _allCats) {
+    const el = document.getElementById('sect-'+cat.id);
+    if (el && el.getBoundingClientRect().top <= offset) currentCatId = cat.id;
+  }
+  if (currentCatId) {
+    grid.querySelector(`[data-cat="${currentCatId}"]`)?.classList.add('current');
   }
   document.getElementById('catPickerOverlay').classList.add('open');
   document.getElementById('floatCatBtn').classList.add('open');
@@ -2314,14 +2385,22 @@ function updateCartBar() {
   const floatBtn = document.getElementById('floatCatBtn');
   if (!bar) return;
   if (count > 0) {
+    const wasVisible = bar.classList.contains('visible');
     bar.classList.add('visible');
     if (floatBtn) floatBtn.classList.add('cart-bar-up');
     const sub = cartSub();
-    document.getElementById('cbCount').textContent = count + ' item' + (count!==1?'s':'');
-    document.getElementById('cbTotal').textContent = 'JD ' + (sub*1.16).toFixed(2);
+    const countEl = document.getElementById('cbCount');
+    const totalEl = document.getElementById('cbTotal');
+    if (countEl) countEl.textContent = count;
+    if (totalEl) totalEl.textContent = 'JD ' + sub.toFixed(2);
+    // Pulse the bar whenever items change
+    bar.classList.remove('pulse');
+    void bar.offsetWidth; // reflow to restart animation
+    bar.classList.add('pulse');
     syncCartFootPadding();
   } else {
     bar.classList.remove('visible');
+    bar.classList.remove('pulse');
     if (floatBtn) floatBtn.classList.remove('cart-bar-up');
     syncCartFootPadding();
   }
@@ -2681,11 +2760,8 @@ function renderCart() {
     </div>`;
   }).join('');
   const sub = cartSub();
-  const tax = sub*.16;
   totalsEl.innerHTML = `
-    <div class="ct-row"><span class="ct-label">Subtotal</span><span>JD ${sub.toFixed(2)}</span></div>
-    <div class="ct-row"><span class="ct-label">Tax (16%)</span><span>JD ${tax.toFixed(2)}</span></div>
-    <div class="ct-row grand"><span class="ct-label">Total</span><span class="ct-val">JD ${(sub+tax).toFixed(2)}</span></div>`;
+    <div class="ct-row grand"><span class="ct-label">Total</span><span class="ct-val">JD ${sub.toFixed(2)}</span></div>`;
   renderTrending();
 }
 function changeQty(id, d) {
@@ -2788,7 +2864,7 @@ function startOrderCountdown() {
   const entries = Object.values(cart).filter(e=>e.qty>0);
   if (!entries.length) { toast('Add items first!'); return; }
   const note = document.getElementById('cartNote').value.trim();
-  const sub = cartSub(), tax = sub*.16, grand = sub+tax;
+  const sub = cartSub(), tax = 0, grand = sub;
   pendingOrderData = {
     entries: entries.map(e=>({...e.item, qty:e.qty, note:e.note||''})),
     note, sub, tax, grand
@@ -2836,8 +2912,7 @@ async function confirmOrder() {
     // Show confirm card
     document.getElementById('orderConfirmCard').innerHTML =
       d.entries.map(i=>`<div class="oc-row"><span class="oc-l">${i.en} x${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('') +
-      `<div class="oc-row"><span class="oc-l">Tax</span><span>JD ${d.tax.toFixed(2)}</span></div>
-       <div class="oc-row"><span>Total</span><span>JD ${d.grand.toFixed(2)}</span></div>`;
+      `<div class="oc-row grand"><span>Total</span><span>JD ${d.grand.toFixed(2)}</span></div>`;
 
     cart = {};
     document.getElementById('cartNote').value = '';
@@ -3115,9 +3190,6 @@ function showReceipt(id) {
     <div class="r-row"><span>Order #</span><span>${String(o.id).slice(-5)}</span></div>
     <hr class="r-div"/>
     ${o.items.map(i=>`<div class="r-row"><span>${i.icon} ${i.en} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
-    <hr class="r-div"/>
-    <div class="r-row"><span>Subtotal</span><span>JD ${o.sub.toFixed(2)}</span></div>
-    <div class="r-row"><span>Tax 16%</span><span>JD ${o.tax.toFixed(2)}</span></div>
     <hr class="r-div"/>
     <div class="r-grand"><span>TOTAL</span><span>JD ${o.grand.toFixed(2)}</span></div>
     ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note: ${o.note}</div>`:''}
@@ -3945,8 +4017,8 @@ function connectAdminSocket() {
       });
       // Recalculate totals
       existing.sub   = order.subtotal !== undefined ? existing.sub + order.subtotal : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
-      existing.tax   = existing.sub * 0.16;
-      existing.grand = existing.sub + existing.tax;
+      existing.tax   = 0;
+      existing.grand = existing.sub;
       existing.isNew = true;
       existing.hasNewItems = true;
       // Reset status back to 'preparing' so kitchen knows new items arrived
