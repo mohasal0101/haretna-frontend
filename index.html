@@ -519,6 +519,8 @@ body::after{
 .oc-remove-btn:hover{color:var(--red);}
 
 .oc-note{margin:0 12px 8px;padding:6px 9px;background:var(--chalk2);border-left:2px solid var(--gold);border-radius:0 3px 3px 0;font-size:10px;color:var(--text3);}
+.oc-item-addon{display:inline-block;font-size:9px;color:var(--gold2);background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);border-radius:3px;padding:1px 6px;margin-top:3px;margin-right:3px;font-family:'Rubik',sans-serif;letter-spacing:.5px;}
+.oc-item-note{font-size:9px;color:var(--text3);display:block;margin-top:2px;font-style:italic;}
 .oc-foot{padding:9px 12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
 .oc-total-txt{font-family:'Rubik',sans-serif;font-size:14px;color:var(--gold2);font-weight:700;}
 .oc-action-btns{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
@@ -568,10 +570,16 @@ body::after{
 .addons-item-ar{font-family:'Rubik',sans-serif;font-size:13px;color:var(--text3);}
 .addons-selected-name{font-family:'Rubik',sans-serif;font-size:13px;color:var(--gold2);margin-bottom:14px;padding:10px 12px;background:rgba(200,149,42,.07);border:1px solid rgba(200,149,42,.2);border-radius:var(--radius);}
 .addons-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:6px;}
-.addons-chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:32px;}
-.addons-chip{display:flex;align-items:center;gap:5px;background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.35);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:10px;padding:4px 10px;border-radius:20px;}
-.addons-chip-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 2px;transition:color .15s;}
-.addons-chip-del:hover{color:var(--red);}
+.addons-chips-wrap{display:flex;flex-direction:column;gap:0;margin-bottom:12px;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;}
+.addons-chip{display:flex;align-items:center;gap:10px;background:var(--bg2);border-bottom:1px solid var(--border);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:12px;padding:10px 12px;}
+.addons-chip:last-child{border-bottom:none;}
+.addons-chip-name{flex:1;}
+.addons-chip.is-oos .addons-chip-name{color:var(--text3);text-decoration:line-through;}
+.addons-oos-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1px;padding:3px 7px;border-radius:3px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:all .15s;}
+.addons-oos-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.addons-chip.is-oos .addons-oos-btn{background:rgba(200,149,42,.12);border-color:var(--gold);color:var(--gold2);}
+.addons-chip-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0;transition:color .15s;flex-shrink:0;}
+.addons-chip-del:hover{color:#e06060;}
 .addons-input-row{display:flex;gap:8px;margin-bottom:18px;}
 .addons-input{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:12px;transition:border-color .2s;}
 .addons-input:focus{outline:none;border-color:var(--gold);}
@@ -2541,12 +2549,14 @@ function renderAddonsItemList(filter) {
   if (!filtered.length) { el.innerHTML = '<div class="addons-empty">No items found</div>'; return; }
   el.innerHTML = filtered.map(i => {
     const hasAddons = ADDONS[i.id] && ADDONS[i.id].options.length > 0;
+    const totalOpts = hasAddons ? ADDONS[i.id].options.length : 0;
+    const oosCount = hasAddons ? ADDONS[i.id].options.filter(o=>typeof o==='object'&&o.oos).length : 0;
     return `<div class="addons-item-row${_addonsSelectedId===i.id?' selected':''}" onclick="selectAddonsItem('${i.id}')">
       <div style="flex:1;">
         <div class="addons-item-en">${stripEmoji(i.en)}</div>
         <div class="addons-item-ar">${stripEmoji(i.ar)}</div>
       </div>
-      ${hasAddons ? `<span style="font-size:9px;color:var(--gold2);background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);border-radius:12px;padding:2px 8px;font-family:'Rubik',sans-serif;letter-spacing:1px;">${ADDONS[i.id].options.length} options</span>` : ''}
+      ${hasAddons ? `<span style="font-size:9px;color:var(--gold2);background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);border-radius:12px;padding:2px 8px;font-family:'Rubik',sans-serif;letter-spacing:1px;">${totalOpts} options${oosCount?' · '+oosCount+' OOS':''}</span>` : ''}
     </div>`;
   }).join('');
 }
@@ -2566,12 +2576,16 @@ function selectAddonsItem(itemId) {
 function renderAddonsChips() {
   const opts = ADDONS[_addonsSelectedId]?.options || [];
   const el = document.getElementById('addonsChips');
-  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);">No options yet — add one below</span>'; return; }
-  el.innerHTML = opts.map((o,i) => `
-    <div class="addons-chip">
-      <span>${o}</span>
+  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:10px 12px;display:block;">No options yet — add one below</span>'; return; }
+  el.innerHTML = opts.map((o,i) => {
+    const name = typeof o === 'object' ? o.name : o;
+    const oos = typeof o === 'object' ? o.oos : false;
+    return `<div class="addons-chip${oos?' is-oos':''}">
+      <span class="addons-chip-name">${name}</span>
+      <button class="addons-oos-btn" onclick="toggleAddonOos(${i})">${oos ? '✓ Out of Stock' : 'Mark OOS'}</button>
       <button class="addons-chip-del" onclick="removeAddonOption(${i})" title="Remove">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function addAddonOption() {
@@ -2582,12 +2596,24 @@ function addAddonOption() {
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
   // Support comma-separated batch entry
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
-  newOpts.forEach(o => {
-    if (!ADDONS[_addonsSelectedId].options.includes(o)) ADDONS[_addonsSelectedId].options.push(o);
+  newOpts.forEach(name => {
+    const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
+    if (!existing) ADDONS[_addonsSelectedId].options.push({ name, oos: false });
   });
   inp.value = '';
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
+}
+
+function toggleAddonOos(idx) {
+  if (!_addonsSelectedId) return;
+  const opt = ADDONS[_addonsSelectedId].options[idx];
+  if (typeof opt === 'string') {
+    ADDONS[_addonsSelectedId].options[idx] = { name: opt, oos: true };
+  } else {
+    opt.oos = !opt.oos;
+  }
+  renderAddonsChips();
 }
 
 function removeAddonOption(idx) {
@@ -2607,7 +2633,9 @@ function saveAddons() {
 function getFlavorsForItem(itemName, itemId) {
   // Admin-defined add-ons take priority
   if (itemId && ADDONS[itemId] && ADDONS[itemId].options.length > 0) {
-    return ADDONS[itemId].options;
+    return ADDONS[itemId].options
+      .filter(o => !(typeof o === 'object' && o.oos))
+      .map(o => typeof o === 'object' ? o.name : o);
   }
   // Fallback to keyword map
   const name = (itemName || '').toLowerCase();
@@ -3088,12 +3116,23 @@ function renderAdmin() {
         </div>
       </div>
       <div class="oc-items">
-        ${o.items.map(i=>`<div class="oc-item-row${i.isNew?' oc-item-new':''}">
-          <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);">x${i.qty}</span>
-          <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}${i.note?`<span style="font-size:9px;color:var(--gold);display:block;margin-top:1px;">${i.note}</span>`:''}</span>
-          <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
-          <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
-        </div>`).join('')}
+        ${o.items.map(i=>{
+          // Split note into flavor part and free-text note
+          let flavorTags = '';
+          let freeNote = i.note || '';
+          const flavorMatch = freeNote.match(/^Flavor:\s*([^·]+)(·\s*(.*))?$/);
+          if (flavorMatch) {
+            const flavors = flavorMatch[1].trim().split(' & ');
+            flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
+            freeNote = (flavorMatch[3]||'').trim();
+          }
+          return `<div class="oc-item-row${i.isNew?' oc-item-new':''}">
+            <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);">x${i.qty}</span>
+            <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}${flavorTags?`<div style="margin-top:3px;">${flavorTags}</div>`:''}${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}</span>
+            <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
+            <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
+          </div>`;
+        }).join('')}
       </div>
       ${o.note?`<div class="oc-note">${o.note}</div>`:''}
       <div class="oc-foot">
