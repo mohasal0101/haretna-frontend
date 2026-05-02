@@ -680,10 +680,16 @@ body::after{
 
 /* Flavor selector */
 .ip-flavors-wrap{padding:0 16px 10px;flex-shrink:0;}
-.ip-flavors-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:block;}
-.ip-flavors-grid{display:flex;flex-wrap:wrap;gap:6px;}
-.ip-flavor-chip{background:var(--chalk2);border:1px solid var(--border2);color:var(--cream3);font-family:'Rubik',sans-serif;font-size:10px;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
-.ip-flavor-chip.selected{background:rgba(200,149,42,.18);border-color:var(--gold);color:var(--gold2);}
+.ip-flavors-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;display:block;}
+.ip-flavors-grid{display:flex;flex-direction:column;gap:0;}
+.ip-flavor-chip{display:flex;align-items:center;gap:12px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--cream3);font-family:'Rubik',sans-serif;font-size:12px;padding:12px 4px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;width:100%;text-align:left;}
+.ip-flavor-chip:first-child{border-top:1px solid var(--border2);}
+.ip-flavor-chip .flavor-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.ip-flavor-chip .flavor-check svg{opacity:0;transition:opacity .15s;}
+.ip-flavor-chip.selected{color:var(--gold2);}
+.ip-flavor-chip.selected .flavor-check{background:var(--gold);border-color:var(--gold);}
+.ip-flavor-chip.selected .flavor-check svg{opacity:1;}
+.ip-flavor-chip.disabled{opacity:0.35;cursor:not-allowed;}
 .ip-admin-bar{padding:8px 16px;background:rgba(200,149,42,.07);border-bottom:1px solid rgba(200,149,42,.2);display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .ip-admin-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;flex:1;}
 .ip-edit-btn{background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.4);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;padding:5px 12px;border-radius:var(--radius);cursor:pointer;text-transform:uppercase;transition:all .2s;}
@@ -700,16 +706,7 @@ body::after{
    CART BAR + CATEGORIES BUTTON
    ============================================================ */
 
-/* Permanent solid backdrop — blocks content behind bars when cart is active */
-#bottomBackdrop{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  height:70px;
-  background:var(--bg);
-  z-index:998;
-  pointer-events:none;
-  display:none;
-}
+
 
 /* Categories — always fixed at bottom center */
 #floatCatBtn{
@@ -721,7 +718,7 @@ body::after{
   display:none;
   align-items:center;
   gap:8px;
-  background:var(--bg);
+  background:var(--chalk);
   border:1px solid var(--border2);
   border-bottom:none;
   border-radius:14px 14px 0 0;
@@ -749,12 +746,12 @@ body::after{
   display:flex;
   flex-direction:column;
   align-items:center;
-  background:var(--bg);
+  background:transparent;
   padding:0 16px 16px;
   transform:translateY(110%);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
   pointer-events:none;
-  border-top:1px solid var(--border);
+  border-top:none;
 }
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
 
@@ -1131,9 +1128,6 @@ body::after{
     </div>
   </div>
 </div>
-
-<!-- PERMANENT BOTTOM BACKDROP -->
-<div id="bottomBackdrop"></div>
 
 <!-- STICKY CART BAR -->
 <div id="cartBar">
@@ -1756,7 +1750,7 @@ const FLAVORS_MAP = [
   { keywords: ['frappe','frappé'],flavors: ['Mocha', 'Caramel', 'Vanilla', 'Hazelnut', 'Matcha'] },
 ];
 
-let _selectedFlavor = null;
+let _selectedFlavor = [];
 
 // =====================================================================
 // VIEW MANAGER
@@ -2266,7 +2260,7 @@ function openItemPopup(itemId) {
   if (noteToggle) { noteToggle.textContent = '+ Add a note'; noteToggle.classList.remove('active'); }
 
   // Flavors — use admin add-ons first, then keyword fallback
-  _selectedFlavor = null;
+  _selectedFlavor = [];
   try { const s = localStorage.getItem('haretna_addons'); if (s) ADDONS = JSON.parse(s); } catch(e){}
   const flavors = getFlavorsForItem(item.en, itemId);
   const flavorsWrap = document.getElementById('ipFlavorsWrap');
@@ -2274,7 +2268,10 @@ function openItemPopup(itemId) {
   if (flavors.length && flavorsWrap && flavorsGrid) {
     flavorsWrap.style.display = 'block';
     flavorsGrid.innerHTML = flavors.map(f =>
-      `<button class="ip-flavor-chip" onclick="selectFlavor('${f}',this)">${f}</button>`
+      `<button class="ip-flavor-chip" onclick="selectFlavor('${f}',this)">
+        <span class="flavor-check"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 4L4 7.5L10 1" stroke="#1a1208" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        ${f}
+      </button>`
     ).join('');
   } else if (flavorsWrap) {
     flavorsWrap.style.display = 'none';
@@ -2301,9 +2298,22 @@ function ipChangeQty(d) {
 }
 
 function selectFlavor(flavor, el) {
-  _selectedFlavor = (_selectedFlavor === flavor) ? null : flavor;
-  document.querySelectorAll('.ip-flavor-chip').forEach(c => c.classList.remove('selected'));
-  if (_selectedFlavor) el.classList.add('selected');
+  if (el.classList.contains('disabled')) return;
+  const idx = _selectedFlavor.indexOf(flavor);
+  if (idx > -1) {
+    // Uncheck — only allow if at least 1 will remain (enforced at add time, allow uncheck freely)
+    _selectedFlavor.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    if (_selectedFlavor.length >= 2) return; // max 2
+    _selectedFlavor.push(flavor);
+    el.classList.add('selected');
+  }
+  // Grey out unchosen chips when 2 are selected
+  document.querySelectorAll('.ip-flavor-chip').forEach(c => {
+    const isSelected = c.classList.contains('selected');
+    c.classList.toggle('disabled', _selectedFlavor.length >= 2 && !isSelected);
+  });
 }
 
 function toggleIpNote() {
@@ -2322,8 +2332,15 @@ function ipAddToCart() {
   const res = findItemInMenu(_currentPopupItemId);
   if (!res) return;
   const {item} = res;
+  // Enforce minimum 1 flavor if flavor selector is visible
+  const flavorsWrap = document.getElementById('ipFlavorsWrap');
+  if (flavorsWrap && flavorsWrap.style.display !== 'none' && _selectedFlavor.length === 0) {
+    const label = flavorsWrap.querySelector('.ip-flavors-label');
+    if (label) { label.style.color = 'var(--red,#e05252)'; setTimeout(() => label.style.color = '', 1200); }
+    return;
+  }
   const noteRaw = (document.getElementById('ipNoteInput')?.value || '').trim();
-  const flavorPart = _selectedFlavor ? `Flavor: ${_selectedFlavor}` : '';
+  const flavorPart = _selectedFlavor.length ? `Flavor: ${_selectedFlavor.join(' & ')}` : '';
   const note = [flavorPart, noteRaw].filter(Boolean).join(' · ');
   if (cart[_currentPopupItemId]) {
     cart[_currentPopupItemId].qty += _ipQty;
@@ -2397,11 +2414,9 @@ function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
   const btn = document.getElementById('floatCatBtn');
-  const bd = document.getElementById('bottomBackdrop');
   if (!bar) return;
   if (count > 0) {
     bar.classList.add('visible');
-    if (bd) bd.style.display = 'block';
     const sub = cartSub();
     const countEl = document.getElementById('cbCount');
     const totalEl = document.getElementById('cbTotal');
@@ -2417,7 +2432,6 @@ function updateCartBar() {
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
-    if (bd) bd.style.display = 'none';
     if (btn) btn.style.bottom = '';
     syncCartFootPadding();
   }
