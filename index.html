@@ -2414,14 +2414,23 @@ function saveItemEdit() {
 // =====================================================================
 function syncCartFootPadding() {
   const cartBar = document.getElementById('cartBar');
-  const cartFoot = document.querySelector('.cart-foot');
   const menuBody = document.getElementById('menuBody');
   const cvBody = document.querySelector('.cv-body');
-  const barH = (cartBar && cartBar.classList.contains('visible')) ? cartBar.offsetHeight : 0;
+  const cartFoot = document.querySelector('.cart-foot');
+  const visible = cartBar && cartBar.classList.contains('visible');
+  const barH = visible ? cartBar.offsetHeight : 0;
+  const pad = barH > 0 ? (barH + 16) + 'px' : '100px';
+  if (menuBody) menuBody.style.paddingBottom = pad;
+  if (cvBody) cvBody.style.paddingBottom = pad;
   if (cartFoot) cartFoot.style.paddingBottom = barH > 0 ? (barH + 8) + 'px' : '';
-  if (menuBody) menuBody.style.paddingBottom = barH > 0 ? (barH + 24) + 'px' : '120px';
-  if (cvBody) cvBody.style.paddingBottom = barH > 0 ? (barH + 24) + 'px' : '120px';
 }
+// ResizeObserver keeps padding in sync whenever the cart bar appears/resizes
+(function() {
+  const ro = new ResizeObserver(() => syncCartFootPadding());
+  const hookRO = () => { const bar = document.getElementById('cartBar'); if (bar) ro.observe(bar); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookRO);
+  else hookRO();
+})();
 
 function updateCartBar() {
   const count = cartCount();
@@ -3134,7 +3143,6 @@ function renderAdmin() {
       </div>
       <div class="oc-items">
         ${o.items.map(i=>{
-          // Split note into flavor part and free-text note
           let flavorTags = '';
           let freeNote = i.note || '';
           const flavorMatch = freeNote.match(/^Flavor:\s*([^·]+)(·\s*(.*))?$/);
@@ -3143,10 +3151,18 @@ function renderAdmin() {
             flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
             freeNote = (flavorMatch[3]||'').trim();
           }
-          return `<div class="oc-item-row${i.isNew?' oc-item-new':''}">
-            <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);">x${i.qty}</span>
-            <span class="oc-item-name" style="flex:1;">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;margin-left:4px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}${flavorTags?`<div style="margin-top:3px;">${flavorTags}</div>`:''}${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}</span>
-            <span class="oc-item-price">JD ${(i.price*i.qty).toFixed(2)}</span>
+          const nameBlock = `<div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+              <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
+              ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
+            </div>
+            ${flavorTags?`<div style="margin-top:4px;">${flavorTags}</div>`:''}
+            ${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}
+          </div>`;
+          return `<div class="oc-item-row${i.isNew?' oc-item-new':''}" style="align-items:flex-start;">
+            <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);padding-top:1px;">x${i.qty}</span>
+            ${nameBlock}
+            <span class="oc-item-price" style="padding-top:1px;">JD ${(i.price*i.qty).toFixed(2)}</span>
             <button class="oc-remove-btn" onclick="removeOrderItem('${o.id}','${i._itemId||i.id}')" title="Remove item">x</button>
           </div>`;
         }).join('')}
