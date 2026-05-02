@@ -3510,9 +3510,13 @@ async function addOffer() {
   if (isNaN(p)||p<=0) { toast('Please enter a valid combo price'); return; }
   if (!_newOfferItemIds.length) { toast('Please select at least one item'); return; }
 
+  // Map frontend item ids to DB UUIDs before sending to API
+  const allItems = MENU.flatMap(c => c.items);
+  const dbItemIds = _newOfferItemIds.map(id => allItems.find(i => i.id === id)?._dbId).filter(Boolean);
+
   const newOffer = {id:'offer'+Date.now(), title:t, titleAr:ta||t, desc:d, itemIds:[..._newOfferItemIds], price:p, active:true};
 
-  // Try to save to DB
+  // Save to DB
   try {
     const res = await apiFetch('/api/offers', {
       method: 'POST',
@@ -3520,11 +3524,16 @@ async function addOffer() {
         titleEn: t, titleAr: ta||t,
         descriptionEn: d, descriptionAr: d,
         price: p, isActive: true,
-        itemIds: [..._newOfferItemIds],
+        itemIds: dbItemIds,
       }),
     });
     if (res && res.id) newOffer.id = res.id; // use DB-assigned id
-  } catch(e) { console.warn('Offer DB save failed, using localStorage:', e.message); }
+    toast('Combo offer added!');
+  } catch(e) {
+    console.error('Offer DB save failed:', e.message);
+    toast('Error saving offer: ' + e.message);
+    return; // don't add to local state if DB save failed
+  }
 
   OFFERS.push(newOffer);
 
@@ -3536,7 +3545,6 @@ async function addOffer() {
   renderOfferItemPicker();
   updateSelectedOfferItems();
   renderOffersList();
-  toast('Combo offer added!');
 }
 
 // =====================================================================
@@ -3903,7 +3911,6 @@ function sendTableCall(type) {
       // Listen for live menu updates pushed by admin
       window._customerSocket.on('trending:updated', ({ ids }) => {
         if (isLoggedIn) return;
-        // ids are frontend item ids (already mapped before emitting)
         ADMIN_TRENDING_IDS = ids;
         renderMenu();
       });
