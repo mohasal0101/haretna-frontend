@@ -710,7 +710,7 @@ body::after{
   display:none;
   align-items:center;
   gap:8px;
-  background:var(--chalk);
+  background:var(--bg);
   border:1px solid var(--border2);
   border-bottom:none;
   border-radius:14px 14px 0 0;
@@ -730,27 +730,30 @@ body::after{
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
 
-/* Cart bar — slides up from below, stops at height that pushes Categories up */
+/* Cart bar — slides up from below */
 #cartBar{
   position:fixed;
   bottom:0;left:0;right:0;
   z-index:1000;
   display:flex;
-  justify-content:center;
-  padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));
-  background:transparent;
+  flex-direction:column;
+  align-items:center;
+  background:var(--bg);
+  padding:0 16px 16px;
   transform:translateY(110%);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
   pointer-events:none;
+  border-top:1px solid var(--border);
 }
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
 
 #cartBarInner{
   width:100%;
   max-width:500px;
+  margin-top:10px;
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
   border-radius:18px;
-  box-shadow:0 8px 32px rgba(0,0,0,.55),0 2px 8px rgba(200,149,42,.3),inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15);
   display:flex;
   align-items:center;
   cursor:pointer;
