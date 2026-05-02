@@ -209,26 +209,6 @@ body::after{
 /* ============================================================
    FLOATING CATEGORY PICKER
    ============================================================ */
-#floatCatBtn{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  z-index:500;display:none;
-  background:var(--chalk);border:1px solid var(--border2);border-bottom:none;
-  border-radius:14px 14px 0 0;
-  padding:10px 24px 10px 18px;
-  box-shadow:0 -2px 16px rgba(0,0,0,.35),0 0 0 1px rgba(200,149,42,.1) inset;
-  cursor:pointer;
-  align-items:center;gap:9px;
-  font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;
-  color:var(--cream2);white-space:nowrap;
-  transition:bottom .3s cubic-bezier(.4,0,.2,1),transform .15s,box-shadow .15s;
-  -webkit-tap-highlight-color:transparent;
-}
-#floatCatBtn:active{transform:translateX(-50%) scale(.97);}
-#floatCatBtn.visible{display:flex;}
-#floatCatBtn.cart-bar-up{bottom:0;} /* overridden by JS */
-#floatCatBtn .fcb-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
-#floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);margin-left:2px;transition:transform .2s;}
-#floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
 
 /* Category picker modal */
 #catPickerOverlay{
@@ -743,7 +723,9 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
   -webkit-tap-highlight-color:transparent;
   transition:bottom .35s cubic-bezier(.34,1.26,.64,1);
 }
+#floatCatBtn:active{transform:translateX(-50%) scale(.97);}
 #floatCatBtn.visible{display:flex;}
+body.cart-bar-visible #floatCatBtn{bottom:92px;}
 #floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -2009,7 +1991,7 @@ function buildCatPickerGrid(activeOffers, trendingItems) {
 
 function initFloatingCatBtn() {
   const btn = document.getElementById('floatCatBtn');
-  if (btn) { btn.classList.add('visible'); btn.style.bottom = ''; }
+  if (btn) { btn.classList.add('visible'); }
   _scrollSpyActive = true;
   window.addEventListener('scroll', onMenuScroll, {passive:true});
   if (_allCats.length) updateFloatBtn(_allCats[0].id);
@@ -2019,7 +2001,7 @@ function teardownFloatingCatBtn() {
   _scrollSpyActive = false;
   window.removeEventListener('scroll', onMenuScroll);
   const btn = document.getElementById('floatCatBtn');
-  if (btn) { btn.classList.remove('visible','open'); btn.style.bottom = ''; }
+  if (btn) { btn.classList.remove('visible','open'); }
 }
 
 function onMenuScroll() {
@@ -2426,7 +2408,6 @@ function syncCartFootPadding() {
 function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
-  const btn = document.getElementById('floatCatBtn');
   if (!bar) return;
   if (count > 0) {
     bar.classList.add('visible');
@@ -2439,13 +2420,11 @@ function updateCartBar() {
     void bar.offsetWidth;
     bar.classList.add('pulse');
     requestAnimationFrame(() => {
-      if (btn) btn.style.bottom = bar.offsetHeight + 'px';
       syncCartFootPadding();
     });
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
-    if (btn) btn.style.bottom = '';
     syncCartFootPadding();
   }
 }
@@ -2972,17 +2951,16 @@ async function confirmOrder() {
   if (!pendingOrderData) return;
   const d = pendingOrderData;
   try {
-    // Build items array for API — map frontend item ids to backend menuItemIds
+    // Send each cart entry as a separate API line item (even same menuItemId, different flavor)
     const apiItems = d.entries
       .filter(e => !e.isBundle)
       .map(e => ({ menuItemId: e.id, quantity: e.qty }));
 
-    // Encode per-item notes (flavors) into the order note as structured text
-    const itemNotes = d.entries
-      .filter(e => e.note)
-      .map(e => `[${e.en}]: ${e.note}`)
-      .join(' | ');
-    const fullNote = [itemNotes, d.note].filter(Boolean).join(' || ');
+    // Encode per-item flavor notes indexed by position: "[0:Item Name]: Flavor: X | [1:Item Name]: Flavor: Y"
+    const itemNotesParts = d.entries
+      .filter(e => !e.isBundle && e.note)
+      .map((e, i) => `[${i}:${e.en}]: ${e.note}`);
+    const fullNote = [itemNotesParts.join(' | '), d.note].filter(Boolean).join(' || ');
 
     const order = await apiFetch('/api/orders', {
       method: 'POST',
@@ -3011,25 +2989,52 @@ async function confirmOrder() {
   }
 }
 
-// Parse per-item notes encoded in order note: "[Item Name]: Flavor: X | [Other]: Y || order note"
+// Parse per-item notes encoded as "[idx:Item Name]: note | ..." returning array of {idx,name,note}
 function parseItemNotesFromOrderNote(orderNote, items) {
-  if (!orderNote) return { itemNotes: {}, cleanNote: '' };
+  if (!orderNote) return { flavorEntries: [], cleanNote: '' };
   const parts = orderNote.split(' || ');
   const itemNotePart = parts[0] || '';
   const cleanNote = parts.slice(1).join(' || ').trim();
-  const itemNotes = {};
+  const flavorEntries = [];
   itemNotePart.split(' | ').forEach(chunk => {
-    const m = chunk.match(/^\[(.+?)\]:\s*(.+)$/);
+    // New indexed format: [0:Name]: note
+    const m = chunk.match(/^\[(\d+):(.+?)\]:\s*(.+)$/);
     if (m) {
-      const name = m[1].trim();
-      const note = m[2].trim();
-      // Match by item english name
-      const item = items.find(i => i.en && stripEmoji(i.en).trim() === name);
-      if (item) itemNotes[item.id] = note;
-      else itemNotes['__name__' + name] = note; // fallback by name
+      flavorEntries.push({ idx: parseInt(m[1]), name: m[2].trim(), note: m[3].trim() });
+    } else {
+      // Legacy format: [Name]: note
+      const m2 = chunk.match(/^\[(.+?)\]:\s*(.+)$/);
+      if (m2) flavorEntries.push({ idx: -1, name: m2[1].trim(), note: m2[2].trim() });
     }
   });
-  return { itemNotes, cleanNote };
+  return { flavorEntries, cleanNote };
+}
+
+// Apply flavor notes to items — splits merged same-ID items into separate rows when flavors differ
+function applyFlavorNotes(items, flavorEntries) {
+  if (!flavorEntries.length) return items;
+  const result = [];
+  // Group flavor entries by name
+  const byName = {};
+  flavorEntries.forEach(e => {
+    if (!byName[e.name]) byName[e.name] = [];
+    byName[e.name].push(e.note);
+  });
+  items.forEach(item => {
+    const name = item.en ? item.en.replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,'').trim() : '';
+    const notes = byName[name];
+    if (notes && notes.length > 1 && item.qty >= notes.length) {
+      // Split into separate rows, one per flavor
+      notes.forEach(note => {
+        result.push({...item, qty: 1, note});
+      });
+    } else if (notes && notes.length === 1) {
+      result.push({...item, note: notes[0]});
+    } else {
+      result.push(item);
+    }
+  });
+  return result;
 }
 
 // =====================================================================
@@ -3050,12 +3055,12 @@ async function loadAdminOrders() {
     const data = await apiFetch('/api/orders');
     const raw = data.map(o => {
       const items = o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id }));
-      const { itemNotes, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
-      items.forEach(i => { if (itemNotes[i.id]) i.note = itemNotes[i.id]; });
+      const { flavorEntries, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
+      const hydratedItems = applyFlavorNotes(items, flavorEntries);
       return {
         id: o.id,
         table: String(o.tableNumber),
-        items,
+        items: hydratedItems,
         note: cleanNote,
         sub: o.subtotal, tax: o.tax, grand: o.total,
         status: o.status.toLowerCase(),
@@ -4124,12 +4129,12 @@ function connectAdminSocket() {
   adminSocket.emit('admin:join');
 
   adminSocket.on('order:new', (order) => {
-    const incomingItems = order.items.map(i => ({
+    const rawItems = order.items.map(i => ({
       id: i.menuItemId, _itemId: i.id, en: i.nameEn, ar: i.nameAr,
       icon: i.icon, price: i.unitPrice, qty: i.quantity, isNew: true,
     }));
-    const { itemNotes } = parseItemNotesFromOrderNote(order.note || '', incomingItems);
-    incomingItems.forEach(i => { if (itemNotes[i.id]) i.note = itemNotes[i.id]; });
+    const { flavorEntries } = parseItemNotesFromOrderNote(order.note || '', rawItems);
+    const incomingItems = applyFlavorNotes(rawItems, flavorEntries).map(i => ({...i, isNew: true}));
 
     // Check if there's already an active (non-cashed, non-done) order for this table
     const existing = orders.find(o =>
