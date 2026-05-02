@@ -3429,7 +3429,6 @@ function openOffersPanel() {
   document.getElementById('offersPanel').style.display='block';
 }
 async function closeOffersPanel() {
-  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
   // Sync active states to DB in the background
   OFFERS.forEach(o => {
     apiFetch(`/api/offers/${o.id}`, { method: 'PATCH', body: JSON.stringify({ isActive: o.active }) }).catch(()=>{});
@@ -3465,14 +3464,12 @@ function renderOffersList() {
 }
 async function toggleOffer(idx, active) {
   OFFERS[idx].active = active;
-  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
   const id = OFFERS[idx].id;
   try { await apiFetch(`/api/offers/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive: active }) }); } catch(e){}
 }
 async function deleteOffer(idx) {
   const id = OFFERS[idx].id;
   OFFERS.splice(idx, 1);
-  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
   try { await apiFetch(`/api/offers/${id}`, { method: 'DELETE' }); } catch(e){}
   renderOffersList();
 }
@@ -3529,7 +3526,6 @@ async function addOffer() {
   } catch(e) { console.warn('Offer DB save failed, using localStorage:', e.message); }
 
   OFFERS.push(newOffer);
-  try { localStorage.setItem('haretna_offers', JSON.stringify(OFFERS)); } catch(e){}
 
   document.getElementById('newOfferTitle').value='';
   document.getElementById('newOfferTitleAr').value='';
@@ -3750,7 +3746,6 @@ function closeTrendingPanel() {
   document.getElementById('trendingPanel').style.display='none';
 }
 function saveTrendingAndClose() {
-  try { localStorage.setItem('haretna_trending', JSON.stringify(ADMIN_TRENDING_IDS)); } catch(e){}
   // Broadcast to customers via socket
   if (adminSocket) adminSocket.emit('trending:updated', { ids: ADMIN_TRENDING_IDS });
   closeTrendingPanel();
@@ -4326,9 +4321,7 @@ window.addEventListener('load', async () => {
   dbg('MENU categories loaded: ' + MENU.length);
   if (MENU.length) dbg('First category: ' + MENU[0]?.en);
 
-  // Restore saved trending & offers
-  try { const s = localStorage.getItem('haretna_trending'); if (s) ADMIN_TRENDING_IDS = JSON.parse(s); } catch(e){}
-  try { const s = localStorage.getItem('haretna_offers');   if (s) OFFERS = JSON.parse(s); } catch(e){}
+  // Trending & offers are loaded from the API — no localStorage override
 
   try { drawQR(document.getElementById('landQR'), 0); } catch(e){}
 
