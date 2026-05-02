@@ -285,7 +285,9 @@ body::after{
 .cv-title-ar{font-family:'Rubik',sans-serif;font-size:15px;color:var(--text3);}
 .cv-icon{font-size:24px;}
 .cv-body{flex:1;overflow-y:auto;padding:8px 12px 120px;}
-.menu-body{padding:0 12px 220px;}
+.menu-body{padding:0 12px 120px;}
+body.cart-bar-visible .menu-body{padding-bottom:110px;}
+body.cart-bar-visible .cv-body{padding-bottom:110px;}
 .cat-section{padding-bottom:8px;}
 
 /* ============================================================
@@ -2414,23 +2416,12 @@ function saveItemEdit() {
 // =====================================================================
 function syncCartFootPadding() {
   const cartBar = document.getElementById('cartBar');
-  const menuBody = document.getElementById('menuBody');
-  const cvBody = document.querySelector('.cv-body');
-  const cartFoot = document.querySelector('.cart-foot');
   const visible = cartBar && cartBar.classList.contains('visible');
-  const barH = visible ? cartBar.offsetHeight : 0;
-  const pad = barH > 0 ? (barH + 16) + 'px' : '100px';
-  if (menuBody) menuBody.style.paddingBottom = pad;
-  if (cvBody) cvBody.style.paddingBottom = pad;
-  if (cartFoot) cartFoot.style.paddingBottom = barH > 0 ? (barH + 8) + 'px' : '';
+  document.body.classList.toggle('cart-bar-visible', !!visible);
+  const cartFoot = document.querySelector('.cart-foot');
+  if (cartFoot) cartFoot.style.paddingBottom = visible ? '92px' : '';
 }
-// ResizeObserver keeps padding in sync whenever the cart bar appears/resizes
-(function() {
-  const ro = new ResizeObserver(() => syncCartFootPadding());
-  const hookRO = () => { const bar = document.getElementById('cartBar'); if (bar) ro.observe(bar); };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookRO);
-  else hookRO();
-})();
+
 
 function updateCartBar() {
   const count = cartCount();
@@ -2983,14 +2974,21 @@ async function confirmOrder() {
   try {
     // Build items array for API — map frontend item ids to backend menuItemIds
     const apiItems = d.entries
-      .filter(e => !e.isBundle) // skip bundle/offer items for now
+      .filter(e => !e.isBundle)
       .map(e => ({ menuItemId: e.id, quantity: e.qty }));
+
+    // Encode per-item notes (flavors) into the order note as structured text
+    const itemNotes = d.entries
+      .filter(e => e.note)
+      .map(e => `[${e.en}]: ${e.note}`)
+      .join(' | ');
+    const fullNote = [itemNotes, d.note].filter(Boolean).join(' || ');
 
     const order = await apiFetch('/api/orders', {
       method: 'POST',
       body: JSON.stringify({
         tableNumber: parseInt(currentTable),
-        note: d.note || '',
+        note: fullNote,
         items: apiItems,
       }),
     });
@@ -3013,6 +3011,27 @@ async function confirmOrder() {
   }
 }
 
+// Parse per-item notes encoded in order note: "[Item Name]: Flavor: X | [Other]: Y || order note"
+function parseItemNotesFromOrderNote(orderNote, items) {
+  if (!orderNote) return { itemNotes: {}, cleanNote: '' };
+  const parts = orderNote.split(' || ');
+  const itemNotePart = parts[0] || '';
+  const cleanNote = parts.slice(1).join(' || ').trim();
+  const itemNotes = {};
+  itemNotePart.split(' | ').forEach(chunk => {
+    const m = chunk.match(/^\[(.+?)\]:\s*(.+)$/);
+    if (m) {
+      const name = m[1].trim();
+      const note = m[2].trim();
+      // Match by item english name
+      const item = items.find(i => i.en && stripEmoji(i.en).trim() === name);
+      if (item) itemNotes[item.id] = note;
+      else itemNotes['__name__' + name] = note; // fallback by name
+    }
+  });
+  return { itemNotes, cleanNote };
+}
+
 // =====================================================================
 // ADMIN — API connected
 // =====================================================================
@@ -3029,17 +3048,22 @@ function _saveDismissed() {
 async function loadAdminOrders() {
   try {
     const data = await apiFetch('/api/orders');
-    const raw = data.map(o => ({
-      id: o.id,
-      table: String(o.tableNumber),
-      items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id })),
-      note: o.note || '',
-      sub: o.subtotal, tax: o.tax, grand: o.total,
-      status: o.status.toLowerCase(),
-      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
-      date: new Date(o.createdAt).toISOString().split('T')[0],
-      isNew: false, isCall: false, hasNewItems: false,
-    }));
+    const raw = data.map(o => {
+      const items = o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id }));
+      const { itemNotes, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
+      items.forEach(i => { if (itemNotes[i.id]) i.note = itemNotes[i.id]; });
+      return {
+        id: o.id,
+        table: String(o.tableNumber),
+        items,
+        note: cleanNote,
+        sub: o.subtotal, tax: o.tax, grand: o.total,
+        status: o.status.toLowerCase(),
+        time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(o.createdAt).toISOString().split('T')[0],
+        isNew: false, isCall: false, hasNewItems: false,
+      };
+    });
 
     // Stack multiple orders from the same table into one card
     const stacked = [];
@@ -4104,6 +4128,8 @@ function connectAdminSocket() {
       id: i.menuItemId, _itemId: i.id, en: i.nameEn, ar: i.nameAr,
       icon: i.icon, price: i.unitPrice, qty: i.quantity, isNew: true,
     }));
+    const { itemNotes } = parseItemNotesFromOrderNote(order.note || '', incomingItems);
+    incomingItems.forEach(i => { if (itemNotes[i.id]) i.note = itemNotes[i.id]; });
 
     // Check if there's already an active (non-cashed, non-done) order for this table
     const existing = orders.find(o =>
