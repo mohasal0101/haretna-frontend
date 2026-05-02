@@ -285,8 +285,22 @@ body::after{
 .cv-title-ar{font-family:'Rubik',sans-serif;font-size:15px;color:var(--text3);}
 .cv-icon{font-size:24px;}
 .cv-body{flex:1;overflow-y:auto;padding:8px 12px 120px;}
-.menu-body{padding:0 12px 160px;}
+.menu-body{padding:0 12px 200px;position:relative;}
 .cat-section{padding-bottom:8px;}
+
+/* Fade gradient — sits above menu content, below bars */
+#customerMenu{position:relative;}
+#customerMenu::after{
+  content:'';
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:180px;
+  background:linear-gradient(to bottom,transparent 0%,rgba(18,11,4,.55) 55%,rgba(18,11,4,.92) 100%);
+  pointer-events:none;
+  z-index:999;
+  transition:opacity .3s;
+}
+#customerMenu.no-fade::after{opacity:0;}
 
 /* ============================================================
    CATEGORY GRID (top of menu)
@@ -2049,11 +2063,13 @@ function openCatPicker() {
   }
   document.getElementById('catPickerOverlay').classList.add('open');
   document.getElementById('floatCatBtn').classList.add('open');
+  document.getElementById('customerMenu').classList.add('no-fade');
 }
 
 function closeCatPicker() {
   document.getElementById('catPickerOverlay').classList.remove('open');
   document.getElementById('floatCatBtn').classList.remove('open');
+  document.getElementById('customerMenu').classList.remove('no-fade');
 }
 
 // =====================================================================
@@ -2270,10 +2286,12 @@ function openItemPopup(itemId) {
   addBtn.textContent = oos ? 'Out of Stock' : 'Add to Cart';
 
   document.getElementById('itemPopupOverlay').classList.add('open');
+  document.getElementById('customerMenu').classList.add('no-fade');
 }
 
 function closeItemPopup() {
   document.getElementById('itemPopupOverlay').classList.remove('open');
+  document.getElementById('customerMenu').classList.remove('no-fade');
   document.getElementById('ipEditForm').style.display = 'none';
   _currentPopupItemId = null;
 }
@@ -2704,7 +2722,7 @@ function closeLightbox() {
 // =====================================================================
 function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
-  // If cart bar is visible it sits at bottom — push cart foot up so Place Order is never hidden
+  document.getElementById('customerMenu').classList.add('no-fade');
   const cartBar = document.getElementById('cartBar');
   const cartFoot = document.querySelector('.cart-foot');
   if (cartBar && cartFoot) {
@@ -2715,6 +2733,7 @@ function openCart() {
 }
 function closeCart() {
   document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('customerMenu').classList.remove('no-fade');
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
