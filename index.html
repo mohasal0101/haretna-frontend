@@ -225,7 +225,7 @@ body::after{
 }
 #floatCatBtn:active{transform:translateX(-50%) scale(.97);}
 #floatCatBtn.visible{display:flex;}
-#floatCatBtn.cart-bar-up{bottom:88px;}
+#floatCatBtn.cart-bar-up{bottom:0;} /* overridden by JS */
 #floatCatBtn .fcb-label{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);margin-left:2px;transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -697,13 +697,47 @@ body::after{
 .ip-edit-save{background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:9px 20px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;width:100%;text-transform:uppercase;}
 
 /* ============================================================
-   STICKY CART BAR
+   CART BAR + CATEGORIES BUTTON
    ============================================================ */
+
+/* Categories — always fixed at bottom center */
+#floatCatBtn{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1001;
+  display:none;
+  align-items:center;
+  gap:8px;
+  background:var(--chalk);
+  border:1px solid var(--border2);
+  border-bottom:none;
+  border-radius:14px 14px 0 0;
+  padding:9px 22px;
+  font-family:'Rubik',sans-serif;
+  font-size:11px;
+  letter-spacing:1px;
+  color:var(--cream2);
+  cursor:pointer;
+  white-space:nowrap;
+  box-shadow:0 -2px 12px rgba(0,0,0,.3);
+  -webkit-tap-highlight-color:transparent;
+  transition:bottom .35s cubic-bezier(.34,1.26,.64,1);
+}
+#floatCatBtn.visible{display:flex;}
+#floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
+#floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
+#floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
+
+/* Cart bar — slides up from below, stops at height that pushes Categories up */
 #cartBar{
   position:fixed;
   bottom:0;left:0;right:0;
   z-index:1000;
-  padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  display:flex;
+  justify-content:center;
+  padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));
   background:transparent;
   transform:translateY(110%);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
@@ -712,69 +746,36 @@ body::after{
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
 
 #cartBarInner{
+  width:100%;
   max-width:500px;
-  margin:0 auto;
-  background:var(--gold2);
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
   border-radius:18px;
-  box-shadow:0 8px 32px rgba(0,0,0,.55), 0 2px 8px rgba(200,149,42,.3), inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow:0 8px 32px rgba(0,0,0,.55),0 2px 8px rgba(200,149,42,.3),inset 0 1px 0 rgba(255,255,255,.15);
   display:flex;
   align-items:center;
-  gap:0;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   overflow:hidden;
-  position:relative;
 }
 #cartBarInner:active{transform:scale(.98);}
 
-/* Left zone — item count */
-.cb-left{
-  padding:14px 16px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex:1;
-}
-.cb-badge{
-  background:rgba(0,0,0,.2);
-  color:#fff;
-  font-family:'Rubik',sans-serif;
-  font-size:12px;
-  font-weight:700;
-  min-width:26px;
-  height:26px;
-  border-radius:13px;
-  display:flex;align-items:center;justify-content:center;
-  padding:0 7px;
-  letter-spacing:.5px;
-  flex-shrink:0;
-}
-.cb-text{display:flex;flex-direction:column;}
-.cb-label{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:.3px;line-height:1.2;}
-.cb-sublabel{font-family:'Rubik',sans-serif;font-size:10px;color:rgba(20,12,4,.6);letter-spacing:.3px;margin-top:1px;}
-
-/* Divider */
-.cb-divider{width:1px;height:36px;background:rgba(0,0,0,.15);flex-shrink:0;}
-
-/* Right zone — total + arrow */
-.cb-right{
-  padding:14px 18px 14px 16px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-shrink:0;
-}
-.cb-total{font-family:'Rubik',sans-serif;font-size:17px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:-.3px;}
-.cb-arrow{font-size:20px;color:rgba(20,12,4,.55);font-weight:300;line-height:1;}
-
-/* Pulse when item added */
 @keyframes cartBarPulse{
   0%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 0 rgba(200,149,42,.6);}
   60%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 12px rgba(200,149,42,0);}
   100%{box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 0 rgba(200,149,42,0);}
 }
 #cartBar.pulse #cartBarInner{animation:cartBarPulse .5s ease-out;}
+
+/* Cart pill internals */
+.cb-left{padding:14px 16px;display:flex;align-items:center;gap:10px;flex:1;}
+.cb-badge{background:rgba(0,0,0,.2);color:#fff;font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;min-width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center;padding:0 7px;letter-spacing:.5px;flex-shrink:0;}
+.cb-text{display:flex;flex-direction:column;}
+.cb-label{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:.3px;line-height:1.2;}
+.cb-sublabel{font-family:'Rubik',sans-serif;font-size:10px;color:rgba(20,12,4,.6);letter-spacing:.3px;margin-top:1px;}
+.cb-divider{width:1px;height:36px;background:rgba(0,0,0,.15);flex-shrink:0;}
+.cb-right{padding:14px 18px 14px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.cb-total{font-family:'Rubik',sans-serif;font-size:17px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:-.3px;}
+.cb-arrow{font-size:20px;color:rgba(20,12,4,.55);font-weight:300;line-height:1;}
 
 .cart-row-bundle{border-left:3px solid var(--gold2);}
 .cr-combo-tag{background:var(--gold2);color:var(--bg);font-size:8px;font-family:'Rubik',sans-serif;letter-spacing:1px;padding:1px 5px;border-radius:4px;vertical-align:middle;margin-left:4px;}
@@ -1135,6 +1136,12 @@ body::after{
   </div>
 </div>
 
+<!-- FLOATING CATEGORY BUTTON — always visible when on menu -->
+<button id="floatCatBtn" onclick="openCatPicker()">
+  <span class="fcb-label">Categories</span>
+  <span class="fcb-arrow">▲</span>
+</button>
+
 <!-- CUSTOM CONFIRM DIALOG -->
 <div id="confirmOverlay">
   <div id="confirmBox">
@@ -1285,12 +1292,6 @@ body::after{
   <div class="menu-hero"><div class="mh-ar">قائمة الطعام والمشروبات</div><div class="mh-en">Menu</div></div>
   <div class="menu-body" id="menuBody"></div>
 </div>
-
-<!-- FLOATING CATEGORY BUTTON -->
-<button id="floatCatBtn" onclick="openCatPicker()">
-  <span class="fcb-label">Categories</span>
-  <span class="fcb-arrow">▲</span>
-</button>
 
 <!-- CATEGORY PICKER MODAL -->
 <div id="catPickerOverlay" onclick="closeCatPicker()">
@@ -1991,11 +1992,9 @@ function buildCatPickerGrid(activeOffers, trendingItems) {
 
 function initFloatingCatBtn() {
   const btn = document.getElementById('floatCatBtn');
-  btn.classList.add('visible');
-  // Start scroll spy
+  if (btn) { btn.classList.add('visible'); btn.style.bottom = ''; }
   _scrollSpyActive = true;
   window.addEventListener('scroll', onMenuScroll, {passive:true});
-  // Set initial label
   if (_allCats.length) updateFloatBtn(_allCats[0].id);
 }
 
@@ -2003,7 +2002,7 @@ function teardownFloatingCatBtn() {
   _scrollSpyActive = false;
   window.removeEventListener('scroll', onMenuScroll);
   const btn = document.getElementById('floatCatBtn');
-  btn.classList.remove('visible');
+  if (btn) { btn.classList.remove('visible','open'); btn.style.bottom = ''; }
 }
 
 function onMenuScroll() {
@@ -2050,13 +2049,11 @@ function openCatPicker() {
   }
   document.getElementById('catPickerOverlay').classList.add('open');
   document.getElementById('floatCatBtn').classList.add('open');
-  document.getElementById('floatCatBtn').style.pointerEvents = 'none';
 }
 
 function closeCatPicker() {
   document.getElementById('catPickerOverlay').classList.remove('open');
   document.getElementById('floatCatBtn').classList.remove('open');
-  document.getElementById('floatCatBtn').style.pointerEvents = '';
 }
 
 // =====================================================================
@@ -2376,32 +2373,33 @@ function syncCartFootPadding() {
   const cartFoot = document.querySelector('.cart-foot');
   if (!cartBar || !cartFoot) return;
   const barH = cartBar.classList.contains('visible') ? cartBar.offsetHeight : 0;
-  cartFoot.style.paddingBottom = barH > 0 ? (barH + 12) + 'px' : '';
+  cartFoot.style.paddingBottom = barH > 0 ? (barH + 8) + 'px' : '';
 }
 
 function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
-  const floatBtn = document.getElementById('floatCatBtn');
+  const btn = document.getElementById('floatCatBtn');
   if (!bar) return;
   if (count > 0) {
-    const wasVisible = bar.classList.contains('visible');
     bar.classList.add('visible');
-    if (floatBtn) floatBtn.classList.add('cart-bar-up');
     const sub = cartSub();
     const countEl = document.getElementById('cbCount');
     const totalEl = document.getElementById('cbTotal');
     if (countEl) countEl.textContent = count;
     if (totalEl) totalEl.textContent = 'JD ' + sub.toFixed(2);
-    // Pulse the bar whenever items change
     bar.classList.remove('pulse');
-    void bar.offsetWidth; // reflow to restart animation
+    void bar.offsetWidth;
     bar.classList.add('pulse');
-    syncCartFootPadding();
+    // Lift Categories button above the cart bar
+    requestAnimationFrame(() => {
+      if (btn) btn.style.bottom = bar.offsetHeight + 'px';
+      syncCartFootPadding();
+    });
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
-    if (floatBtn) floatBtn.classList.remove('cart-bar-up');
+    if (btn) btn.style.bottom = '';
     syncCartFootPadding();
   }
 }
@@ -4160,59 +4158,79 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 window.addEventListener('load', async () => {
-  // Show loading placeholder immediately so screen isn't blank
   const menuBody = document.getElementById('menuBody');
-  if (menuBody) menuBody.innerHTML = `
-    <div style="text-align:center;padding:80px 20px;color:var(--text3);">
-      <div style="font-family:'Rubik',sans-serif;font-size:40px;opacity:.15;margin-bottom:16px;">☕</div>
-      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:2px;color:var(--cream3);">LOADING MENU…</div>
-    </div>`;
-
-  await loadMenuFromAPI();
-
-  // Restore admin-saved trending & offers from localStorage
-  try {
-    const savedTrending = localStorage.getItem('haretna_trending');
-    if (savedTrending) ADMIN_TRENDING_IDS = JSON.parse(savedTrending);
-  } catch(e){}
-  try {
-    const savedOffers = localStorage.getItem('haretna_offers');
-    if (savedOffers) OFFERS = JSON.parse(savedOffers);
-  } catch(e){}
-  drawQR(document.getElementById('landQR'), 0);
 
   const params = new URLSearchParams(window.location.search);
   const tableParam = params.get('table');
   const cafeParam  = params.get('cafe');
-
-  // Accept table param with OR without cafe param — both QR formats work
   const validTable = tableParam && (!cafeParam || cafeParam === CAFE_ID);
 
+  // Show loading state
+  if (menuBody) menuBody.innerHTML = `
+    <div style="text-align:center;padding:80px 20px;color:var(--text3);">
+      <div style="font-family:'Rubik',sans-serif;font-size:40px;opacity:.15;margin-bottom:16px;">☕</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:2px;color:var(--cream3);">LOADING MENU…</div>
+      <div id="dbgStatus" style="margin-top:16px;font-size:10px;color:var(--text3);font-family:monospace;line-height:1.8;"></div>
+    </div>`;
+
+  const dbg = (msg) => {
+    const el = document.getElementById('dbgStatus');
+    if (el) el.innerHTML += msg + '<br>';
+    console.log('[HARETNA]', msg);
+  };
+
+  dbg('URL: ' + window.location.href);
+  dbg('table=' + tableParam + ' cafe=' + cafeParam);
+  dbg('Calling API: ' + API_URL + '/api/menu …');
+
+  await loadMenuFromAPI();
+
+  dbg('MENU categories loaded: ' + MENU.length);
+  if (MENU.length) dbg('First category: ' + MENU[0]?.en);
+
+  // Restore saved trending & offers
+  try { const s = localStorage.getItem('haretna_trending'); if (s) ADMIN_TRENDING_IDS = JSON.parse(s); } catch(e){}
+  try { const s = localStorage.getItem('haretna_offers');   if (s) OFFERS = JSON.parse(s); } catch(e){}
+
+  try { drawQR(document.getElementById('landQR'), 0); } catch(e){}
+
   if (validTable) {
+    dbg('Valid table detected: ' + tableParam);
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
     document.getElementById('tableSelect').value = tableParam;
-    if (!MENU.length) {
-      // API failed — show a friendly retry message instead of blank screen
-      document.getElementById('menuBody').innerHTML = `
-        <div style="text-align:center;padding:60px 20px;color:var(--text3);">
-          <div style="font-family:'Rubik',sans-serif;font-size:32px;opacity:.2;margin-bottom:14px;">☕</div>
-          <div style="font-family:'Rubik',sans-serif;font-size:12px;letter-spacing:1px;color:var(--cream3);margin-bottom:8px;">LOADING MENU</div>
-          <div style="font-size:11px;margin-bottom:20px;">Please wait a moment…</div>
-          <button onclick="location.reload()" style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.4);color:var(--gold2);padding:10px 24px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;">Retry</button>
-        </div>`;
-      showView('customerMenu');
-      // Try loading again after 3s in case backend was cold-starting
-      setTimeout(async () => {
-        await loadMenuFromAPI();
-        if (MENU.length) renderMenu();
-      }, 3000);
-    } else {
+
+    if (MENU.length) {
+      dbg('Rendering menu…');
       renderMenu();
+      showView('customerMenu');
+      setTimeout(initCallBanner, 800);
+    } else {
+      // Backend cold-starting — keep showing loader and retry
+      dbg('Menu empty — backend may be cold-starting, retrying in 4s…');
+      showView('customerMenu');
+      let attempts = 0;
+      const retry = setInterval(async () => {
+        attempts++;
+        dbg('Retry attempt ' + attempts + '…');
+        await loadMenuFromAPI();
+        if (MENU.length) {
+          clearInterval(retry);
+          dbg('Menu loaded on retry! Rendering…');
+          renderMenu();
+        } else if (attempts >= 5) {
+          clearInterval(retry);
+          if (menuBody) menuBody.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;">
+              <div style="font-family:'Rubik',sans-serif;font-size:13px;color:var(--cream3);margin-bottom:16px;">Could not reach the server.<br>Please check your connection and try again.</div>
+              <button onclick="location.reload()" style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.4);color:var(--gold2);padding:10px 24px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;">Reload Page</button>
+            </div>`;
+        }
+      }, 4000);
     }
-    showView('customerMenu');
-    setTimeout(initCallBanner, 800);
+
   } else if (localStorage.getItem('haretna_session') === 'admin') {
+    dbg('Admin session detected');
     const token = getToken();
     if (token) {
       try {
@@ -4232,6 +4250,7 @@ window.addEventListener('load', async () => {
       showView('landing');
     }
   } else {
+    dbg('No table param — showing landing page');
     showView('landing');
   }
 
