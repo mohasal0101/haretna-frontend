@@ -1777,6 +1777,7 @@ async function doLogin() {
     connectAdminSocket();
     showView('admin');
     await loadAdminOrders();
+    await loadAdminCalls();
     renderAdmin();
     toast('Welcome back · مرحباً');
   } catch (e) {
@@ -3110,6 +3111,31 @@ async function loadAdminOrders() {
   }
 }
 
+// Load persisted table calls from DB
+async function loadAdminCalls() {
+  try {
+    const calls = await apiFetch('/api/calls');
+    const callOrders = calls.map(c => ({
+      id: c.id,  // real DB id
+      table: String(c.tableNumber),
+      isCall: true,
+      callType: c.type,
+      callMsg: c.message,
+      status: 'new',
+      time: new Date(c.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date(c.createdAt).toISOString().split('T')[0],
+      isNew: false,
+      items: [], note: '', sub: 0, tax: 0, grand: 0,
+    }));
+    // Merge with existing orders — avoid duplicates
+    callOrders.forEach(c => {
+      if (!orders.find(o => o.id === c.id)) orders.unshift(c);
+    });
+  } catch(e) {
+    console.error('Failed to load calls:', e.message);
+  }
+}
+
 // Load order history
 async function loadHistory(date) {
   try {
@@ -3904,35 +3930,18 @@ function sendTableCall(type) {
     renderNotifSidebar();
   }
 
-  // Send via socket to admin
-  if (typeof io !== 'undefined') {
-    if (!window._customerSocket || !window._customerSocket.connected) {
-      window._customerSocket = io(API_URL);
-      // Listen for live menu updates pushed by admin
-      window._customerSocket.on('trending:updated', ({ ids }) => {
-        if (isLoggedIn) return;
-        ADMIN_TRENDING_IDS = ids;
-        renderMenu();
-      });
-      window._customerSocket.on('offers:updated', async () => {
-        if (isLoggedIn) return;
-        try {
-          const offersData = await apiFetch('/api/offers');
-          OFFERS = offersData.map(o => ({
-            id: o.id, title: o.titleEn, titleAr: o.titleAr,
-            desc: o.descriptionEn, price: o.price || 0,
-            itemIds: o.itemIds || [], active: o.isActive,
-          }));
-          renderMenu();
-        } catch(e) {}
-      });
-    }
-    window._customerSocket.emit('table:call', {
-      table: currentTable,
-      type: type,
-      message: callMsg,
-      time: callTime,
+  // Save call to DB — this triggers emitTableCall on the backend which notifies admin
+  try {
+    await apiFetch('/api/calls', {
+      method: 'POST',
+      body: JSON.stringify({
+        tableNumber: currentTable,
+        type: type,
+        message: callMsg,
+      }),
     });
+  } catch(e) {
+    console.warn('Could not save call to DB:', e.message);
   }
 
   // NO sound on customer side — just close popup and toast
@@ -3942,7 +3951,13 @@ function sendTableCall(type) {
   toast(`✓ ${CALL_LABELS[type].split(' at')[0]} sent!`);
 }
 
-function dismissCall(id) {
+async function dismissCall(id) {
+  // Dismiss in DB if it's a real DB id (not a temp local id)
+  if (!String(id).startsWith('call_')) {
+    try {
+      await apiFetch(`/api/calls/${id}/dismiss`, { method: 'PATCH' });
+    } catch(e) { console.warn('Could not dismiss call in DB:', e.message); }
+  }
   orders = orders.filter(o => o.id !== id);
   renderAdmin();
   renderNotifSidebar();
@@ -4234,27 +4249,28 @@ function connectAdminSocket() {
   });
 
   // Listen for table call notifications from customers
-  adminSocket.on('table:call', ({ table, type, message, time }) => {
-    // Avoid duplicate if admin is on same device as customer
-    const alreadyExists = orders.find(o => o.isCall && o.callMsg === message && o.table === String(table));
+  adminSocket.on('table:call', (call) => {
+    // call is the full DB object: { id, tableNumber, type, message, createdAt }
+    const alreadyExists = orders.find(o => o.isCall && o.id === call.id);
     if (alreadyExists) return;
 
+    const callTime = new Date(call.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
     const callOrder = {
-      id: Date.now(),
-      table: String(table),
+      id: call.id,  // real DB id — used for dismiss API call
+      table: String(call.tableNumber),
       isCall: true,
-      callType: type,
-      callMsg: message,
+      callType: call.type,
+      callMsg: call.message,
       status: 'new',
-      time: time,
-      date: new Date().toISOString().split('T')[0],
+      time: callTime,
+      date: new Date(call.createdAt).toISOString().split('T')[0],
       isNew: true,
       items: [], note: '', sub: 0, tax: 0, grand: 0,
     };
     orders.unshift(callOrder);
     playAlertSound();
     renderAdmin();
-    toast(`🔔 ${message}!`);
+    toast(`🔔 ${call.message}!`);
   });
 }
 
