@@ -4140,7 +4140,11 @@ function connectAdminSocket() {
   if (typeof io === 'undefined') return;
   if (adminSocket) adminSocket.disconnect();
   adminSocket = io(API_URL);
-  adminSocket.emit('admin:join');
+
+  adminSocket.on('connect', () => {
+    adminSocket.emit('admin:join');
+    console.log('[HARETNA] Admin socket joined admin-room');
+  });
 
   adminSocket.on('order:new', (order) => {
     const rawItems = order.items.map(i => ({
