@@ -3116,7 +3116,7 @@ async function loadAdminCalls() {
   try {
     const calls = await apiFetch('/api/calls');
     const callOrders = calls.map(c => ({
-      id: c.id,  // real DB id
+      id: c.id,
       table: String(c.tableNumber),
       isCall: true,
       callType: c.type,
@@ -3127,7 +3127,6 @@ async function loadAdminCalls() {
       isNew: false,
       items: [], note: '', sub: 0, tax: 0, grand: 0,
     }));
-    // Merge with existing orders — avoid duplicates
     callOrders.forEach(c => {
       if (!orders.find(o => o.id === c.id)) orders.unshift(c);
     });
@@ -3898,7 +3897,7 @@ let callCooldowns = {}; // type -> timestamp
 
 const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
 
-function sendTableCall(type) {
+async function sendTableCall(type) {
   const now = Date.now();
   if (callCooldowns[type] && now - callCooldowns[type] < 30000) {
     toast('Already sent! Please wait a moment.'); return;
@@ -3911,26 +3910,7 @@ function sendTableCall(type) {
   const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
   const callMsg  = `${CALL_LABELS[type]} Table ${currentTable}`;
 
-  // Always push to local orders so admin sidebar updates even on same device
-  const alreadyLocal = orders.find(o => o.isCall && o.callType === type && o.table === String(currentTable));
-  if (!alreadyLocal) {
-    const callOrder = {
-      id: 'call_' + Date.now(),
-      table: String(currentTable),
-      isCall: true,
-      callType: type,
-      callMsg: callMsg,
-      status: 'new',
-      time: callTime,
-      date: new Date().toISOString().split('T')[0],
-      isNew: true,
-      items: [], note: '', sub: 0, tax: 0, grand: 0,
-    };
-    orders.unshift(callOrder);
-    renderNotifSidebar();
-  }
-
-  // Save call to DB — this triggers emitTableCall on the backend which notifies admin
+  // Save to DB — backend saves and emits socket to admin
   try {
     await apiFetch('/api/calls', {
       method: 'POST',
@@ -3952,7 +3932,6 @@ function sendTableCall(type) {
 }
 
 async function dismissCall(id) {
-  // Dismiss in DB if it's a real DB id (not a temp local id)
   if (!String(id).startsWith('call_')) {
     try {
       await apiFetch(`/api/calls/${id}/dismiss`, { method: 'PATCH' });
@@ -4250,13 +4229,11 @@ function connectAdminSocket() {
 
   // Listen for table call notifications from customers
   adminSocket.on('table:call', (call) => {
-    // call is the full DB object: { id, tableNumber, type, message, createdAt }
     const alreadyExists = orders.find(o => o.isCall && o.id === call.id);
     if (alreadyExists) return;
-
     const callTime = new Date(call.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
     const callOrder = {
-      id: call.id,  // real DB id — used for dismiss API call
+      id: call.id,
       table: String(call.tableNumber),
       isCall: true,
       callType: call.type,
