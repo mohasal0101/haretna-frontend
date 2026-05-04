@@ -4247,6 +4247,7 @@ function connectAdminSocket() {
     orders.unshift(callOrder);
     playAlertSound();
     renderAdmin();
+    renderNotifSidebar();
     toast(`🔔 ${call.message}!`);
   });
 }
