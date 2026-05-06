@@ -2331,7 +2331,7 @@ function openItemPopup(itemId) {
 
   // Flavors — use admin add-ons first, then keyword fallback
   _selectedFlavor = [];
-  try { const s = localStorage.getItem('haretna_addons'); if (s) ADDONS = JSON.parse(s); } catch(e){}
+  // ADDONS loaded from DB via loadMenuFromAPI — no localStorage needed
   const flavors = getFlavorsForItem(item.en, itemId);
   const flavorsWrap = document.getElementById('ipFlavorsWrap');
   const flavorsGrid = document.getElementById('ipFlavorsGrid');
@@ -2594,7 +2594,7 @@ let _addonsSelectedId = null;
 
 function openAddonsPanel() {
   // Load from localStorage
-  try { const s = localStorage.getItem('haretna_addons'); if (s) ADDONS = JSON.parse(s); } catch(e){}
+  // ADDONS loaded from DB via loadMenuFromAPI — no localStorage needed
   _addonsSelectedId = null;
   document.getElementById('addonsEditor').style.display = 'none';
   document.getElementById('addonsSearch').value = '';
@@ -2697,7 +2697,7 @@ function saveAddons() {
 
 // Override getFlavorsForItem to use admin-defined add-ons first, then fallback to FLAVORS_MAP
 function getFlavorsForItem(itemName, itemId) {
-  // Admin-defined add-ons take priority
+  // Admin-defined add-ons take priority (by DB id)
   if (itemId && ADDONS[itemId] && ADDONS[itemId].options.length > 0) {
     return ADDONS[itemId].options
       .filter(o => !(typeof o === 'object' && o.oos))
@@ -4161,7 +4161,7 @@ let callCooldowns = {}; // type -> timestamp
 
 const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
 
-async function sendTableCall(type) {
+async async function sendTableCall(type) {
   const now = Date.now();
   if (callCooldowns[type] && now - callCooldowns[type] < 30000) {
     toast('Already sent! Please wait a moment.'); return;
@@ -4542,10 +4542,26 @@ async function loadMenuFromAPI() {
         imageUrl: item.imageUrl || null,
         isInStock: item.isInStock,
         isTrending: item.isTrending,
+        addons: item.addons || [],
       })),
     }));
     // Populate outOfStock set
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
+    // Build ADDONS from DB addons so getFlavorsForItem works correctly
+    ADDONS = {};
+    MENU.flatMap(c => c.items).forEach(i => {
+      if (i.addons && i.addons.length > 0) {
+        ADDONS[i.id] = {
+          options: i.addons.map(a => ({
+            name: a.nameEn,
+            nameAr: a.nameAr,
+            price: a.price || 0,
+            icon: a.icon || '',
+            oos: false,
+          }))
+        };
+      }
+    });
     // Load images from API into customImages
     MENU.flatMap(c=>c.items).forEach(i => { if (i.imageUrl) customImages[i.id] = i.imageUrl; });
     // Load trending from API — map DB UUIDs back to frontend item ids
