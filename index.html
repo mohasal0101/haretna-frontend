@@ -644,8 +644,8 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 #itemPopupOverlay.open{display:flex;}
 #itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
 .ip-handle{width:36px;height:3px;background:var(--border2);border-radius:2px;margin:12px auto 6px;flex-shrink:0;}
-.ip-img-wrap{width:100%;max-height:200px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
-.ip-img-wrap img{width:100%;height:200px;object-fit:cover;display:block;}
+.ip-img-wrap{width:100%;height:240px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
+.ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 .ip-img-empty{width:100%;height:140px;display:flex;align-items:center;justify-content:center;background:var(--chalk3);}
 .ip-img-empty svg{opacity:.2;}
 .ip-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -1010,7 +1010,20 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
       <input id="newOfferTitle" placeholder="Title e.g. Combo Deal 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferTitleAr" placeholder="العنوان بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
       <input id="newOfferDesc" placeholder="Short description in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
-      <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;box-sizing:border-box;"/>
+      <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Expiry Date (optional)</div>
+      <input id="newOfferExpiry" type="date" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;color-scheme:dark;"/>
+      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Show During Hours (optional)</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="flex:1;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">From</div>
+          <input id="newOfferTimeFrom" type="time" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;box-sizing:border-box;color-scheme:dark;"/>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">To</div>
+          <input id="newOfferTimeTo" type="time" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;box-sizing:border-box;color-scheme:dark;"/>
+        </div>
+      </div>
       <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Select Items in This Combo</div>
       <select id="newOfferCatFilter" onchange="renderOfferItemPicker()" style="width:100%;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream);padding:8px 12px;border-radius:var(--radius);font-size:12px;margin-bottom:7px;appearance:none;box-sizing:border-box;"></select>
       <div id="offerItemPicker" style="max-height:180px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:6px;margin-bottom:10px;"></div>
@@ -1851,7 +1864,22 @@ function enterMenu() {
 
 function renderMenu() {
   const isAdmin = isLoggedIn;
-  const activeOffers = OFFERS.filter(o=>o.active);
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const activeOffers = OFFERS.filter(o => {
+    if (!o.active) return false;
+    // Check expiry
+    if (o.expiresAt && new Date(o.expiresAt) < now) return false;
+    // Check time window
+    if (o.timeFrom && o.timeTo) {
+      const [fh, fm] = o.timeFrom.split(':').map(Number);
+      const [th, tm] = o.timeTo.split(':').map(Number);
+      const from = fh * 60 + fm;
+      const to = th * 60 + tm;
+      if (currentTime < from || currentTime > to) return false;
+    }
+    return true;
+  });
   const trendingItems = ADMIN_TRENDING_IDS.map(id=>findItem(id)?.item).filter(i=>i&&!outOfStock.has(i.id)).slice(0,8);
 
   // Build menu body
@@ -2086,7 +2114,22 @@ function renderCatView(catId) {
 
   // Special sections
   if (catId === 'offers-section') {
-    const activeOffers = OFFERS.filter(o=>o.active);
+    const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const activeOffers = OFFERS.filter(o => {
+    if (!o.active) return false;
+    // Check expiry
+    if (o.expiresAt && new Date(o.expiresAt) < now) return false;
+    // Check time window
+    if (o.timeFrom && o.timeTo) {
+      const [fh, fm] = o.timeFrom.split(':').map(Number);
+      const [th, tm] = o.timeTo.split(':').map(Number);
+      const from = fh * 60 + fm;
+      const to = th * 60 + tm;
+      if (currentTime < from || currentTime > to) return false;
+    }
+    return true;
+  });
     el.innerHTML = activeOffers.length
       ? `<div style="padding:8px 0;">${activeOffers.map(o=>{
           const inCart = cart[o.id];
@@ -2465,6 +2508,9 @@ async function startCustomerSync() {
         id: o.id, title: o.titleEn, titleAr: o.titleAr,
         desc: o.descriptionEn, price: o.price || 0,
         itemIds: o.itemIds || [], active: o.isActive,
+        expiresAt: o.expiresAt || null,
+        timeFrom: o.timeFrom || null,
+        timeTo: o.timeTo || null,
       }));
       const allItems = MENU.flatMap(c => c.items);
       const newTrending = trendingData.map(t => allItems.find(i => i._dbId === t.id)?.id).filter(Boolean);
@@ -3531,15 +3577,25 @@ async function addOffer() {
   const ta = document.getElementById('newOfferTitleAr').value.trim();
   const d = document.getElementById('newOfferDesc').value.trim();
   const p = parseFloat(document.getElementById('newOfferPrice').value);
+  const expiryVal = document.getElementById('newOfferExpiry').value;
+  const timeFrom = document.getElementById('newOfferTimeFrom').value;
+  const timeTo = document.getElementById('newOfferTimeTo').value;
   if (!t) { toast('Please enter a title'); return; }
   if (isNaN(p)||p<=0) { toast('Please enter a valid combo price'); return; }
   if (!_newOfferItemIds.length) { toast('Please select at least one item'); return; }
+  if ((timeFrom && !timeTo) || (!timeFrom && timeTo)) { toast('Please set both From and To times'); return; }
+
+  const expiresAt = expiryVal ? new Date(expiryVal).toISOString() : null;
 
   // Map frontend item ids to DB UUIDs before sending to API
   const allItems = MENU.flatMap(c => c.items);
   const dbItemIds = _newOfferItemIds.map(id => allItems.find(i => i.id === id)?._dbId).filter(Boolean);
 
-  const newOffer = {id:'offer'+Date.now(), title:t, titleAr:ta||t, desc:d, itemIds:[..._newOfferItemIds], price:p, active:true};
+  const newOffer = {
+    id: 'offer'+Date.now(), title:t, titleAr:ta||t, desc:d,
+    itemIds:[..._newOfferItemIds], price:p, active:true,
+    expiresAt, timeFrom: timeFrom||null, timeTo: timeTo||null,
+  };
 
   // Save to DB
   try {
@@ -3550,14 +3606,17 @@ async function addOffer() {
         descriptionEn: d, descriptionAr: d,
         price: p, isActive: true,
         itemIds: dbItemIds,
+        expiresAt,
+        timeFrom: timeFrom||null,
+        timeTo: timeTo||null,
       }),
     });
-    if (res && res.id) newOffer.id = res.id; // use DB-assigned id
+    if (res && res.id) newOffer.id = res.id;
     toast('Combo offer added!');
   } catch(e) {
     console.error('Offer DB save failed:', e.message);
     toast('Error saving offer: ' + e.message);
-    return; // don't add to local state if DB save failed
+    return;
   }
 
   OFFERS.push(newOffer);
@@ -3566,6 +3625,9 @@ async function addOffer() {
   document.getElementById('newOfferTitleAr').value='';
   document.getElementById('newOfferDesc').value='';
   document.getElementById('newOfferPrice').value='';
+  document.getElementById('newOfferExpiry').value='';
+  document.getElementById('newOfferTimeFrom').value='';
+  document.getElementById('newOfferTimeTo').value='';
   _newOfferItemIds=[];
   renderOfferItemPicker();
   updateSelectedOfferItems();
@@ -4301,6 +4363,9 @@ async function loadMenuFromAPI() {
       itemIds: o.itemIds || [],
       price: o.price || 0,
       active: o.isActive,
+      expiresAt: o.expiresAt || null,
+      timeFrom: o.timeFrom || null,
+      timeTo: o.timeTo || null,
     }));
   } catch (e) {
     console.error('loadMenuFromAPI failed:', e.message, e);
