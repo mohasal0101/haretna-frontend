@@ -131,6 +131,10 @@ body::after{
   .qr-print-title{font-family:'Rubik',sans-serif;font-size:18px;margin-bottom:8px;}
   .qr-print-table{font-family:'Rubik',sans-serif;font-size:14px;color:#666;margin-top:8px;}
 }
+@media print{
+  body.printing-receipt>*{display:none!important;}
+  body.printing-receipt #receiptPrintArea{display:block!important;position:fixed;inset:0;background:white;padding:30px;z-index:99999;}
+}
 
 /* ============================================================
    LANDING / QR
@@ -3382,6 +3386,21 @@ async function cashOut(id) {
 // =====================================================================
 // RECEIPT
 // =====================================================================
+function printReceiptOnly() {
+  const receiptContent = document.getElementById('receiptContent');
+  const printWin = window.open('', '_blank', 'width=400,height=600');
+  const clone = receiptContent.cloneNode(true);
+  clone.querySelectorAll('.r-btn').forEach(b => b.remove());
+  printWin.document.write(`
+    <html><head><style>
+      body{font-family:'Courier New',monospace;font-size:12px;background:white;color:#1a1612;padding:20px;margin:0;}
+      *{box-sizing:border-box;}
+    </style></head>
+    <body>${clone.innerHTML}<script>window.onload=function(){window.print();window.close();}<\/script>
+    </body></html>`);
+  printWin.document.close();
+}
+
 function showReceipt(id) {
   const o = orders.find(o=>o.id===id) || history.find(o=>o.id===id);
   if (!o) return;
@@ -3401,7 +3420,7 @@ function showReceipt(id) {
     ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note: ${o.note}</div>`:''}
     <div class="r-thanks">شكراً لزيارتكم ♥<br>Thank you for visiting Haretna Café!<br>Come back soon.</div>
     <div class="r-actions">
-      <button class="r-btn r-print" onclick="window.print()">🖨 Print</button>
+      <button class="r-btn r-print" onclick="printReceiptOnly()">🖨 Print</button>
       <button class="r-btn r-close" onclick="document.getElementById('receiptOverlay').classList.remove('open')">Close</button>
     </div>`;
   document.getElementById('receiptOverlay').classList.add('open');
@@ -3692,6 +3711,111 @@ function saveToFile() {
 // =====================================================================
 let _mmActiveCat = null;
 
+// ── Add Item Panel ──────────────────────────────────────────
+function showAddItemPanel(catId) {
+  const cat = MENU.find(c => c.id === catId);
+  if (!cat) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'addItemOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ Add Item to ${cat.en}</div>
+        <button onclick="document.getElementById('addItemOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
+      </div>
+      <input id="aiNameEn" placeholder="Name in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiNameAr" placeholder="الاسم بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
+      <input id="aiDesc" placeholder="Description (optional)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiPrice" type="number" step="0.01" min="0" placeholder="Price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiIcon" placeholder="Icon emoji e.g. 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
+      <button onclick="submitAddItem('${catId}')" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Item</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitAddItem(catId) {
+  const nameEn = document.getElementById('aiNameEn').value.trim();
+  const nameAr = document.getElementById('aiNameAr').value.trim();
+  const desc   = document.getElementById('aiDesc').value.trim();
+  const price  = parseFloat(document.getElementById('aiPrice').value);
+  const icon   = document.getElementById('aiIcon').value.trim() || '🍽️';
+  if (!nameEn) { toast('Please enter English name'); return; }
+  if (!nameAr) { toast('Please enter Arabic name'); return; }
+  if (isNaN(price)||price<0) { toast('Please enter a valid price'); return; }
+  const cat = MENU.find(c => c.id === catId);
+  try {
+    const res = await apiFetch('/api/menu/items', {
+      method: 'POST',
+      body: JSON.stringify({
+        nameEn, nameAr, descriptionEn: desc||null,
+        price, icon, categoryId: cat._dbId || catId,
+        displayOrder: cat.items.length,
+      }),
+    });
+    // Add to local MENU so it shows immediately
+    cat.items.push({
+      id: res.id, _dbId: res.id,
+      en: nameEn, ar: nameAr, price, icon,
+      isInStock: true, isTrending: false,
+    });
+    document.getElementById('addItemOverlay').remove();
+    renderMenuManager();
+    toast('Item added! ✓');
+  } catch(e) {
+    console.error('Add item failed:', e);
+    toast('Error: ' + e.message);
+  }
+}
+
+// ── Add Category Panel ───────────────────────────────────────
+function showAddCategoryPanel() {
+  const overlay = document.createElement('div');
+  overlay.id = 'addCatOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:420px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ New Category</div>
+        <button onclick="document.getElementById('addCatOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
+      </div>
+      <input id="acNameEn" placeholder="Category name in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="acNameAr" placeholder="اسم التصنيف بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
+      <input id="acIcon" placeholder="Icon emoji e.g. 🍕" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="acSlug" placeholder="Slug e.g. new-category (no spaces)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
+      <button onclick="submitAddCategory()" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Category</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitAddCategory() {
+  const nameEn = document.getElementById('acNameEn').value.trim();
+  const nameAr = document.getElementById('acNameAr').value.trim();
+  const icon   = document.getElementById('acIcon').value.trim() || '🍽️';
+  const slug   = document.getElementById('acSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
+  if (!nameEn) { toast('Please enter English name'); return; }
+  if (!nameAr) { toast('Please enter Arabic name'); return; }
+  if (!slug)   { toast('Please enter a slug'); return; }
+  try {
+    const res = await apiFetch('/api/menu/categories', {
+      method: 'POST',
+      body: JSON.stringify({
+        nameEn, nameAr, icon, slug,
+        displayOrder: MENU.length,
+      }),
+    });
+    // Add to local MENU
+    MENU.push({ id: res.id, _dbId: res.id, en: nameEn, ar: nameAr, icon, slug, items: [] });
+    document.getElementById('addCatOverlay').remove();
+    _mmActiveCat = res.id;
+    renderMenuManager();
+    toast('Category added! ✓');
+  } catch(e) {
+    console.error('Add category failed:', e);
+    toast('Error: ' + e.message);
+  }
+}
+
 function renderMenuManager() {
   _mmActiveCat = _mmActiveCat || MENU[0].id;
   renderMMSidebar();
@@ -3704,7 +3828,11 @@ function renderMMSidebar() {
     <button class="mm-cat-btn ${cat.id===_mmActiveCat?'active':''}" onclick="selectMMCat('${cat.id}')">
       <div class="mm-cat-icon">${cat.icon}</div>
       <div class="mm-cat-label">${cat.en}</div>
-    </button>`).join('');
+    </button>`).join('') + `
+    <button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;">
+      <div class="mm-cat-icon">➕</div>
+      <div class="mm-cat-label">New Category</div>
+    </button>`;
 }
 
 function selectMMCat(catId) {
@@ -3722,7 +3850,8 @@ function renderMMGrid(catId) {
       <div class="mm-ch-en">${cat.en}</div>
       <div class="mm-ch-ar">${cat.ar}</div>
     </div>
-    <span style="font-size:11px;color:var(--text3);margin-left:auto;">${cat.items.length} items · ${cat.items.filter(i=>customImages[i.id]).length} with photos</span>`;
+    <span style="font-size:11px;color:var(--text3);margin-left:auto;">${cat.items.length} items</span>
+    <button onclick="showAddItemPanel('${cat.id}')" style="margin-left:12px;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:7px 14px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">+ Add Item</button>`;
 
   document.getElementById('mmGrid').innerHTML = cat.items.map(item=>{
     const src = customImages[item.id];
@@ -3959,7 +4088,7 @@ let callCooldowns = {}; // type -> timestamp
 
 const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
 
-async function sendTableCall(type) {
+async async function sendTableCall(type) {
   const now = Date.now();
   if (callCooldowns[type] && now - callCooldowns[type] < 30000) {
     toast('Already sent! Please wait a moment.'); return;
