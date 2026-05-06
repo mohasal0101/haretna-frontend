@@ -815,10 +815,16 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 .call-popup.open{display:block;}
 .call-popup-title{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;margin-bottom:10px;}
 .call-popup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.call-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:.5px;padding:10px 6px 8px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.call-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:.5px;padding:10px 6px 8px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;overflow:hidden;}
 .call-btn .emoji{font-size:20px;}
 .call-btn:active{background:rgba(200,149,42,.15);border-color:var(--gold);color:var(--gold2);transform:scale(.95);}
 .call-btn.sent{border-color:var(--gold);color:var(--gold2);background:rgba(200,149,42,.1);}
+.call-btn-label{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.call-btn-en{display:block;transition:all .35s cubic-bezier(.4,0,.2,1);transform:translateY(0);opacity:1;}
+.call-btn-ar{display:block;font-size:10px;color:var(--text3);transition:all .35s cubic-bezier(.4,0,.2,1);transform:translateY(0);opacity:.7;direction:rtl;}
+.call-btn:hover .call-btn-en,.call-btn:focus .call-btn-en{transform:translateY(-2px);opacity:0;}
+.call-btn:hover .call-btn-ar,.call-btn:focus .call-btn-ar{transform:translateY(-10px);opacity:1;color:var(--gold2);font-size:11px;}
+.call-btn.sent .call-btn-en{opacity:.5;}
 
 /* Onboarding banner */
 .call-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--chalk2),var(--chalk3));border-bottom:1px solid var(--gold);padding:12px 14px;animation:fadeIn .4s ease;}
@@ -1295,10 +1301,34 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <div id="callPopup" class="call-popup">
     <div class="call-popup-title">How can we help? · كيف نساعدك؟</div>
     <div class="call-popup-grid">
-      <button class="call-btn" id="callWaiter" onclick="sendTableCall('waiter')"><span class="emoji">🙋</span><span>Call Waiter</span></button>
-      <button class="call-btn" id="callBill"   onclick="sendTableCall('bill')"><span class="emoji">💳</span><span>Bill Please</span></button>
-      <button class="call-btn" id="callNapkins" onclick="sendTableCall('napkins')"><span class="emoji">🧻</span><span>Napkins</span></button>
-      <button class="call-btn" id="callWater"  onclick="sendTableCall('water')"><span class="emoji">💧</span><span>Water</span></button>
+      <button class="call-btn" id="callWaiter" onclick="sendTableCall('waiter')">
+        <span class="emoji">🙋</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Call Waiter</span>
+          <span class="call-btn-ar">نادِ النادل</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callBill" onclick="sendTableCall('bill')">
+        <span class="emoji">💳</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Bill Please</span>
+          <span class="call-btn-ar">الحساب</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callNapkins" onclick="sendTableCall('napkins')">
+        <span class="emoji">🧻</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Napkins</span>
+          <span class="call-btn-ar">مناديل</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callWater" onclick="sendTableCall('water')">
+        <span class="emoji">💧</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Water</span>
+          <span class="call-btn-ar">ماء</span>
+        </span>
+      </button>
     </div>
   </div>
 
@@ -3895,12 +3925,10 @@ function renderMMGrid(catId) {
         <div class="mm-item-price">JD ${item.price.toFixed(2)}</div>
       </div>
       <input type="file" accept="image/*" id="mmUpl-${item.id}" style="display:none" onchange="handleMMUpload('${item.id}',this)"/>
-      <div style="display:flex;gap:4px;">
-        <button class="mm-upload-btn" style="flex:1;" onclick="document.getElementById('mmUpl-${item.id}').click()">
-          ${src ? '🔄 Change Photo' : '📷 Add Photo'}
-        </button>
-        <button class="mm-upload-btn" style="flex:0 0 auto;padding:7px 10px;color:var(--red);border-color:var(--red);" onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item">🗑</button>
-      </div>
+      <button class="mm-upload-btn" onclick="document.getElementById('mmUpl-${item.id}').click()">
+        ${src ? '🔄 Change Photo' : '📷 Add Photo'}
+      </button>
+      <button onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item" style="position:absolute;top:5px;left:5px;background:rgba(180,30,30,.85);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2;">✕</button>
     </div>`;
   }).join('');
 }
