@@ -4088,7 +4088,7 @@ let callCooldowns = {}; // type -> timestamp
 
 const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
 
-async async function sendTableCall(type) {
+async function sendTableCall(type) {
   const now = Date.now();
   if (callCooldowns[type] && now - callCooldowns[type] < 30000) {
     toast('Already sent! Please wait a moment.'); return;
