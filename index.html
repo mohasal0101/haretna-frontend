@@ -389,7 +389,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 .ocd-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
 .ocd-ring circle{fill:none;stroke-width:5;}
 .ocd-ring .ring-bg{stroke:var(--border2);}
-.ocd-ring .ring-fill{stroke:var(--gold);stroke-dasharray:283;stroke-dashoffset:283;stroke-linecap:round;transition:stroke-dashoffset 1s linear;}
+.ocd-ring .ring-fill{stroke:var(--gold);stroke-dasharray:283;stroke-dashoffset:283;stroke-linecap:round;transition:stroke-dashoffset 0.05s linear;}
 .ocd-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:34px;font-weight:700;color:var(--gold2);}
 .ocd-msg{font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6;}
 .btn-cancel-order{background:transparent;border:1px solid var(--red);color:var(--red);padding:10px 28px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all .2s;}
@@ -2981,15 +2981,19 @@ function startOrderCountdown() {
   document.getElementById('orderCountdown').classList.add('open');
   cdRemaining = 3;
   document.getElementById('cdNum').textContent = '3';
-  document.getElementById('ringFill').style.strokeDashoffset = '0';
+  document.getElementById('ringFill').style.strokeDashoffset = '283';
   clearInterval(cdTimer);
-  cdTimer = setInterval(()=>{
-    cdRemaining--;
-    document.getElementById('cdNum').textContent = cdRemaining;
-    const offset = 283 - (283 * cdRemaining / 3);
+  const cdTotal = 3000; // ms
+  const cdStart = performance.now();
+  cdTimer = setInterval(() => {
+    const elapsed = performance.now() - cdStart;
+    const remaining = Math.max(0, cdTotal - elapsed);
+    const secs = Math.ceil(remaining / 1000);
+    const offset = 283 * (remaining / cdTotal);
+    document.getElementById('cdNum').textContent = secs > 0 ? secs : '';
     document.getElementById('ringFill').style.strokeDashoffset = offset;
-    if (cdRemaining <= 0) { clearInterval(cdTimer); confirmOrder(); }
-  }, 1000);
+    if (remaining <= 0) { clearInterval(cdTimer); confirmOrder(); }
+  }, 50);
 }
 function cancelOrderCountdown() {
   clearInterval(cdTimer);
@@ -3388,16 +3392,21 @@ async function cashOut(id) {
 // =====================================================================
 function printReceiptOnly() {
   const receiptContent = document.getElementById('receiptContent');
-  const printWin = window.open('', '_blank', 'width=400,height=600');
   const clone = receiptContent.cloneNode(true);
   clone.querySelectorAll('.r-btn').forEach(b => b.remove());
-  printWin.document.write(`
-    <html><head><style>
-      body{font-family:'Courier New',monospace;font-size:12px;background:white;color:#1a1612;padding:20px;margin:0;}
-      *{box-sizing:border-box;}
-    </style></head>
-    <body>${clone.innerHTML}<script>window.onload=function(){window.print();window.close();}<\/script>
-    </body></html>`);
+  const printWin = window.open('', '_blank', 'width=420,height=700');
+  if (!printWin) { toast('Allow popups to print'); return; }
+  printWin.document.open();
+  printWin.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt</title><style>');
+  printWin.document.write('*{box-sizing:border-box;margin:0;padding:0;}');
+  printWin.document.write('body{font-family:"Courier New",monospace;font-size:12px;background:white;color:#1a1612;padding:24px;}');
+  printWin.document.write('.receipt-paper{background:white;color:#1a1612;padding:0;}');
+  printWin.document.write('.receipt-paper::before{display:none;}');
+  printWin.document.write('@media print{body{padding:0;}}');
+  printWin.document.write('</style></head><body>');
+  printWin.document.write(clone.innerHTML);
+  printWin.document.write('<scr'+'ipt>window.onload=function(){window.print();setTimeout(function(){window.close();},500);};<'+'/script>');
+  printWin.document.write('</body></html>');
   printWin.document.close();
 }
 
@@ -3734,6 +3743,23 @@ function showAddItemPanel(catId) {
   document.body.appendChild(overlay);
 }
 
+async function deleteMenuItem(itemId, dbId, name) {
+  if (!confirm(`Delete "${name}" from the menu? This cannot be undone.`)) return;
+  try {
+    await apiFetch(`/api/menu/items/${dbId}`, { method: 'DELETE' });
+    // Remove from local MENU
+    MENU.forEach(cat => {
+      cat.items = cat.items.filter(i => i.id !== itemId);
+    });
+    renderMMGrid(_mmActiveCat);
+    renderMMSidebar();
+    toast(`"${name}" deleted ✓`);
+  } catch(e) {
+    console.error('Delete failed:', e);
+    toast('Error deleting item: ' + e.message);
+  }
+}
+
 async function submitAddItem(catId) {
   const nameEn = document.getElementById('aiNameEn').value.trim();
   const nameAr = document.getElementById('aiNameAr').value.trim();
@@ -3869,9 +3895,12 @@ function renderMMGrid(catId) {
         <div class="mm-item-price">JD ${item.price.toFixed(2)}</div>
       </div>
       <input type="file" accept="image/*" id="mmUpl-${item.id}" style="display:none" onchange="handleMMUpload('${item.id}',this)"/>
-      <button class="mm-upload-btn" onclick="document.getElementById('mmUpl-${item.id}').click()">
-        ${src ? '🔄 Change Photo' : '📷 Add Photo'}
-      </button>
+      <div style="display:flex;gap:4px;">
+        <button class="mm-upload-btn" style="flex:1;" onclick="document.getElementById('mmUpl-${item.id}').click()">
+          ${src ? '🔄 Change Photo' : '📷 Add Photo'}
+        </button>
+        <button class="mm-upload-btn" style="flex:0 0 auto;padding:7px 10px;color:var(--red);border-color:var(--red);" onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item">🗑</button>
+      </div>
     </div>`;
   }).join('');
 }
