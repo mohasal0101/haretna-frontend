@@ -2312,9 +2312,15 @@ function openItemPopup(itemId) {
   const imgWrap = document.getElementById('ipImgWrap');
   const imgSrc = customImages[itemId];
   const oos = outOfStock.has(itemId);
+  const _cs = getItemCardStyle(itemId, item.icon);
   imgWrap.innerHTML = imgSrc
     ? `${oos?'<div class="ip-oos-badge">Out of Stock</div>':''}<img src="${imgSrc}" alt="${item.en}">`
-    : `<div class="ip-img-empty">${oos?'<div class="ip-oos-badge" style="position:relative;display:inline-block;margin-bottom:8px;">Out of Stock</div>':''}<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+    : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#${_cs.bg.replace(',','#')});display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;">
+        <div style="font-size:72px;filter:drop-shadow(0 6px 16px rgba(0,0,0,0.6));line-height:1;">${item.icon||'🍽️'}</div>
+        <div style="font-size:10px;letter-spacing:2px;color:rgba(200,149,42,0.85);font-family:'Rubik',sans-serif;">${_cs.label}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Rubik',sans-serif;">${_cs.desc}</div>
+        ${oos?'<div class="ip-oos-badge" style="position:absolute;top:12px;right:12px;">Out of Stock</div>':''}
+      </div>`;
 
   document.getElementById('ipTitleEn').textContent = stripEmoji(item.en);
   document.getElementById('ipTitleAr').textContent = stripEmoji(item.ar);
@@ -3750,6 +3756,201 @@ function saveToFile() {
 // =====================================================================
 let _mmActiveCat = null;
 
+
+// ── Item card visual styles — gradient + label + descriptor ──
+function getItemCardStyle(itemId, icon) {
+  const styles = {
+    // Breakfast
+    'br1':{bg:'#1a0a00,#3d1800',label:'BREAKFAST',desc:'Creamy · Garlicky · Classic'},
+    'br2':{bg:'#1a0800,#3d1000',label:'BREAKFAST',desc:'Hearty · Rich · Savory'},
+    'br3':{bg:'#0d1a00,#1a3300',label:'BREAKFAST',desc:'Crispy · Golden · Fresh'},
+    'br4':{bg:'#1a1000,#2d1800',label:'BREAKFAST',desc:'Earthy · Warm · Traditional'},
+    'br5':{bg:'#1a0500,#3d0f00',label:'BREAKFAST',desc:'Tangy · Smoky · Vibrant'},
+    'br6':{bg:'#1a0500,#3d0800',label:'BREAKFAST',desc:'Hearty · Meaty · Rich'},
+    'br7':{bg:'#1a0800,#3d1500',label:'BREAKFAST',desc:'Spiced · Saucy · Bold'},
+    'br8':{bg:'#1a1000,#2d1a00',label:'BREAKFAST',desc:'Simple · Fresh · Light'},
+    'br9':{bg:'#1a1000,#2d1800',label:'BREAKFAST',desc:'Fluffy · Soft · Golden'},
+    'br10':{bg:'#0d1a0d,#1a3d1a',label:'BREAKFAST',desc:'Tangy · Preserved · Rich'},
+    'br11':{bg:'#1a1500,#2d2200',label:'BREAKFAST',desc:'Salty · Crispy · Melty'},
+    'br12':{bg:'#1a1000,#3d2400',label:'BREAKFAST',desc:'Comforting · Warm · Simple'},
+    'br13':{bg:'#0d1a05,#1a3d0d',label:'SALAD',desc:'Fresh · Crunchy · Colorful'},
+    'br14':{bg:'#0a1a08,#142d10',label:'BREAKFAST',desc:'Fresh · Light · Healthy'},
+    'br15':{bg:'#1a1a1a,#2d2d2d',label:'BREAKFAST',desc:'Tangy · Creamy · Smooth'},
+    'br16':{bg:'#0d1a0d,#1a2d1a',label:'BREAKFAST',desc:'Zesty · Olive · Silky'},
+    // Breakfast Sandwiches
+    'sb1':{bg:'#1a0a14,#3d1830',label:'SANDWICH',desc:'Tangy · Earthy · Satisfying'},
+    'sb2':{bg:'#1a0a00,#2d1800',label:'SANDWICH',desc:'Smoky · Cheesy · Filling'},
+    'sb3':{bg:'#1a1000,#2d1c00',label:'SANDWICH',desc:'Fluffy · Warm · Homestyle'},
+    'sb4':{bg:'#1a1500,#2d2000',label:'SANDWICH',desc:'Salty · Crispy · Melty'},
+    // Manakish
+    'mn1':{bg:'#0d1a05,#182d08',label:'MANAKISH',desc:'Herby · Olive Oil · Warm'},
+    'mn2':{bg:'#0d1a05,#182d08',label:'MANAKISH',desc:'Herby · Cheesy · Baked'},
+    'mn3':{bg:'#1a1500,#2d2000',label:'MANAKISH',desc:'Salty · Stretchy · Fresh'},
+    'mn4':{bg:'#1a0800,#2d1200',label:'MANAKISH',desc:'Smoky · Rich · Savory'},
+    'mn5':{bg:'#1a1a1a,#2a2a2a',label:'MANAKISH',desc:'Tangy · Fresh · Light'},
+    // Appetizers
+    'ap1':{bg:'#1a1000,#3d2800',label:'APPETIZER',desc:'Crispy · Golden · Addictive'},
+    'ap2':{bg:'#1a1200,#3d2a00',label:'APPETIZER',desc:'Chunky · Seasoned · Crisp'},
+    'ap3':{bg:'#1a1500,#2d2000',label:'APPETIZER',desc:'Stretchy · Crispy · Cheesy'},
+    'ap4':{bg:'#1a0500,#3d0d00',label:'APPETIZER',desc:'Spicy · Cheesy · Bold'},
+    'ap5':{bg:'#0a1a08,#142d0d',label:'APPETIZER',desc:'Earthy · Buttery · Warm'},
+    'ap6':{bg:'#001a1a,#003d3d',label:'APPETIZER',desc:'Spicy · Crispy · Indulgent'},
+    'ap7':{bg:'#1a0800,#2d1200',label:'APPETIZER',desc:'Fiery · Crunchy · Juicy'},
+    'ap8':{bg:'#1a1000,#2d1800',label:'APPETIZER',desc:'Crunchy · Cheesy · Fun'},
+    'ap9':{bg:'#1a0800,#2d1200',label:'APPETIZER',desc:'Crispy · Tender · Light'},
+    'ap10':{bg:'#0d1a0d,#1a3d1a',label:'APPETIZER',desc:'Crispy · Fresh · Savory'},
+    'ap11':{bg:'#1a0800,#3d1500',label:'APPETIZER',desc:'Smoky · Juicy · Bold'},
+    'ap12':{bg:'#1a0500,#3d0f00',label:'APPETIZER',desc:'Spicy · Crispy · Addictive'},
+    'ap13':{bg:'#1a1200,#2d1c00',label:'APPETIZER',desc:'Creamy · Smooth · Comforting'},
+    'ap14':{bg:'#0d0d1a,#1a1a3d',label:'SHARING',desc:'Loaded · Variety · Feast'},
+    // Salads
+    'sl1':{bg:'#0d1a05,#1a3300',label:'SALAD',desc:'Tangy · Crunchy · Fresh'},
+    'sl2':{bg:'#0a1a08,#142d0d',label:'SALAD',desc:'Peppery · Light · Elegant'},
+    'sl3':{bg:'#001433,#001a4d',label:'SALAD',desc:'Briny · Fresh · Classic'},
+    'sl4':{bg:'#1a1a00,#2d2d00',label:'SALAD',desc:'Creamy · Crunchy · Rich'},
+    'sl5':{bg:'#1a0800,#3d1800',label:'SALAD',desc:'Zesty · Crunchy · Bold'},
+    'sl6':{bg:'#1a0a14,#2d1224',label:'SALAD',desc:'Hearty · Savory · Filling'},
+    'sl7':{bg:'#0d1a0d,#142d14',label:'SALAD',desc:'Nutty · Wholesome · Fresh'},
+    'sl8':{bg:'#1a1000,#2d1c00',label:'SALAD',desc:'Sweet · Chewy · Exotic'},
+    'sl9':{bg:'#1a0510,#3d0d20',label:'SALAD',desc:'Sweet · Fresh · Vibrant'},
+    'sl10':{bg:'#0d1a05,#182d08',label:'SALAD',desc:'Herby · Tangy · Light'},
+    'sl11':{bg:'#1a0d00,#3d2000',label:'SALAD',desc:'Citrusy · Fresh · Bright'},
+    // Pizza
+    'pz1':{bg:'#1a0500,#3d0f00',label:'PIZZA',desc:'Cheesy · Tangy · Classic'},
+    'pz2':{bg:'#1a0800,#3d1200',label:'PIZZA',desc:'Smoky · Spiced · Rich'},
+    'pz3':{bg:'#0d1a05,#1a3300',label:'PIZZA',desc:'Fresh · Colorful · Light'},
+    'pz4':{bg:'#1a0800,#2d1200',label:'PIZZA',desc:'Juicy · Saucy · Satisfying'},
+    'pz5':{bg:'#1a0500,#3d0d00',label:'PIZZA',desc:'Crispy · Spicy · Bold'},
+    // Pasta
+    'pa1':{bg:'#001a1a,#003d3d',label:'PASTA',desc:'Briny · Creamy · Luxurious'},
+    'pa2':{bg:'#1a1500,#2d2000',label:'PASTA',desc:'Creamy · Rich · Velvety'},
+    'pa3':{bg:'#1a0500,#3d0d00',label:'PASTA',desc:'Meaty · Hearty · Classic'},
+    'pa4':{bg:'#0d1a05,#1a3300',label:'PASTA',desc:'Herby · Nutty · Fresh'},
+    'pa5':{bg:'#1a0500,#3d0800',label:'PASTA',desc:'Spicy · Tangy · Bold'},
+    'pa6':{bg:'#1a0800,#2d1200',label:'PASTA',desc:'Layered · Hearty · Rich'},
+    'pa7':{bg:'#1a0510,#3d0d20',label:'PASTA',desc:'Creamy · Tangy · Smooth'},
+    // Sandwiches & Burgers
+    'sw1':{bg:'#1a0800,#3d1500',label:'SANDWICH',desc:'Smoky · Loaded · Bold'},
+    'sw2':{bg:'#1a0500,#3d0d00',label:'SANDWICH',desc:'Fiery · Crispy · Juicy'},
+    'sw3':{bg:'#1a1000,#2d1c00',label:'SANDWICH',desc:'Cheesy · Grilled · Warm'},
+    'sw4':{bg:'#1a0a00,#2d1400',label:'SANDWICH',desc:'Layered · Classic · Fresh'},
+    'sw5':{bg:'#1a1500,#2d2000',label:'SANDWICH',desc:'Creamy · Rich · Satisfying'},
+    'sw6':{bg:'#1a0800,#3d1500',label:'SANDWICH',desc:'Smoky · Spiced · Sizzling'},
+    'sw7':{bg:'#1a0500,#3d0d00',label:'SANDWICH',desc:'Crispy · Spicy · Crunchy'},
+    'sw8':{bg:'#1a0a00,#3d1800',label:'SANDWICH',desc:'Juicy · Savory · Hearty'},
+    'sw9':{bg:'#1a0800,#2d1200',label:'SHAWARMA',desc:'Spiced · Tender · Wrapped'},
+    'sw10':{bg:'#1a0800,#3d1500',label:'SHAWARMA',desc:'Rich · Smoky · Tender'},
+    'sw11':{bg:'#1a0500,#3d0800',label:'BURGER',desc:'Juicy · Loaded · Signature'},
+    'sw12':{bg:'#1a0800,#2d1200',label:'BURGER',desc:'Crispy · Crunchy · Golden'},
+    // Fukharat
+    'fk1':{bg:'#1a0800,#2d1400',label:'CLAY POT',desc:'Tender · Aromatic · Slow-cooked'},
+    'fk2':{bg:'#1a0500,#3d0f00',label:'CLAY POT',desc:'Rich · Hearty · Bold'},
+    'fk3':{bg:'#0a1a08,#142d0d',label:'CLAY POT',desc:'Earthy · Savory · Deep'},
+    'fk4':{bg:'#1a1000,#2d1c00',label:'CLAY POT',desc:'Nutty · Creamy · Warm'},
+    // Soups
+    'sp1':{bg:'#1a1200,#2d2000',label:'SOUP',desc:'Sweet · Creamy · Comforting'},
+    'sp2':{bg:'#0d1a05,#182d08',label:'SOUP',desc:'Velvety · Fresh · Wholesome'},
+    'sp3':{bg:'#0a1a08,#142d0d',label:'SOUP',desc:'Earthy · Savory · Warm'},
+    'sp4':{bg:'#1a1000,#3d2800',label:'SOUP',desc:'Hearty · Spiced · Traditional'},
+    // Mains
+    'md1':{bg:'#1a0500,#3d0d00',label:'MAIN DISH',desc:'Juicy · Seared · Premium'},
+    'md2':{bg:'#1a0800,#2d1200',label:'MAIN DISH',desc:'Tender · Saucy · Grilled'},
+    'md3':{bg:'#1a0800,#3d1500',label:'MAIN DISH',desc:'Smoky · Marinated · Tender'},
+    'md4':{bg:'#1a0800,#3d1500',label:'MAIN DISH',desc:'Spiced · Charred · Juicy'},
+    // Desserts
+    'ds1':{bg:'#1a0a00,#3d1800',label:'DESSERT',desc:'Warm · Gooey · Indulgent'},
+    'ds2':{bg:'#1a1000,#3d2800',label:'DESSERT',desc:'Crispy · Sweet · Cheesy'},
+    'ds3':{bg:'#1a1000,#2d1c00',label:'DESSERT',desc:'Creamy · Warm · Rich'},
+    // Snacks
+    'sn1':{bg:'#1a1200,#2d1c00',label:'SNACKS',desc:'Crunchy · Savory · Mixed'},
+    'sn2':{bg:'#1a1000,#2d1800',label:'SNACKS',desc:'Light · Fluffy · Fun'},
+    'sn3':{bg:'#1a1000,#3d2800',label:'SNACKS',desc:'Crunchy · Tangy · Dippable'},
+    // Hot Coffee
+    'hc1':{bg:'#1a0800,#3d1200',label:'ESPRESSO',desc:'Strong · Robust · Energizing'},
+    'hc2':{bg:'#1a0800,#3d1000',label:'ESPRESSO',desc:'Pure · Intense · Bold'},
+    'hc3':{bg:'#1a0800,#3d0d00',label:'ESPRESSO',desc:'Double · Rich · Powerful'},
+    'hc4':{bg:'#0d0d1a,#1a1a3d',label:'COFFEE',desc:'Smooth · Aromatic · Refined'},
+    'hc5':{bg:'#1a1000,#2d1c00',label:'TURKISH',desc:'Dark · Spiced · Traditional'},
+    'hc6':{bg:'#1a1000,#3d2400',label:'TURKISH',desc:'Strong · Thick · Classic'},
+    'hc7':{bg:'#1a0800,#2d1200',label:'ESPRESSO',desc:'Balanced · Smooth · Short'},
+    'hc8':{bg:'#0d1a1a,#1a3333',label:'COFFEE',desc:'Long · Mild · Classic'},
+    'hc9':{bg:'#0d1a1a,#1a3333',label:'COFFEE',desc:'Smooth · Dark · Satisfying'},
+    'hc10':{bg:'#1a1a00,#2d2d00',label:'MILK BASED',desc:'Creamy · Frothy · Balanced'},
+    'hc11':{bg:'#001a1a,#003333',label:'MILK BASED',desc:'Velvety · Smooth · Flat'},
+    'hc12':{bg:'#1a0800,#3d1500',label:'ESPRESSO',desc:'Ice Cream · Espresso · Indulgent'},
+    'hc13':{bg:'#0d1a0d,#1a3d1a',label:'ESPRESSO',desc:'Long · Mellow · Light'},
+    'hc14':{bg:'#0d1a0d,#1a3d1a',label:'SPECIALTY',desc:'Smooth · Aromatic · Filter'},
+    'hc15':{bg:'#1a0d00,#3d2000',label:'MILK BASED',desc:'Sweet · Creamy · Layered'},
+    'hc16':{bg:'#1a1500,#2d2000',label:'MILK BASED',desc:'Bold · Creamy · Condensed'},
+    'hc17':{bg:'#1a1a1a,#2d2d2d',label:'MILK BASED',desc:'Sweet · Vanilla · Smooth'},
+    'hc18':{bg:'#1a1500,#2d2000',label:'HOT DRINK',desc:'Creamy · Warming · Exotic'},
+    'hc19':{bg:'#1a0800,#3d1200',label:'MILK BASED',desc:'Chocolatey · Rich · Warm'},
+    'hc20':{bg:'#1a0800,#3d1000',label:'HOT DRINK',desc:'Velvety · Sweet · Indulgent'},
+    'hc21':{bg:'#1a1a1a,#2d2d2d',label:'HOT DRINK',desc:'Sweet · Creamy · Delicate'},
+    // Ice Coffee
+    'ic1':{bg:'#001433,#001a4d',label:'ICE COFFEE',desc:'Chilled · Creamy · Smooth'},
+    'ic2':{bg:'#0d1a1a,#1a3333',label:'ICE COFFEE',desc:'Cold · Bold · Refreshing'},
+    'ic3':{bg:'#1a1500,#2d2000',label:'ICE COFFEE',desc:'Chilled · Condensed · Rich'},
+    'ic4':{bg:'#1a0800,#2d1200',label:'ICE COFFEE',desc:'Iced · Chocolatey · Cool'},
+    'ic5':{bg:'#1a1a1a,#2d2d2d',label:'ICE COFFEE',desc:'Chilled · Sweet · Creamy'},
+    // Cold Drinks
+    'cd1':{bg:'#001433,#001a4d',label:'COLD DRINK',desc:'Blended · Sweet · Icy'},
+    'cd2':{bg:'#1a1a1a,#2d2d2d',label:'COLD DRINK',desc:'Tangy · Probiotic · Refreshing'},
+    'cd3':{bg:'#001a1a,#003333',label:'COLD DRINK',desc:'Fruity · Chilled · Light'},
+    // Fresh Juice
+    'fj1':{bg:'#1a0d00,#3d2000',label:'FRESH JUICE',desc:'Bright · Tangy · Vitamin C'},
+    'fj2':{bg:'#1a1a00,#2d2d00',label:'FRESH JUICE',desc:'Zesty · Cooling · Fresh'},
+    'fj3':{bg:'#1a0800,#3d1500',label:'FRESH JUICE',desc:'Tropical · Sweet · Thick'},
+    'fj4':{bg:'#0d1a05,#182d08',label:'FRESH JUICE',desc:'Citrusy · Herby · Unique'},
+    'fj5':{bg:'#1a0510,#3d0d20',label:'FRESH JUICE',desc:'Sweet · Berry · Vibrant'},
+    'fj6':{bg:'#0d1a05,#1a3300',label:'FRESH JUICE',desc:'Tropical · Tangy · Green'},
+    'fj7':{bg:'#0d1a05,#182d08',label:'FRESH JUICE',desc:'Crisp · Sweet · Natural'},
+    'fj8':{bg:'#1a0d00,#3d2000',label:'FRESH JUICE',desc:'Tropical · Sweet · Tangy'},
+    // Mojito
+    'mj1':{bg:'#0d1a05,#1a3300',label:'MOJITO',desc:'Fresh · Minty · Refreshing'},
+    // Milkshake
+    'ms1':{bg:'#1a0510,#3d0d20',label:'MILKSHAKE',desc:'Creamy · Thick · Sweet'},
+    // Fresh Mix
+    'fm1':{bg:'#0d1a05,#1a3300',label:'FRESH MIX',desc:'Tropical · Tangy · Lush'},
+    'fm2':{bg:'#0d1a05,#1a3d1a',label:'FRESH MIX',desc:'Bright · Zesty · Green'},
+    'fm3':{bg:'#0d1a05,#182d08',label:'FRESH MIX',desc:'Crisp · Peppery · Earthy'},
+    'fm4':{bg:'#1a0510,#3d0d20',label:'FRESH MIX',desc:'Sweet · Tropical · Bright'},
+    'fm5':{bg:'#1a0800,#3d1500',label:'FRESH MIX',desc:'Tropical · Exotic · Rich'},
+    'fm6':{bg:'#0d1a05,#1a3300',label:'FRESH MIX',desc:'Creamy · Buttery · Smooth'},
+    'fm7':{bg:'#1a1000,#2d1c00',label:'FRESH MIX',desc:'Creamy · Sweet · Wholesome'},
+    // Tea
+    'te1':{bg:'#0d1a05,#182d08',label:'TEA',desc:'Warm · Soothing · Classic'},
+    'te2':{bg:'#0d1a0d,#1a3d1a',label:'TEA',desc:'Fragrant · Herbal · Calming'},
+    'te3':{bg:'#1a0800,#3d1500',label:'TEA',desc:'Spicy · Warming · Zingy'},
+    'te4':{bg:'#0d1a05,#1a3300',label:'TEA',desc:'Light · Antioxidant · Fresh'},
+    'te5':{bg:'#1a0d00,#3d2000',label:'TEA',desc:'Spiced · Milky · Cozy'},
+    // Soft Drinks
+    'sd1':{bg:'#1a0510,#3d0d20',label:'DRINK',desc:'Energizing · Bold · Iconic'},
+    'sd2':{bg:'#001433,#001a4d',label:'DRINK',desc:'Sparkling · Light · Mineral'},
+    'sd3':{bg:'#001a1a,#003333',label:'DRINK',desc:'Fizzy · Refreshing · Cold'},
+    'sd4':{bg:'#001433,#001a4d',label:'DRINK',desc:'Pure · Still · Refreshing'},
+    'sd5':{bg:'#0d0d1a,#1a1a3d',label:'DRINK',desc:'Energizing · Fizzy · Bold'},
+    'sd6':{bg:'#1a0d00,#3d2000',label:'DRINK',desc:'Malty · Chilled · Non-Alcoholic'},
+    // Hookah
+    'hk1':{bg:'#0d0d1a,#1a1a3d',label:'SIGNATURE',desc:'Premium · Aromatic · Special'},
+    'hk2':{bg:'#1a0d00,#2d1a00',label:'HOOKAH',desc:'Classic · Smooth · Traditional'},
+    'hk3':{bg:'#0d1a05,#182d08',label:'PREMIUM',desc:'Fine · Aromatic · Luxurious'},
+    'hk4':{bg:'#1a1a00,#2d2d00',label:'HOOKAH',desc:'Citrusy · Cool · Refreshing'},
+    'hk5':{bg:'#1a0800,#2d1200',label:'HOOKAH',desc:'Warm · Sweet · Spiced'},
+    'hk6':{bg:'#1a0510,#3d0d20',label:'HOOKAH',desc:'Fruity · Sweet · Smooth'},
+    'hk7':{bg:'#1a0510,#2d0d20',label:'HOOKAH',desc:'Fruity · Cool · Refreshing'},
+    'hk8':{bg:'#0d1a05,#1a3300',label:'HOOKAH',desc:'Sweet · Cool · Summery'},
+    'hk9':{bg:'#001433,#001a4d',label:'HOOKAH',desc:'Mysterious · Cool · Smooth'},
+    'hk10':{bg:'#1a0510,#3d0d20',label:'HOOKAH',desc:'Sweet · Playful · Fun'},
+    'hk11':{bg:'#1a0510,#3d0d20',label:'HOOKAH',desc:'Floral · Sweet · Romantic'},
+    'hk12':{bg:'#1a0d00,#3d2000',label:'HOOKAH',desc:'Citrusy · Tangy · Fresh'},
+    'hk13':{bg:'#1a1a1a,#2d2d2d',label:'HOOKAH',desc:'Resinous · Unique · Smooth'},
+    'hk14':{bg:'#1a1000,#2d1c00',label:'SERVICE',desc:'Fresh Head · Clean Start'},
+  };
+  const s = styles[itemId] || {bg:'#1a1000,#2d1c00',label:'MENU',desc:'Fresh · Crafted · Delicious'};
+  return s;
+}
+
 // ── Add Item Panel ──────────────────────────────────────────
 function showAddItemPanel(catId) {
   const cat = MENU.find(c => c.id === catId);
@@ -3927,11 +4128,13 @@ function renderMMGrid(catId) {
 
   document.getElementById('mmGrid').innerHTML = cat.items.map(item=>{
     const src = customImages[item.id];
+    const _s = getItemCardStyle(item.id, item.icon);
     const imgEl = src
       ? `<img class="mm-item-img" src="${src}" alt="${item.en}">
          <button class="mm-remove-img" onclick="removeMMImage('${item.id}')" title="Remove photo">✕</button>`
-      : `<div class="mm-item-placeholder">
-           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      : `<div class="mm-item-placeholder" style="background:linear-gradient(135deg,#${_s.bg.replace(',','#')});flex-direction:column;gap:4px;">
+           <div style="font-size:32px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">${item.icon||'🍽️'}</div>
+           <div style="font-size:8px;letter-spacing:1.5px;color:rgba(200,149,42,0.8);font-family:'Rubik',sans-serif;">${_s.label}</div>
          </div>`;
     return `<div class="mm-item ${src?'mm-has-img':''}" id="mmcard-${item.id}">
       ${imgEl}
