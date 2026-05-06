@@ -3773,21 +3773,37 @@ function showAddItemPanel(catId) {
   document.body.appendChild(overlay);
 }
 
-async function deleteMenuItem(itemId, dbId, name) {
-  if (!confirm(`Delete "${name}" from the menu? This cannot be undone.`)) return;
-  try {
-    await apiFetch(`/api/menu/items/${dbId}`, { method: 'DELETE' });
-    // Remove from local MENU
-    MENU.forEach(cat => {
-      cat.items = cat.items.filter(i => i.id !== itemId);
-    });
-    renderMMGrid(_mmActiveCat);
-    renderMMSidebar();
-    toast(`"${name}" deleted ✓`);
-  } catch(e) {
-    console.error('Delete failed:', e);
-    toast('Error deleting item: ' + e.message);
-  }
+function deleteMenuItem(itemId, dbId, name) {
+  const overlay = document.createElement('div');
+  overlay.id = 'deleteConfirmOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:28px 24px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete Item</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Are you sure you want to delete</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;color:var(--gold2);margin-bottom:20px;">"${name}"</div>
+      <div style="font-size:11px;color:var(--red);margin-bottom:24px;opacity:.8;">This cannot be undone.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">Cancel</button>
+        <button id="confirmDeleteBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">Delete</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    overlay.remove();
+    try {
+      await apiFetch(`/api/menu/items/${dbId}`, { method: 'DELETE' });
+      MENU.forEach(cat => { cat.items = cat.items.filter(i => i.id !== itemId); });
+      renderMMGrid(_mmActiveCat);
+      renderMMSidebar();
+      toast(`"${name}" deleted ✓`);
+    } catch(e) {
+      console.error('Delete failed:', e);
+      toast('Error: ' + e.message);
+    }
+  };
 }
 
 async function submitAddItem(catId) {
