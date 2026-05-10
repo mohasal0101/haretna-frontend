@@ -811,11 +811,12 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 .bell-btn.pulse{animation:bellPulse 1.8s ease infinite;}
 
 /* Call popup */
-.call-popup{position:sticky;top:58px;z-index:195;background:var(--chalk);border-bottom:1px solid var(--border);padding:12px 14px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.call-popup{position:sticky;top:58px;z-index:195;background:var(--chalk);border-bottom:1px solid var(--border);padding:10px 0 10px 14px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
 .call-popup.open{display:block;}
-.call-popup-title{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;margin-bottom:10px;}
-.call-popup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.call-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:.5px;padding:10px 6px 8px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;overflow:hidden;}
+.call-popup-title{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.call-popup-grid{display:flex;flex-direction:row;gap:8px;overflow-x:auto;padding-bottom:4px;padding-right:14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.call-popup-grid::-webkit-scrollbar{display:none;}
+.call-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:.5px;padding:10px 10px 8px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;overflow:hidden;flex:0 0 auto;min-width:80px;scroll-snap-align:start;}
 .call-btn .emoji{font-size:20px;}
 .call-btn:active{background:rgba(200,149,42,.15);border-color:var(--gold);color:var(--gold2);transform:scale(.95);}
 .call-btn.sent{border-color:var(--gold);color:var(--gold2);background:rgba(200,149,42,.1);}
@@ -1327,6 +1328,34 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
         <span class="call-btn-label">
           <span class="call-btn-en">Water</span>
           <span class="call-btn-ar">ماء</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callCoal" onclick="sendTableCall('coal')">
+        <span class="emoji">🪨</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Coal</span>
+          <span class="call-btn-ar">فحم</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callAshtray" onclick="sendTableCall('ashtray')">
+        <span class="emoji">🫙</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Ashtray</span>
+          <span class="call-btn-ar">مكته</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callCards" onclick="sendTableCall('cards')">
+        <span class="emoji">🃏</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Cards</span>
+          <span class="call-btn-ar">شده</span>
+        </span>
+      </button>
+      <button class="call-btn" id="callClean" onclick="sendTableCall('clean')">
+        <span class="emoji">🧹</span>
+        <span class="call-btn-label">
+          <span class="call-btn-en">Clean Table</span>
+          <span class="call-btn-ar">تنظيف طاولة</span>
         </span>
       </button>
     </div>
@@ -2690,7 +2719,7 @@ function removeAddonOption(idx) {
 }
 
 function saveAddons() {
-  try { localStorage.setItem('haretna_addons', JSON.stringify(ADDONS)); } catch(e){}
+  // ADDONS saved to DB via API — no localStorage needed
   toast('Add-ons saved! · تم حفظ الإضافات');
   // Refresh item popup flavor chips if open
 }
@@ -4161,6 +4190,10 @@ const CALL_LABELS = {
   bill:    '💳 Bill requested at · طلب حساب — طاولة',
   napkins: '🧻 Napkins needed at · طلب مناديل — طاولة',
   water:   '💧 Water requested at · طلب ماء — طاولة',
+  coal:    '🪨 Coal requested at · طلب فحم — طاولة',
+  ashtray: '🫙 Ashtray needed at · طلب مكته — طاولة',
+  cards:   '🃏 Cards requested at · طلب شده — طاولة',
+  clean:   '🧹 Clean table needed at · تنظيف طاولة — طاولة',
 };
 
 const CALL_LABELS_AR = {
@@ -4168,10 +4201,14 @@ const CALL_LABELS_AR = {
   bill:    '💳 طلب الحساب',
   napkins: '🧻 مناديل مطلوبة',
   water:   '💧 ماء مطلوب',
+  coal:    '🪨 فحم مطلوب',
+  ashtray: '🫙 مكته مطلوبة',
+  cards:   '🃏 شده مطلوبة',
+  clean:   '🧹 تنظيف طاولة',
 };
 let callCooldowns = {}; // type -> timestamp
 
-const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧' };
+const CALL_ICONS = { waiter:'🙋', bill:'💳', napkins:'🧻', water:'💧', coal:'🪨', ashtray:'🫙', cards:'🃏', clean:'🧹' };
 
 async function sendTableCall(type) {
   const now = Date.now();
@@ -4559,6 +4596,18 @@ async function loadMenuFromAPI() {
     }));
     // Populate outOfStock set
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
+    // Build ADDONS from DB addons
+    ADDONS = {};
+    MENU.flatMap(c => c.items).forEach(i => {
+      if (i.addons && i.addons.length > 0) {
+        ADDONS[i.id] = {
+          options: i.addons.map(a => ({
+            name: a.nameEn, nameAr: a.nameAr,
+            price: a.price || 0, icon: a.icon || '', oos: false,
+          }))
+        };
+      }
+    });
     // Build ADDONS from DB addons so getFlavorsForItem works correctly
     ADDONS = {};
     MENU.flatMap(c => c.items).forEach(i => {
