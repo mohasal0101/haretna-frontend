@@ -986,7 +986,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
       <svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="45"/><circle class="ring-fill" id="ringFill" cx="50" cy="50" r="45"/></svg>
       <div class="ocd-num" id="cdNum">3</div>
     </div>
-    <div class="ocd-msg">Your order will be placed automatically.<br>You can cancel within 3 seconds.</div>
+    <div class="ocd-msg">Your order will be placed automatically.<br>You can cancel within 3 seconds.<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">سيتم إرسال طلبك تلقائياً. يمكنك الإلغاء خلال 3 ثوانٍ.</span></div>
     <button class="btn-cancel-order" onclick="cancelOrderCountdown()">Cancel Order · إلغاء</button>
   </div>
 </div>
@@ -994,16 +994,16 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <!-- STOCK MANAGER -->
 <div id="stockPanel">
   <div class="stock-box">
-    <h2>Stock Manager</h2>
-    <p>Toggle items to mark as out of stock. Changes reflect on the customer menu immediately.</p>
-    <input type="text" class="stock-search" placeholder="Search items…" oninput="filterStockList(this.value)" id="stockSearch"/>
+    <h2>Stock Manager · إدارة المخزون</h2>
+    <p>Toggle items to mark as out of stock. Changes reflect on the customer menu immediately.<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">فعّل/عطّل العناصر لتحديد ما نفد من المخزون. التغييرات تظهر للعملاء فوراً.</span></p>
+    <input type="text" class="stock-search" placeholder="Search items… · ابحث عن عنصر" oninput="filterStockList(this.value)" id="stockSearch"/>
     <div style="margin-bottom:10px;">
       <select class="stock-cat-select" id="stockCatFilter" onchange="filterStockList(document.getElementById('stockSearch').value)">
-        <option value="">All Categories</option>
+        <option value="">All Categories · كل الأقسام</option>
       </select>
     </div>
     <div class="stock-list" id="stockList"></div>
-    <button class="stock-close-btn" onclick="closeStockPanel()">Close</button>
+    <button class="stock-close-btn" onclick="closeStockPanel()">Close · إغلاق</button>
   </div>
 </div>
 
@@ -1011,34 +1011,34 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="offersPanel" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;padding:20px;">
   <div style="max-width:500px;margin:0 auto;background:var(--chalk);border:1px solid var(--border2);border-radius:10px;padding:24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🏷️ Manage Offers</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🏷️ Manage Offers · إدارة العروض</div>
       <button onclick="closeOffersPanel()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <div id="offersList"></div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;">Add New Combo Offer</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;">Add New Combo Offer · إضافة عرض جديد</div>
       <input id="newOfferTitle" placeholder="Title e.g. Combo Deal 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferTitleAr" placeholder="العنوان بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
       <input id="newOfferDesc" placeholder="Short description in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
-      <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
-      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Expiry Date (optional)</div>
+      <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD) · سعر الكومبو" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Expiry Date (optional) · تاريخ الانتهاء</div>
       <input id="newOfferExpiry" type="date" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;color-scheme:dark;"/>
-      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Show During Hours (optional)</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Show During Hours (optional) · ساعات العرض</div>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">From</div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">From · من</div>
           <input id="newOfferTimeFrom" type="time" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;box-sizing:border-box;color-scheme:dark;"/>
         </div>
         <div style="flex:1;">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">To</div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">To · إلى</div>
           <input id="newOfferTimeTo" type="time" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;box-sizing:border-box;color-scheme:dark;"/>
         </div>
       </div>
-      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Select Items in This Combo</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Select Items in This Combo · اختر عناصر الكومبو</div>
       <select id="newOfferCatFilter" onchange="renderOfferItemPicker()" style="width:100%;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream);padding:8px 12px;border-radius:var(--radius);font-size:12px;margin-bottom:7px;appearance:none;box-sizing:border-box;"></select>
       <div id="offerItemPicker" style="max-height:180px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:6px;margin-bottom:10px;"></div>
       <div id="selectedOfferItems" style="display:flex;flex-wrap:wrap;gap:5px;min-height:24px;margin-bottom:10px;"></div>
-      <button onclick="addOffer()" style="width:100%;background:linear-gradient(135deg,#906018,var(--gold2));color:var(--bg);border:none;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Combo Offer</button>
+      <button onclick="addOffer()" style="width:100%;background:linear-gradient(135deg,#906018,var(--gold2));color:var(--bg);border:none;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Combo Offer · إضافة عرض</button>
     </div>
   </div>
 </div>
@@ -1047,14 +1047,14 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="trendingPanel" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;padding:20px;">
   <div style="max-width:500px;margin:0 auto;background:var(--chalk);border:1px solid var(--border2);border-radius:10px;padding:24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🔥 Manage Trending</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🔥 Manage Trending · الأكثر طلباً</div>
       <button onclick="closeTrendingPanel()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:14px;">Select items to feature in the Trending section on the customer menu.</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:14px;">Select items to feature in the Trending section on the customer menu.<br><span style="font-family:'Rubik',sans-serif;">اختر العناصر لعرضها في قسم الأكثر طلباً.</span></p>
     <select id="trendCatFilter" onchange="renderTrendingItemList()" style="width:100%;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream);padding:8px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;appearance:none;box-sizing:border-box;"></select>
-    <input id="trendSearch" oninput="renderTrendingItemList()" placeholder="Search items…" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;box-sizing:border-box;"/>
+    <input id="trendSearch" oninput="renderTrendingItemList()" placeholder="Search items… · ابحث عن عنصر" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;box-sizing:border-box;"/>
     <div id="trendingItemList" style="max-height:340px;overflow-y:auto;"></div>
-    <button onclick="saveTrendingAndClose()" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#906018,var(--gold2));color:var(--bg);border:none;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">✓ Save & Apply to Menu</button>
+    <button onclick="saveTrendingAndClose()" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#906018,var(--gold2));color:var(--bg);border:none;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">✓ Save & Apply to Menu · حفظ وتطبيق</button>
   </div>
 </div>
 
@@ -1089,10 +1089,10 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div class="op-items" id="opItems"></div>
     <div class="op-footer">
       <div class="op-total">
-        <div class="op-total-label">Combo Price</div>
+        <div class="op-total-label">Combo Price · سعر الكومبو</div>
         <div class="op-total-price" id="opPrice"></div>
       </div>
-      <button class="op-add-btn" id="opAddBtn" onclick="addOfferToCartFromPopup()">+ Add to Cart</button>
+      <button class="op-add-btn" id="opAddBtn" onclick="addOfferToCartFromPopup()">+ Add to Cart · أضف للسلة</button>
     </div>
   </div>
 </div>
@@ -1102,19 +1102,19 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <div id="itemPopup" onclick="event.stopPropagation()">
     <div class="ip-handle"></div>
     <div id="ipAdminBar" class="ip-admin-bar" style="display:none;">
-      <span class="ip-admin-label">Admin · Edit Item</span>
-      <button class="ip-edit-btn" onclick="toggleItemEdit()">Edit Details</button>
+      <span class="ip-admin-label">Admin · Edit Item · تعديل العنصر</span>
+      <button class="ip-edit-btn" onclick="toggleItemEdit()">Edit Details · تعديل</button>
     </div>
     <div id="ipEditForm" class="ip-edit-form" style="display:none;">
-      <label>English Name</label>
+      <label>English Name · الاسم بالإنجليزي</label>
       <input id="ipEditEn" type="text" placeholder="Name in English"/>
       <label>Arabic Name · الاسم بالعربي</label>
       <input id="ipEditAr" type="text" placeholder="الاسم بالعربي" style="direction:rtl;"/>
-      <label>Description</label>
+      <label>Description · الوصف</label>
       <textarea id="ipEditDesc" placeholder="Short description…"></textarea>
-      <label>Price (JD)</label>
+      <label>Price (JD) · السعر</label>
       <input id="ipEditPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
-      <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes</button>
+      <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
     <div id="ipImgWrap" class="ip-img-wrap"></div>
     <div class="ip-header">
@@ -1129,8 +1129,8 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
       <div class="ip-flavors-grid" id="ipFlavorsGrid"></div>
     </div>
     <div class="ip-note-wrap">
-      <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note</button>
-      <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce…"></textarea>
+      <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
+      <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
     </div>
     <div class="ip-footer">
       <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
@@ -1139,7 +1139,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
         <span class="ip-qty-n" id="ipQtyN">1</span>
         <button class="ip-qty-btn" onclick="ipChangeQty(1)">+</button>
       </div>
-      <button class="ip-add-btn" id="ipAddBtn" onclick="ipAddToCart()">Add to Cart</button>
+      <button class="ip-add-btn" id="ipAddBtn" onclick="ipAddToCart()">Add to Cart · أضف للسلة</button>
     </div>
   </div>
 </div>
@@ -1150,8 +1150,8 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div class="cb-left">
       <div class="cb-badge" id="cbCount">0</div>
       <div class="cb-text">
-        <div class="cb-label">Your Order</div>
-        <div class="cb-sublabel">Tap to view &amp; checkout</div>
+        <div class="cb-label">Your Order · طلبك</div>
+        <div class="cb-sublabel">Tap to view &amp; checkout · اضغط للمراجعة</div>
       </div>
     </div>
     <div class="cb-divider"></div>
@@ -1164,7 +1164,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 
 <!-- FLOATING CATEGORY BUTTON — always visible when on menu -->
 <button id="floatCatBtn" onclick="openCatPicker()">
-  <span class="fcb-label">Categories</span>
+  <span class="fcb-label">Categories · الأقسام</span>
   <span class="fcb-arrow">▲</span>
 </button>
 
@@ -1172,11 +1172,11 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="confirmOverlay">
   <div id="confirmBox">
     <div class="confirm-icon" id="confirmIcon">⚠️</div>
-    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-title" id="confirmTitle">Are you sure? · هل أنت متأكد؟</div>
     <div class="confirm-msg" id="confirmMsg"></div>
     <div class="confirm-btns">
-      <button class="confirm-cancel" onclick="closeConfirm(false)">Cancel</button>
-      <button class="confirm-ok" id="confirmOkBtn" onclick="closeConfirm(true)">Delete</button>
+      <button class="confirm-cancel" onclick="closeConfirm(false)">Cancel · إلغاء</button>
+      <button class="confirm-ok" id="confirmOkBtn" onclick="closeConfirm(true)">Delete · حذف</button>
     </div>
   </div>
 </div>
@@ -1184,22 +1184,22 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <!-- ADD-ONS PANEL -->
 <div id="addonsPanel">
   <div class="addons-box">
-    <h2>Add-ons Manager</h2>
-    <p>Pick an item from the menu, then type the flavours or ingredients customers can choose from.</p>
-    <input class="addons-search" id="addonsSearch" placeholder="Search items…" oninput="renderAddonsItemList(this.value)"/>
+    <h2>Add-ons Manager · إدارة الإضافات</h2>
+    <p>Pick an item from the menu, then type the flavours or ingredients customers can choose from.<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">اختر عنصراً من القائمة، ثم أضف النكهات أو المكونات التي يختار منها العميل.</span></p>
+    <input class="addons-search" id="addonsSearch" placeholder="Search items… · ابحث عن عنصر" oninput="renderAddonsItemList(this.value)"/>
     <div class="addons-item-list" id="addonsItemList"></div>
     <div id="addonsEditor" style="display:none;">
       <div class="addons-selected-name" id="addonsSelectedName"></div>
-      <span class="addons-label">Current options</span>
+      <span class="addons-label">Current options · الخيارات الحالية</span>
       <div class="addons-chips-wrap" id="addonsChips"></div>
-      <span class="addons-label">Add new option</span>
+      <span class="addons-label">Add new option · أضف خياراً</span>
       <div class="addons-input-row">
         <input class="addons-input" id="addonsNewOption" placeholder="e.g. Peach, Strawberry, No Ice…" onkeydown="if(event.key==='Enter')addAddonOption()"/>
         <button class="addons-add-btn" onclick="addAddonOption()">+ Add</button>
       </div>
-      <button class="addons-save-btn" onclick="saveAddons()">Save Add-ons</button>
+      <button class="addons-save-btn" onclick="saveAddons()">Save Add-ons · حفظ الإضافات</button>
     </div>
-    <button class="addons-close-btn" onclick="closeAddonsPanel()">Close</button>
+    <button class="addons-close-btn" onclick="closeAddonsPanel()">Close · إغلاق</button>
   </div>
 </div>
 
@@ -1207,13 +1207,13 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="salesOverlay" onclick="closeSalesModal()">
   <div id="salesModal" onclick="event.stopPropagation()">
     <div class="sm-head">
-      <div class="sm-title">📊 Sales Summary</div>
+      <div class="sm-title">📊 Sales Summary · ملخص المبيعات</div>
       <button class="sm-close" onclick="closeSalesModal()">✕</button>
     </div>
     <div class="sm-kpis" id="smKpis"></div>
-    <div class="sm-section-title">🏆 Top Items Today</div>
+    <div class="sm-section-title">🏆 Top Items Today · الأكثر طلباً اليوم</div>
     <div id="smTopItems" style="margin-bottom:20px;"></div>
-    <div class="sm-section-title">⏰ Orders by Hour</div>
+    <div class="sm-section-title">⏰ Orders by Hour · الطلبات بالساعة</div>
     <div id="smHourBars"></div>
   </div>
 </div>
@@ -1241,7 +1241,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     </svg>
     <div class="land-logo-ar">أهوة حارتنا</div>
     <div class="land-logo-en">Haretna Café</div>
-    <div class="land-tagline">Est. in the heart of the quarter</div>
+    <div class="land-tagline">Est. in the heart of the quarter<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">في قلب الحارة</span></div>
     <div class="land-qr-card">
       <canvas id="landQR" width="160" height="160" class="qr-canvas"></canvas>
       <div class="land-qr-sub">Scan to Order · امسح للطلب</div>
@@ -1249,7 +1249,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div class="land-table-wrap">
       <label>Select Your Table · اختر طاولتك</label>
       <select class="land-select" id="tableSelect">
-        <option value="">— Select Table —</option>
+        <option value="">— Select Table · اختر طاولة —</option>
         <option value="1">Table 1</option><option value="2">Table 2</option>
         <option value="3">Table 3</option><option value="4">Table 4</option>
         <option value="5">Table 5</option><option value="6">Table 6</option>
@@ -1260,7 +1260,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     </div>
     <button class="btn-enter" onclick="enterMenu()">View Menu · عرض القائمة</button>
     <div class="land-admin-link" onclick="showView('adminLogin')">Staff Login · دخول الموظفين</div>
-    <div class="land-print-link" onclick="showView('qrGenPage');renderQRGen()">🖨 Print QR Codes for Tables</div>
+    <div class="land-print-link" onclick="showView('qrGenPage');renderQRGen()">🖨 Print QR Codes for Tables · طباعة أكواد QR للطاولات</div>
   </div>
 </div>
 
@@ -1272,16 +1272,16 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
       <div class="login-logo-en">Haretna Café</div>
       <div class="login-title">Staff Access · دخول الموظفين</div>
       <div class="login-field">
-        <label>Username</label>
+        <label>Username · اسم المستخدم</label>
         <input type="text" class="login-input" id="loginUser" placeholder="username" autocomplete="off"/>
       </div>
       <div class="login-field">
-        <label>Password</label>
+        <label>Password · كلمة المرور</label>
         <input type="password" class="login-input" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
       <div class="login-err" id="loginErr"></div>
       <button class="btn-login" onclick="doLogin()">Sign In · دخول</button>
-      <div class="login-back" onclick="showView('landing')">← Back to Menu</div>
+      <div class="login-back" onclick="showView('landing')">← Back to Menu · العودة للقائمة</div>
     </div>
   </div>
 </div>
@@ -1290,7 +1290,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="customerMenu" class="view">
   <div class="cust-header">
     <div><div class="h-logo-ar">أهوة حارتنا</div><div class="h-logo-en">Haretna Café</div></div>
-    <div class="h-table-badge"><div class="h-tbl-lbl">Table</div><div class="h-tbl-num" id="tableDisplay">—</div></div>
+    <div class="h-table-badge"><div class="h-tbl-lbl">Table · طاولة</div><div class="h-tbl-num" id="tableDisplay">—</div></div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="bell-btn" id="bellBtn" onclick="toggleCallPopup()">🔔</button>
       <button class="cart-btn" onclick="openCart()">🛒 <span class="cart-badge" id="cartBadge">0</span></button>
@@ -1335,7 +1335,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <!-- Onboarding banner -->
   <div id="callBanner" class="call-banner" style="display:none;">
     <span style="font-size:20px;">🔔</span>
-    <div class="call-banner-text">Tap the bell to call your waiter, ask for the bill, or request water & napkins.</div>
+    <div class="call-banner-text">Tap the bell to call your waiter, ask for the bill, or request water &amp; napkins.<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">اضغط الجرس لتنادي النادل، تطلب الحساب، أو تطلب ماء ومناديل.</span></div>
     <button class="call-banner-close" onclick="dismissCallBanner()">✕</button>
   </div>
 
@@ -1374,7 +1374,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     </div>
     <div class="cart-body" id="cartBody"></div>
     <div id="cartTrending" class="cart-trending" style="display:none;">
-      <div class="trending-head">✨ You Might Also Like</div>
+      <div class="trending-head">✨ You Might Also Like · قد يعجبك أيضاً</div>
       <div class="trend-scroll" id="trendScroll"></div>
     </div>
     <div class="cart-foot">
@@ -1392,44 +1392,44 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div class="badge-staff">Admin</div>
     <div class="live-dot-wrap"><div class="live-dot"></div>Live</div>
     <div class="at-btns">
-      <button class="at-btn" onclick="openStockPanel()">📦 Stock</button>
-      <button class="at-btn" onclick="openOffersPanel()">🏷️ Offers</button>
-      <button class="at-btn" onclick="openTrendingPanel()">🔥 Trending</button>
-      <button class="at-btn" onclick="openAddonsPanel()">✨ Add-ons</button>
-      <button class="at-btn" onclick="openSalesModal()">📊 Sales</button>
-      <button class="at-btn" onclick="showView('menuManagerPage');renderMenuManager()">🖼️ Menu</button>
-      <button class="at-btn" onclick="showView('historyPage');renderHistory()">📋 History</button>
-      <button class="sound-toggle on" id="soundToggle" onclick="toggleSound()">🔔 Sound</button>
-      <button class="at-btn" onclick="doLogout()">← Exit</button>
+      <button class="at-btn" onclick="openStockPanel()">📦 Stock · المخزون</button>
+      <button class="at-btn" onclick="openOffersPanel()">🏷️ Offers · العروض</button>
+      <button class="at-btn" onclick="openTrendingPanel()">🔥 Trending · الأكثر طلباً</button>
+      <button class="at-btn" onclick="openAddonsPanel()">✨ Add-ons · إضافات</button>
+      <button class="at-btn" onclick="openSalesModal()">📊 Sales · المبيعات</button>
+      <button class="at-btn" onclick="showView('menuManagerPage');renderMenuManager()">🖼️ Menu · القائمة</button>
+      <button class="at-btn" onclick="showView('historyPage');renderHistory()">📋 History · السجل</button>
+      <button class="sound-toggle on" id="soundToggle" onclick="toggleSound()">🔔 Sound · صوت</button>
+      <button class="at-btn" onclick="doLogout()">← Exit · خروج</button>
     </div>
   </div>
   <div class="admin-with-sidebar">
     <!-- ── Notification Sidebar ── -->
     <div class="notif-sidebar">
       <div class="notif-sidebar-head" onclick="this.closest('.notif-sidebar').classList.toggle('expanded')">
-        🔔 Table Requests
+        🔔 Table Requests · طلبات الطاولات
         <span class="notif-count" id="notifCount">0</span>
       </div>
       <div class="notif-list" id="notifList">
-        <div class="notif-empty">No requests yet</div>
+        <div class="notif-empty">No requests yet · لا يوجد طلبات</div>
       </div>
     </div>
     <!-- ── Main Orders Area ── -->
     <div class="admin-main">
       <div class="stats-bar">
-        <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New Orders</div></div>
-        <div class="stat-card"><div class="stat-n" id="sNewItems" style="color:var(--gold2);">0</div><div class="stat-l">New Items Added</div></div>
-        <div class="stat-card"><div class="stat-n" id="sPreparing">0</div><div class="stat-l">Preparing</div></div>
-        <div class="stat-card"><div class="stat-n" id="sDone">0</div><div class="stat-l">Ready/Done</div></div>
-        <div class="stat-card"><div class="stat-n" id="sRevenue">JD 0</div><div class="stat-l">Revenue</div></div>
+        <div class="stat-card"><div class="stat-n" id="sNew">0</div><div class="stat-l">New Orders · طلبات جديدة</div></div>
+        <div class="stat-card"><div class="stat-n" id="sNewItems" style="color:var(--gold2);">0</div><div class="stat-l">New Items Added · عناصر مضافة</div></div>
+        <div class="stat-card"><div class="stat-n" id="sPreparing">0</div><div class="stat-l">Preparing · قيد التحضير</div></div>
+        <div class="stat-card"><div class="stat-n" id="sDone">0</div><div class="stat-l">Ready/Done · جاهز</div></div>
+        <div class="stat-card"><div class="stat-n" id="sRevenue">JD 0</div><div class="stat-l">Revenue · الإيراد</div></div>
       </div>
       <div class="filter-row" id="filterRow">
-        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-        <button class="filter-btn" onclick="setFilter('new',this)">🔴 New</button>
-        <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing</button>
-        <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready</button>
-        <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done</button>
-        <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out</button>
+        <button class="filter-btn active" onclick="setFilter('all',this)">All · الكل</button>
+        <button class="filter-btn" onclick="setFilter('new',this)">🔴 New · جديد</button>
+        <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing · يُحضَّر</button>
+        <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready · جاهز</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done · منتهي</button>
+        <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out · سُدِّد</button>
       </div>
       <div class="orders-grid" id="ordersGrid"></div>
     </div>
@@ -1440,13 +1440,13 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 <div id="historyPage" class="view">
   <div class="admin-topbar">
     <div class="at-logo">Order History · سجل الطلبات <small>Haretna Café</small></div>
-    <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back</button>
+    <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back · رجوع</button>
   </div>
   <div class="history-body">
     <div class="history-filters">
-      <label>Filter by Date:</label>
+      <label>Filter by Date · تصفية بالتاريخ:</label>
       <input type="date" class="date-input" id="historyDate" onchange="renderHistory()"/>
-      <button class="at-btn" onclick="document.getElementById('historyDate').value='';renderHistory()">Clear</button>
+      <button class="at-btn" onclick="document.getElementById('historyDate').value='';renderHistory()">Clear · مسح</button>
     </div>
     <div class="history-summary" id="historySummary"></div>
     <div class="history-table" id="historyTable"></div>
@@ -1458,8 +1458,8 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <div class="admin-topbar">
     <div class="at-logo">🖼️ Menu Manager <small>Photos & Categories</small></div>
     <div class="at-btns">
-      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>💾 Save</button>
-      <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back</button>
+      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>💾 Save · حفظ</button>
+      <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back · رجوع</button>
     </div>
   </div>
   <div class="mm-layout">
@@ -1478,12 +1478,12 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <div class="admin-topbar">
     <div class="at-logo">QR Codes · أكواد المائدة <small>Haretna Café</small></div>
     <div class="at-btns">
-      <button class="at-btn" onclick="window.print()">🖨 Print All</button>
-      <button class="at-btn" onclick="showView('landing')">← Back</button>
+      <button class="at-btn" onclick="window.print()">🖨 Print All · طباعة الكل</button>
+      <button class="at-btn" onclick="showView('landing')">← Back · رجوع</button>
     </div>
   </div>
   <div class="qrgen-body">
-    <p style="font-size:12px;color:var(--text3);margin-bottom:4px;">Each QR code encodes the table number and café. Print and place on tables. Customers scan → automatically assigned to their table.</p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:4px;">Each QR code encodes the table number and café. Print and place on tables. Customers scan → automatically assigned to their table.<br><span style="font-family:'Rubik',sans-serif;">كل كود QR يحتوي على رقم الطاولة والمطعم. اطبعها وضعها على الطاولات. يمسح العميل الكود ويتم تعيينه تلقائياً لطاولته.</span></p>
     <div class="qrgen-grid" id="qrgenGrid"></div>
   </div>
 </div>
@@ -1826,7 +1826,7 @@ async function doLogin() {
     await loadAdminOrders();
     await loadAdminCalls();
     renderAdmin();
-    toast('Welcome back · مرحباً');
+    toast('Welcome back · أهلاً وسهلاً');
   } catch (e) {
     err.textContent = 'Invalid credentials · بيانات خاطئة';
     document.getElementById('loginPass').value = '';
@@ -1887,7 +1887,7 @@ function renderQRGen() {
 // =====================================================================
 function enterMenu() {
   const t = document.getElementById('tableSelect').value;
-  if (!t) { toast('Please select a table · اختر طاولة'); return; }
+  if (!t) { toast('Please select a table · الرجاء اختيار طاولة'); return; }
   currentTable = t;
   document.getElementById('tableDisplay').textContent = t;
   renderMenu();
@@ -1989,7 +1989,7 @@ function renderItemHTML(item, isAdmin) {
   const uploadPart = isAdmin ? `<div class="item-img-upload" onclick="event.stopPropagation();triggerImgUpload('${item.id}')">📷</div>` : '';
   return `
     <div class="item-card${qty>0?' in-cart':''}${oos?' out-of-stock':''}" id="icard-${item.id}" onclick="openItemPopup('${item.id}')">
-      ${oos?'<div class="out-badge">Out of Stock</div>':''}
+      ${oos?'<div class="out-badge">Out of Stock · نفد المخزون</div>':''}
       <div class="item-img-wrap">
         ${imgContent}${uploadPart}
       </div>
@@ -2177,7 +2177,7 @@ function renderCatView(catId) {
             <div class="offer-price-badge">JD ${o.price.toFixed(2)}</div>
           </div>`;
         }).join('')}</div>`
-      : '<p style="color:var(--text3);padding:20px;text-align:center;">No active offers.</p>';
+      : '<p style="color:var(--text3);padding:20px;text-align:center;">No active offers · لا يوجد عروض نشطة.</p>';
     return;
   }
   if (catId === 'trending-section') {
@@ -2200,7 +2200,7 @@ function closeCatView() {
 // ADD ITEM
 // =====================================================================
 function addItem(itemId) {
-  if (outOfStock.has(itemId)) { toast('Item is out of stock'); return; }
+  if (outOfStock.has(itemId)) { toast('Item is out of stock · هذا العنصر غير متوفر'); return; }
   const res = findItem(itemId);
   if (!res) return;
   const {item} = res;
@@ -2216,7 +2216,7 @@ function addItem(itemId) {
     if (qs) { qs.textContent=`×${qty}`; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-  toast(`${item.en} added!`);
+  toast(`${item.en} added! · تمت الإضافة`);
 }
 
 let _currentPopupOfferId = null;
@@ -2233,7 +2233,7 @@ function openOfferPopup(offerId) {
   document.getElementById('opDesc').textContent = offer.desc||'';
   document.getElementById('opDesc').style.display = offer.desc ? 'block' : 'none';
   document.getElementById('opPrice').textContent = `JD ${offer.price.toFixed(2)}`;
-  document.getElementById('opAddBtn').textContent = inCart ? `✓ Add Another (×${inCart.qty} in cart)` : '+ Add Combo to Cart';
+  document.getElementById('opAddBtn').textContent = inCart ? `✓ Add Another (×${inCart.qty} in cart) · أضف مرة أخرى` : '+ Add Combo to Cart · أضف الكومبو للسلة';
 
   document.getElementById('opItems').innerHTML = offerItems.map(item=>{
     const src = customImages[item.id];
@@ -2263,7 +2263,7 @@ function addOfferToCartFromPopup() {
   addOfferToCart(_currentPopupOfferId);
   // Update button text
   const inCart = cart[_currentPopupOfferId];
-  if (inCart) document.getElementById('opAddBtn').textContent = `✓ Add Another (×${inCart.qty} in cart)`;
+  if (inCart) document.getElementById('opAddBtn').textContent = `✓ Add Another (×${inCart.qty} in cart) · أضف مرة أخرى`;
 }
 
 function addOfferToCart(offerId) {
@@ -2288,7 +2288,7 @@ function addOfferToCart(offerId) {
   }
   updateCartBadge();
   updateCartBar();
-  toast('Offer added to cart!');
+  toast('Offer added to cart! · تمت إضافة العرض للسلة');
 }
 
 // =====================================================================
@@ -2313,8 +2313,8 @@ function openItemPopup(itemId) {
   const imgSrc = customImages[itemId];
   const oos = outOfStock.has(itemId);
   imgWrap.innerHTML = imgSrc
-    ? `${oos?'<div class="ip-oos-badge">Out of Stock</div>':''}<img src="${imgSrc}" alt="${item.en}">`
-    : `<div class="ip-img-empty">${oos?'<div class="ip-oos-badge" style="position:relative;display:inline-block;margin-bottom:8px;">Out of Stock</div>':''}<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+    ? `${oos?'<div class="ip-oos-badge">Out of Stock · نفد المخزون</div>':''}<img src="${imgSrc}" alt="${item.en}">`
+    : `<div class="ip-img-empty">${oos?'<div class="ip-oos-badge" style="position:relative;display:inline-block;margin-bottom:8px;">Out of Stock · نفد المخزون</div>':''}<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
 
   document.getElementById('ipTitleEn').textContent = stripEmoji(item.en);
   document.getElementById('ipTitleAr').textContent = stripEmoji(item.ar);
@@ -2327,7 +2327,7 @@ function openItemPopup(itemId) {
   const noteInput = document.getElementById('ipNoteInput');
   const noteToggle = document.getElementById('ipNoteToggle');
   if (noteInput) { noteInput.value = ''; noteInput.style.display = 'none'; }
-  if (noteToggle) { noteToggle.textContent = '+ Add a note'; noteToggle.classList.remove('active'); }
+  if (noteToggle) { noteToggle.textContent = '+ Add a note · أضف ملاحظة'; noteToggle.classList.remove('active'); }
 
   // Flavors — use admin add-ons first, then keyword fallback
   _selectedFlavor = [];
@@ -2349,7 +2349,7 @@ function openItemPopup(itemId) {
 
   const addBtn = document.getElementById('ipAddBtn');
   addBtn.disabled = oos;
-  addBtn.textContent = oos ? 'Out of Stock' : 'Add to Cart';
+  addBtn.textContent = oos ? 'Out of Stock · نفد المخزون' : 'Add to Cart · أضف للسلة';
 
   document.getElementById('itemPopupOverlay').classList.add('open');
   document.getElementById('customerMenu').classList.add('no-fade');
@@ -2391,7 +2391,7 @@ function toggleIpNote() {
   const btn = document.getElementById('ipNoteToggle');
   const showing = inp.style.display !== 'none';
   inp.style.display = showing ? 'none' : 'block';
-  btn.textContent = showing ? '+ Add a note' : '- Remove note';
+  btn.textContent = showing ? '+ Add a note · أضف ملاحظة' : '- Remove note · إزالة الملاحظة';
   btn.classList.toggle('active', !showing);
   if (!showing) inp.focus();
 }
@@ -2430,7 +2430,7 @@ function ipAddToCart() {
     if (qs) { qs.textContent='x'+qty; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-  toast(item.en + ' x' + _ipQty + ' added!');
+  toast(item.en + ' x' + _ipQty + ' added! · تمت الإضافة');
   closeItemPopup();
 }
 
@@ -2455,8 +2455,8 @@ function saveItemEdit() {
   const ar = document.getElementById('ipEditAr').value.trim();
   const desc = document.getElementById('ipEditDesc').value.trim();
   const price = parseFloat(document.getElementById('ipEditPrice').value);
-  if (!en) { toast('Name cannot be empty'); return; }
-  if (isNaN(price) || price < 0) { toast('Invalid price'); return; }
+  if (!en) { toast('Name cannot be empty · الاسم مطلوب'); return; }
+  if (isNaN(price) || price < 0) { toast('Invalid price · سعر غير صحيح'); return; }
   const res = findItemInMenu(_currentPopupItemId);
   if (!res) return;
   const {item} = res;
@@ -2468,7 +2468,7 @@ function saveItemEdit() {
   document.getElementById('ipPrice').textContent = 'JD ' + price.toFixed(2);
   document.getElementById('ipEditForm').style.display = 'none';
   renderMenu();
-  toast('Item updated!');
+  toast('Item updated! · تم التحديث');
 }
 
 // =====================================================================
@@ -2612,7 +2612,7 @@ function renderAddonsItemList(filter) {
     ? allItems.filter(i => i.en.toLowerCase().includes(filter.toLowerCase()) || (i.ar||'').includes(filter))
     : allItems;
   const el = document.getElementById('addonsItemList');
-  if (!filtered.length) { el.innerHTML = '<div class="addons-empty">No items found</div>'; return; }
+  if (!filtered.length) { el.innerHTML = '<div class="addons-empty">No items found · لا يوجد عناصر</div>'; return; }
   el.innerHTML = filtered.map(i => {
     const hasAddons = ADDONS[i.id] && ADDONS[i.id].options.length > 0;
     const totalOpts = hasAddons ? ADDONS[i.id].options.length : 0;
@@ -2642,13 +2642,13 @@ function selectAddonsItem(itemId) {
 function renderAddonsChips() {
   const opts = ADDONS[_addonsSelectedId]?.options || [];
   const el = document.getElementById('addonsChips');
-  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:10px 12px;display:block;">No options yet — add one below</span>'; return; }
+  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:10px 12px;display:block;">No options yet · لا يوجد خيارات — add one below · أضف خياراً</span>'; return; }
   el.innerHTML = opts.map((o,i) => {
     const name = typeof o === 'object' ? o.name : o;
     const oos = typeof o === 'object' ? o.oos : false;
     return `<div class="addons-chip${oos?' is-oos':''}">
       <span class="addons-chip-name">${name}</span>
-      <button class="addons-oos-btn" onclick="toggleAddonOos(${i})">${oos ? '✓ Out of Stock' : 'Mark OOS'}</button>
+      <button class="addons-oos-btn" onclick="toggleAddonOos(${i})">${oos ? '✓ Out of Stock · نفد' : 'Mark OOS · نفد المخزون'}</button>
       <button class="addons-chip-del" onclick="removeAddonOption(${i})" title="Remove">×</button>
     </div>`;
   }).join('');
@@ -2657,7 +2657,7 @@ function renderAddonsChips() {
 function addAddonOption() {
   const inp = document.getElementById('addonsNewOption');
   const val = inp.value.trim();
-  if (!val) { toast('Type an option first'); return; }
+  if (!val) { toast('Type an option first · اكتب خياراً أولاً'); return; }
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
   // Support comma-separated batch entry
@@ -2691,7 +2691,7 @@ function removeAddonOption(idx) {
 
 function saveAddons() {
   try { localStorage.setItem('haretna_addons', JSON.stringify(ADDONS)); } catch(e){}
-  toast('Add-ons saved!');
+  toast('Add-ons saved! · تم حفظ الإضافات');
   // Refresh item popup flavor chips if open
 }
 
@@ -2751,7 +2751,7 @@ async function handleImgUpload(id, input) {
   if (menuItem && menuItem._dbId) {
     // Upload to Cloudinary via backend API
     try {
-      toast('Uploading image… ⏳');
+      toast('Uploading image… ⏳ · جاري رفع الصورة');
       const formData = new FormData();
       formData.append('image', file);
       const token = getToken();
@@ -2764,7 +2764,7 @@ async function handleImgUpload(id, input) {
       if (data.imageUrl) {
         customImages[id] = data.imageUrl;
         menuItem.imageUrl = data.imageUrl;
-        toast('Image uploaded to cloud! ☁️');
+        toast('Image uploaded to cloud! ☁️ · تم رفع الصورة');
       }
     } catch (e) {
       toast('Upload failed: ' + e.message);
@@ -2849,7 +2849,7 @@ function renderCart() {
   const totalsEl = document.getElementById('cartTotals');
   const entries = Object.entries(cart).filter(([,e])=>e.qty>0);
   if (!entries.length) {
-    bodyEl.innerHTML = `<div class="cart-empty"><div class="ce-ar">سلتك فارغة</div><p>Your cart is empty.<br>Add something from the menu!</p></div>`;
+    bodyEl.innerHTML = `<div class="cart-empty"><div class="ce-ar">سلتك فارغة</div><p>Your cart is empty.<br>Add something from the menu!<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">أضف شيئاً من القائمة!</span></p></div>`;
     totalsEl.innerHTML = '';
     document.getElementById('cartTrending').style.display='none';
     return;
@@ -2898,7 +2898,7 @@ function renderCart() {
   }).join('');
   const sub = cartSub();
   totalsEl.innerHTML = `
-    <div class="ct-row grand"><span class="ct-label">Total</span><span class="ct-val">JD ${sub.toFixed(2)}</span></div>`;
+    <div class="ct-row grand"><span class="ct-label">Total · المجموع</span><span class="ct-val">JD ${sub.toFixed(2)}</span></div>`;
   renderTrending();
 }
 function changeQty(cartKey, d) {
@@ -3070,7 +3070,7 @@ async function confirmOrder() {
     pendingOrderData = null;
     showView('orderConfirm');
   } catch (e) {
-    toast('Failed to place order: ' + e.message);
+    toast('Failed to place order · تعذّر إرسال الطلب: ' + e.message);
     openCart();
   }
 }
@@ -3381,9 +3381,9 @@ async function removeOrderItem(orderId, itemId) {
   const itemName = item ? stripEmoji(item.en) : 'this item';
   showConfirm({
     icon: '✕',
-    title: `Remove "${itemName}"?`,
-    msg: `This will permanently remove this item from Table ${o?.table||''}. This cannot be undone.`,
-    okLabel: 'Remove Item',
+    title: `Remove "${itemName}"? · حذف "${itemName}"؟`,
+    msg: `This will permanently remove this item from Table ${o?.table||''}. This cannot be undone.\nسيتم حذف هذا العنصر نهائياً من الطاولة ${o?.table||''}.`,
+    okLabel: 'Remove Item · حذف',
     onOk: async () => {
       try {
         const result = await apiFetch(`/api/orders/${orderId}/items/${itemId}`, { method: 'DELETE' });
@@ -3396,7 +3396,8 @@ async function removeOrderItem(orderId, itemId) {
             ord.sub = result.subtotal; ord.tax = result.tax; ord.grand = result.total;
           }
         }
-        renderAdmin(); toast('Item removed from order');
+        renderAdmin();
+        toast('Item removed from order · تم حذف العنصر');
       } catch (e) { toast('Error: ' + e.message); }
     }
   });
@@ -3412,7 +3413,7 @@ async function cashOut(id) {
       _dismissedOrderIds.delete(String(id));
       _saveDismissed();
       renderAdmin();
-      toast(`Table ${o.table} — Cashed out`);
+      toast(`Table ${o.table} — Cashed out · تم السداد`);
     }
   } catch (e) { toast('Error: ' + e.message); }
 }
@@ -3425,7 +3426,7 @@ function printReceiptOnly() {
   const clone = receiptContent.cloneNode(true);
   clone.querySelectorAll('.r-btn').forEach(b => b.remove());
   const printWin = window.open('', '_blank', 'width=420,height=700');
-  if (!printWin) { toast('Allow popups to print'); return; }
+  if (!printWin) { toast('Allow popups to print · اسمح بالنوافذ المنبثقة للطباعة'); return; }
   printWin.document.open();
   printWin.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt</title><style>');
   printWin.document.write('*{box-sizing:border-box;margin:0;padding:0;}');
@@ -3449,18 +3450,18 @@ function showReceipt(id) {
     <div class="r-logo-en">HARETNA CAFÉ</div>
     <div class="r-sub">📍 Amman, Jordan</div>
     <hr class="r-div"/>
-    <div class="r-row"><span>Table</span><span>${o.table}</span></div>
-    <div class="r-row"><span>Time</span><span>${o.time}</span></div>
-    <div class="r-row"><span>Order #</span><span>${String(o.id).slice(-5)}</span></div>
+    <div class="r-row"><span>Table · طاولة</span><span>${o.table}</span></div>
+    <div class="r-row"><span>Time · الوقت</span><span>${o.time}</span></div>
+    <div class="r-row"><span>Order # · رقم الطلب</span><span>${String(o.id).slice(-5)}</span></div>
     <hr class="r-div"/>
     ${o.items.map(i=>`<div class="r-row"><span>${i.icon} ${i.en} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
     <hr class="r-div"/>
-    <div class="r-grand"><span>TOTAL</span><span>JD ${o.grand.toFixed(2)}</span></div>
-    ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note: ${o.note}</div>`:''}
+    <div class="r-grand"><span>TOTAL · المجموع</span><span>JD ${o.grand.toFixed(2)}</span></div>
+    ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note · ملاحظة: ${o.note}</div>`:''}
     <div class="r-thanks">شكراً لزيارتكم ♥<br>Thank you for visiting Haretna Café!<br>Come back soon.</div>
     <div class="r-actions">
-      <button class="r-btn r-print" onclick="printReceiptOnly()">🖨 Print</button>
-      <button class="r-btn r-close" onclick="document.getElementById('receiptOverlay').classList.remove('open')">Close</button>
+      <button class="r-btn r-print" onclick="printReceiptOnly()">🖨 Print · طباعة</button>
+      <button class="r-btn r-close" onclick="document.getElementById('receiptOverlay').classList.remove('open')">Close · إغلاق</button>
     </div>`;
   document.getElementById('receiptOverlay').classList.add('open');
 }
@@ -3476,15 +3477,15 @@ async function renderHistory() {
   const tableEl = document.getElementById('historyTable');
   const total = data.total || filtered.reduce((s,o)=>s+o.grand,0);
   sumEl.innerHTML = `
-    <div><div class="hs-num">${data.count || filtered.length}</div><div class="hs-lbl">Orders</div></div>
-    <div><div class="hs-num">${filtered.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0)}</div><div class="hs-lbl">Items Sold</div></div>
-    <div><div class="hs-num">JD ${total.toFixed(2)}</div><div class="hs-lbl">Revenue</div></div>`;
+    <div><div class="hs-num">${data.count || filtered.length}</div><div class="hs-lbl">Orders · طلبات</div></div>
+    <div><div class="hs-num">${filtered.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0)}</div><div class="hs-lbl">Items Sold · عناصر مباعة</div></div>
+    <div><div class="hs-num">JD ${total.toFixed(2)}</div><div class="hs-lbl">Revenue · الإيراد</div></div>`;
   if (!filtered.length) {
     tableEl.innerHTML = `<div class="history-empty"><div class="he-ar">📭</div><p>No orders found for this date.<br>لا توجد طلبات في هذا التاريخ.</p></div>`;
     return;
   }
   tableEl.innerHTML = `
-    <div class="ht-head"><span>Table</span><span>Items</span><span>Time</span><span>Total</span></div>
+    <div class="ht-head"><span>Table · طاولة</span><span>Items · عناصر</span><span>Time · الوقت</span><span>Total · المجموع</span></div>
     ${filtered.map(o=>`<div class="ht-row" onclick="showReceipt('${o.id}')" style="cursor:pointer">
       <span class="ht-table">T${o.table}</span>
       <span class="ht-items">${o.items.map(i=>`${i.icon}${i.en.split(' ')[0]} ×${i.qty}`).join(', ')}</span>
@@ -3499,7 +3500,7 @@ async function renderHistory() {
 function openStockPanel() {
   // Populate category dropdown
   const sel = document.getElementById('stockCatFilter');
-  sel.innerHTML = '<option value="">All Categories</option>' +
+  sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
     MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
   renderStockList('');
   document.getElementById('stockSearch').value='';
@@ -3552,7 +3553,7 @@ function openOffersPanel() {
   renderOffersList();
   // Populate category filter for item picker
   const sel = document.getElementById('newOfferCatFilter');
-  sel.innerHTML = '<option value="">All Categories</option>' +
+  sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
     MENU.map(c=>`<option value="${c.id}">${c.icon} ${c.en}</option>`).join('');
   renderOfferItemPicker();
   updateSelectedOfferItems();
@@ -3640,7 +3641,7 @@ async function addOffer() {
   const timeTo = document.getElementById('newOfferTimeTo').value;
   if (!t) { toast('Please enter a title'); return; }
   if (isNaN(p)||p<=0) { toast('Please enter a valid combo price'); return; }
-  if (!_newOfferItemIds.length) { toast('Please select at least one item'); return; }
+  if (!_newOfferItemIds.length) { toast('Please select at least one item · الرجاء اختيار عنصر واحد على الأقل'); return; }
   if ((timeFrom && !timeTo) || (!timeFrom && timeTo)) { toast('Please set both From and To times'); return; }
 
   const expiresAt = expiryVal ? new Date(expiryVal).toISOString() : null;
@@ -3670,7 +3671,7 @@ async function addOffer() {
       }),
     });
     if (res && res.id) newOffer.id = res.id;
-    toast('Combo offer added!');
+    toast('Combo offer added! · تمت إضافة العرض');
   } catch(e) {
     console.error('Offer DB save failed:', e.message);
     toast('Error saving offer: ' + e.message);
@@ -3760,15 +3761,15 @@ function showAddItemPanel(catId) {
   overlay.innerHTML = `
     <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ Add Item to ${cat.en}</div>
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ Add Item to ${cat.en} · إضافة عنصر</div>
         <button onclick="document.getElementById('addItemOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
       </div>
-      <input id="aiNameEn" placeholder="Name in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiNameEn" placeholder="Name in English · الاسم بالإنجليزي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="aiNameAr" placeholder="الاسم بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
-      <input id="aiDesc" placeholder="Description (optional)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
-      <input id="aiPrice" type="number" step="0.01" min="0" placeholder="Price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiDesc" placeholder="Description (optional) · وصف اختياري" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="aiPrice" type="number" step="0.01" min="0" placeholder="Price (JD) · السعر" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="aiIcon" placeholder="Icon emoji e.g. 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
-      <button onclick="submitAddItem('${catId}')" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Item</button>
+      <button onclick="submitAddItem('${catId}')" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Item · إضافة</button>
     </div>`;
   document.body.appendChild(overlay);
 }
@@ -3780,13 +3781,13 @@ function deleteMenuItem(itemId, dbId, name) {
   overlay.innerHTML = `
     <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:28px 24px;width:100%;max-width:360px;text-align:center;">
       <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
-      <div style="font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete Item</div>
-      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Are you sure you want to delete</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete Item · حذف العنصر</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Are you sure you want to delete · هل تريد حذف</div>
       <div style="font-family:'Rubik',sans-serif;font-size:14px;color:var(--gold2);margin-bottom:20px;">"${name}"</div>
-      <div style="font-size:11px;color:var(--red);margin-bottom:24px;opacity:.8;">This cannot be undone.</div>
+      <div style="font-size:11px;color:var(--red);margin-bottom:24px;opacity:.8;">This cannot be undone · لا يمكن التراجع.</div>
       <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">Cancel</button>
-        <button id="confirmDeleteBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">Delete</button>
+        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">Cancel · إلغاء</button>
+        <button id="confirmDeleteBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">Delete · حذف</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -3798,7 +3799,7 @@ function deleteMenuItem(itemId, dbId, name) {
       MENU.forEach(cat => { cat.items = cat.items.filter(i => i.id !== itemId); });
       renderMMGrid(_mmActiveCat);
       renderMMSidebar();
-      toast(`"${name}" deleted ✓`);
+      toast(`"${name}" deleted ✓ · تم الحذف`);
     } catch(e) {
       console.error('Delete failed:', e);
       toast('Error: ' + e.message);
@@ -3812,9 +3813,9 @@ async function submitAddItem(catId) {
   const desc   = document.getElementById('aiDesc').value.trim();
   const price  = parseFloat(document.getElementById('aiPrice').value);
   const icon   = document.getElementById('aiIcon').value.trim() || '🍽️';
-  if (!nameEn) { toast('Please enter English name'); return; }
-  if (!nameAr) { toast('Please enter Arabic name'); return; }
-  if (isNaN(price)||price<0) { toast('Please enter a valid price'); return; }
+  if (!nameEn) { toast('Please enter English name · أدخل الاسم بالإنجليزي'); return; }
+  if (!nameAr) { toast('Please enter Arabic name · أدخل الاسم بالعربي'); return; }
+  if (isNaN(price)||price<0) { toast('Please enter a valid price · أدخل سعراً صحيحاً'); return; }
   const cat = MENU.find(c => c.id === catId);
   try {
     const res = await apiFetch('/api/menu/items', {
@@ -3833,7 +3834,7 @@ async function submitAddItem(catId) {
     });
     document.getElementById('addItemOverlay').remove();
     renderMenuManager();
-    toast('Item added! ✓');
+    toast('Item added! ✓ · تمت الإضافة');
   } catch(e) {
     console.error('Add item failed:', e);
     toast('Error: ' + e.message);
@@ -3848,14 +3849,14 @@ function showAddCategoryPanel() {
   overlay.innerHTML = `
     <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:420px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ New Category</div>
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">+ New Category · قسم جديد</div>
         <button onclick="document.getElementById('addCatOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
       </div>
-      <input id="acNameEn" placeholder="Category name in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="acNameEn" placeholder="Category name in English · اسم القسم بالإنجليزي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="acNameAr" placeholder="اسم التصنيف بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
       <input id="acIcon" placeholder="Icon emoji e.g. 🍕" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
-      <input id="acSlug" placeholder="Slug e.g. new-category (no spaces)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
-      <button onclick="submitAddCategory()" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Category</button>
+      <input id="acSlug" placeholder="Slug e.g. new-category (no spaces · بدون مسافات)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
+      <button onclick="submitAddCategory()" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">+ Add Category · إضافة قسم</button>
     </div>`;
   document.body.appendChild(overlay);
 }
@@ -3865,9 +3866,9 @@ async function submitAddCategory() {
   const nameAr = document.getElementById('acNameAr').value.trim();
   const icon   = document.getElementById('acIcon').value.trim() || '🍽️';
   const slug   = document.getElementById('acSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
-  if (!nameEn) { toast('Please enter English name'); return; }
-  if (!nameAr) { toast('Please enter Arabic name'); return; }
-  if (!slug)   { toast('Please enter a slug'); return; }
+  if (!nameEn) { toast('Please enter English name · أدخل الاسم بالإنجليزي'); return; }
+  if (!nameAr) { toast('Please enter Arabic name · أدخل الاسم بالعربي'); return; }
+  if (!slug)   { toast('Please enter a slug · أدخل المعرّف'); return; }
   try {
     const res = await apiFetch('/api/menu/categories', {
       method: 'POST',
@@ -3881,7 +3882,7 @@ async function submitAddCategory() {
     document.getElementById('addCatOverlay').remove();
     _mmActiveCat = res.id;
     renderMenuManager();
-    toast('Category added! ✓');
+    toast('Category added! ✓ · تمت الإضافة');
   } catch(e) {
     console.error('Add category failed:', e);
     toast('Error: ' + e.message);
@@ -3922,8 +3923,8 @@ function renderMMGrid(catId) {
       <div class="mm-ch-en">${cat.en}</div>
       <div class="mm-ch-ar">${cat.ar}</div>
     </div>
-    <span style="font-size:11px;color:var(--text3);margin-left:auto;">${cat.items.length} items</span>
-    <button onclick="showAddItemPanel('${cat.id}')" style="margin-left:12px;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:7px 14px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">+ Add Item</button>`;
+    <span style="font-size:11px;color:var(--text3);margin-left:auto;">${cat.items.length} items · عنصر</span>
+    <button onclick="showAddItemPanel('${cat.id}')" style="margin-left:12px;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:7px 14px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">+ Add Item · إضافة</button>`;
 
   document.getElementById('mmGrid').innerHTML = cat.items.map(item=>{
     const src = customImages[item.id];
@@ -4016,8 +4017,8 @@ async function mmSaveChanges() {
   mmPendingUploads = {};
   renderMMGrid(_mmActiveCat);
   if (failCount === 0) {
-    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved!`);
-    mmDisableSave(); btn.textContent = '💾 Save';
+    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved! · تم الحفظ`);
+    mmDisableSave(); btn.textContent = '💾 Save · حفظ';
   } else {
     toast(`⚠️ ${successCount} saved, ${failCount} failed`);
     btn.textContent = '💾 Save'; mmEnableSave();
@@ -4029,12 +4030,12 @@ function removeMMImage(id) {
   delete mmPendingUploads[id];
   renderMMGrid(_mmActiveCat);
   mmEnableSave();
-  toast('Photo removed');
+  toast('Photo removed · تم حذف الصورة');
 }
 // =====================================================================
 function openTrendingPanel() {
   const sel = document.getElementById('trendCatFilter');
-  sel.innerHTML = '<option value="">All Categories</option>' +
+  sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
     MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
   document.getElementById('trendSearch').value='';
   renderTrendingItemList();
@@ -4063,7 +4064,7 @@ async function saveTrendingAndClose() {
   if (adminSocket) adminSocket.emit('trending:updated', { ids: ADMIN_TRENDING_IDS });
   closeTrendingPanel();
   renderMenu();
-  toast('Trending updated!');
+  toast('Trending updated! · تم تحديث الأكثر طلباً');
 }
 function renderTrendingItemList() {
   const catFilter = document.getElementById('trendCatFilter').value;
@@ -4192,7 +4193,7 @@ async function sendTableCall(type) {
   _callPopupOpen = false;
   const popup = document.getElementById('callPopup');
   if (popup) popup.classList.remove('open');
-  toast(`✓ ${CALL_LABELS[type].split(' at')[0]} sent!`);
+  toast(`✓ ${CALL_LABELS[type].split(' at')[0]} sent! · تم الإرسال`);
 }
 
 async function dismissCall(id) {
@@ -4204,7 +4205,7 @@ async function dismissCall(id) {
   orders = orders.filter(o => o.id !== id);
   renderAdmin();
   renderNotifSidebar();
-  toast('Request dismissed ✓');
+  toast('Request dismissed ✓ · تم الرد');
 }
 
 // =====================================================================
@@ -4228,7 +4229,7 @@ function renderNotifSidebar() {
   if (sidebar && calls.length > 0) sidebar.classList.add('expanded');
 
   if (!calls.length) {
-    listEl.innerHTML = '<div class="notif-empty">No requests yet</div>';
+    listEl.innerHTML = '<div class="notif-empty">No requests yet · لا يوجد طلبات</div>';
     return;
   }
 
@@ -4279,10 +4280,10 @@ function playAlertSound() {
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('soundToggle');
-  btn.textContent = soundEnabled ? '🔔 Sound' : '🔕 Sound';
+  btn.textContent = soundEnabled ? '🔔 Sound · صوت' : '🔕 Sound · صوت';
   btn.classList.toggle('on', soundEnabled);
   if (soundEnabled) { try { getAudioCtx().resume(); } catch(e){} }
-  toast(soundEnabled ? 'Sound alerts on 🔔' : 'Sound alerts off 🔕');
+  toast(soundEnabled ? 'Sound alerts on 🔔 · التنبيه الصوتي مفعّل' : 'Sound alerts off 🔕 · التنبيه الصوتي معطّل');
 }
 
 // =====================================================================
@@ -4340,10 +4341,10 @@ function openSalesModal() {
   const tables = new Set(todayOrders.map(o=>o.table)).size;
 
   document.getElementById('smKpis').innerHTML = `
-    <div class="sm-kpi"><div class="sm-kpi-val">JD ${revenue.toFixed(2)}</div><div class="sm-kpi-lbl">Revenue Today</div></div>
-    <div class="sm-kpi"><div class="sm-kpi-val">${totalOrders}</div><div class="sm-kpi-lbl">Orders Today</div></div>
-    <div class="sm-kpi"><div class="sm-kpi-val">JD ${isNaN(avgOrder)?'0.00':avgOrder.toFixed(2)}</div><div class="sm-kpi-lbl">Avg Order Value</div></div>
-    <div class="sm-kpi"><div class="sm-kpi-val">${tables}</div><div class="sm-kpi-lbl">Tables Served</div></div>`;
+    <div class="sm-kpi"><div class="sm-kpi-val">JD ${revenue.toFixed(2)}</div><div class="sm-kpi-lbl">Revenue Today · إيراد اليوم</div></div>
+    <div class="sm-kpi"><div class="sm-kpi-val">${totalOrders}</div><div class="sm-kpi-lbl">Orders Today · طلبات اليوم</div></div>
+    <div class="sm-kpi"><div class="sm-kpi-val">JD ${isNaN(avgOrder)?'0.00':avgOrder.toFixed(2)}</div><div class="sm-kpi-lbl">Avg Order Value · متوسط الطلب</div></div>
+    <div class="sm-kpi"><div class="sm-kpi-val">${tables}</div><div class="sm-kpi-lbl">Tables Served · طاولات خُدمت</div></div>`;
 
   // Top items
   const itemCounts = {};
@@ -4359,7 +4360,7 @@ function openSalesModal() {
         <span class="sm-item-name">${it.en}</span>
         <span class="sm-item-qty">×${it.qty}</span>
       </div>`).join('')
-    : '<p style="color:var(--text3);font-size:12px;">No orders yet today.</p>';
+    : '<p style="color:var(--text3);font-size:12px;">No orders yet today · لا طلبات اليوم.</p>';
 
   // Orders by hour
   const hourCounts = {};
@@ -4376,7 +4377,7 @@ function openSalesModal() {
         <div class="sm-bar-track"><div class="sm-bar-fill" style="width:${(hourCounts[h]/maxH*100).toFixed(0)}%"></div></div>
         <span style="font-size:10px;color:var(--gold2);width:20px;">${hourCounts[h]}</span>
       </div>`).join('')
-    : '<p style="color:var(--text3);font-size:12px;">No hourly data yet.</p>';
+    : '<p style="color:var(--text3);font-size:12px;">No hourly data yet · لا بيانات بعد.</p>';
 
   document.getElementById('salesOverlay').classList.add('open');
 }
@@ -4449,7 +4450,7 @@ function connectAdminSocket() {
       }
       playAlertSound();
       renderAdmin();
-      toast('New items added — Table ' + order.tableNumber + '!');
+      toast('New items added — Table ' + order.tableNumber + '! · عناصر جديدة — طاولة ' + order.tableNumber);
     } else {
       const mapped = {
         id: order.id,
@@ -4468,7 +4469,7 @@ function connectAdminSocket() {
       orders.unshift(mapped);
       playAlertSound();
       renderAdmin();
-      toast('New order — Table ' + order.tableNumber + '!');
+      toast('New order — Table ' + order.tableNumber + '! · طلب جديد — طاولة ' + order.tableNumber);
     }
   });
 
@@ -4610,7 +4611,7 @@ window.addEventListener('load', async () => {
   if (menuBody) menuBody.innerHTML = `
     <div style="text-align:center;padding:80px 20px;color:var(--text3);">
       <div style="font-family:'Rubik',sans-serif;font-size:40px;opacity:.15;margin-bottom:16px;">☕</div>
-      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:2px;color:var(--cream3);">LOADING MENU…</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:2px;color:var(--cream3);">LOADING MENU… · جاري تحميل القائمة</div>
       <div id="dbgStatus" style="margin-top:16px;font-size:10px;color:var(--text3);font-family:monospace;line-height:1.8;"></div>
     </div>`;
 
@@ -4661,8 +4662,8 @@ window.addEventListener('load', async () => {
           clearInterval(retry);
           if (menuBody) menuBody.innerHTML = `
             <div style="text-align:center;padding:60px 20px;">
-              <div style="font-family:'Rubik',sans-serif;font-size:13px;color:var(--cream3);margin-bottom:16px;">Could not reach the server.<br>Please check your connection and try again.</div>
-              <button onclick="location.reload()" style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.4);color:var(--gold2);padding:10px 24px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;">Reload Page</button>
+              <div style="font-family:'Rubik',sans-serif;font-size:13px;color:var(--cream3);margin-bottom:16px;">Could not reach the server.<br>Please check your connection and try again.<br><span style="font-size:12px;">تعذّر الوصول إلى الخادم.<br>يرجى التحقق من الاتصال والمحاولة مجدداً.</span></div>
+              <button onclick="location.reload()" style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.4);color:var(--gold2);padding:10px 24px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;">Reload Page · أعد التحميل</button>
             </div>`;
         }
       }, 4000);
