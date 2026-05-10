@@ -327,14 +327,14 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 .cart-overlay{position:fixed;inset:0;z-index:800;display:none;}
 .cart-overlay.open{display:block;}
 .cart-bg{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);}
-.cart-panel{position:absolute;right:0;top:0;bottom:0;width:min(370px,100vw);background:var(--chalk);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideR .3s ease;height:100%;height:-webkit-fill-available;}
+.cart-panel{position:absolute;right:0;top:0;bottom:0;width:min(370px,100vw);background:var(--chalk);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideR .3s ease;height:100%;height:-webkit-fill-available;overflow:hidden;}
 @keyframes slideR{from{transform:translateX(100%)}to{transform:translateX(0)}}
 .cart-head{padding:16px 14px;border-bottom:1px solid var(--border);background:var(--chalk2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .cart-head h3{font-family:'Rubik',sans-serif;font-size:16px;letter-spacing:2px;color:var(--gold2);}
 .cart-head-ar{font-family:'Rubik',sans-serif;font-size:19px;color:var(--cream3);margin-right:6px;}
 .close-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .close-btn:hover{border-color:var(--gold);color:var(--cream);}
-.cart-body{flex:1;overflow-y:auto;padding:10px;min-height:0;}
+.cart-body{flex:1;overflow-y:auto;padding:10px;min-height:0;max-height:100%;}
 .cart-empty{text-align:center;padding:60px 20px;color:var(--text3);}
 .cart-empty .ce-ar{font-family:'Rubik',sans-serif;font-size:32px;opacity:.3;margin-bottom:10px;}
 .cart-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
@@ -729,7 +729,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 }
 #floatCatBtn:active{transform:translateX(-50%) scale(.97);}
 #floatCatBtn.visible{display:flex;}
-body.cart-bar-visible #floatCatBtn{bottom:92px;}
+body.cart-bar-visible #floatCatBtn{bottom:78px;}
 #floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -2719,25 +2719,35 @@ function selectAddonsItem(itemId) {
   _addonsSelectedId = itemId;
   const item = MENU.flatMap(c=>c.items).find(i=>i.id===itemId);
   if (!item) return;
-  if (!ADDONS[itemId]) ADDONS[itemId] = { label: item.en, options: [] };
   document.getElementById('addonsSelectedName').textContent = stripEmoji(item.en) + ' — ' + stripEmoji(item.ar);
   document.getElementById('addonsEditor').style.display = 'block';
   document.getElementById('addonsNewOption').value = '';
-  renderAddonsChips();
+  // Load fresh from DB each time
+  apiFetch(`/api/addons/${itemId}`).then(dbAddons => {
+    ADDONS[itemId] = {
+      options: dbAddons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive }))
+    };
+    renderAddonsChips();
+  }).catch(() => {
+    if (!ADDONS[itemId]) ADDONS[itemId] = { label: item.en, options: [] };
+    renderAddonsChips();
+  });
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
 
 function renderAddonsChips() {
   const opts = ADDONS[_addonsSelectedId]?.options || [];
   const el = document.getElementById('addonsChips');
-  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:10px 12px;display:block;">No options yet · لا يوجد خيارات — add one below · أضف خياراً</span>'; return; }
+  if (!opts.length) { el.innerHTML = '<span style="font-size:11px;color:var(--text3);padding:10px 12px;display:block;">No options yet · لا يوجد خيارات</span>'; return; }
   el.innerHTML = opts.map((o,i) => {
     const name = typeof o === 'object' ? o.name : o;
-    const oos = typeof o === 'object' ? o.oos : false;
+    const oos  = typeof o === 'object' ? !!o.oos : false;
     return `<div class="addons-chip${oos?' is-oos':''}">
       <span class="addons-chip-name">${name}</span>
-      <button class="addons-oos-btn" onclick="toggleAddonOos(${i})">${oos ? '✓ Out of Stock · نفد' : 'Mark OOS · نفد المخزون'}</button>
-      <button class="addons-chip-del" onclick="removeAddonOption(${i})" title="Remove">×</button>
+      <button class="addons-oos-btn" onclick="toggleAddonOos(${i})" style="${oos?'background:rgba(200,149,42,.2);border-color:var(--gold);color:var(--gold2);':''}">
+        ${oos ? 'In Stock' : 'Mark OOS'}
+      </button>
+      <button class="addons-chip-del" onclick="removeAddonOption(${i})" title="Remove">x</button>
     </div>`;
   }).join('');
 }
@@ -2778,6 +2788,9 @@ async function toggleAddonOos(idx) {
     opt.oos = !opt.oos;
     if (opt.id) {
       try {
+        // opt.oos is already toggled above, so:
+        // oos=true means out of stock → isActive=false
+        // oos=false means in stock → isActive=true
         await apiFetch(`/api/addons/${opt.id}`, {
           method: 'PATCH',
           body: JSON.stringify({ isActive: !opt.oos }),
@@ -3274,7 +3287,8 @@ async function loadAdminOrders() {
   try {
     const data = await apiFetch('/api/orders');
     const raw = data.map(o => {
-      const items = o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id }));
+      const _ot = new Date(o.updatedAt||o.createdAt).toLocaleTimeString('en-JO',{hour:'2-digit',minute:'2-digit',hour12:true});
+      const items = o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity, _itemId: i.id, addedAt: _ot }));
       const { flavorEntries, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
       const hydratedItems = applyFlavorNotes(items, flavorEntries);
       const hydratedGrand = hydratedItems.reduce((s,i)=>s+i.price*i.qty, 0);
