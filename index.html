@@ -3139,7 +3139,7 @@ function startOrderCountdown() {
   const note = document.getElementById('cartNote').value.trim();
   const sub = cartSub(), tax = 0, grand = sub;
   pendingOrderData = {
-    entries: entries.map(e=>({...e.item, qty:e.qty, note:e.note||''})),
+    entries: entries.map(e=>({...e.item, qty:e.qty, note:e.note||'', isBundle:e.isBundle||false, bundleItems:e.bundleItems||null})),
     note, sub, tax, grand
   };
   closeCart();
