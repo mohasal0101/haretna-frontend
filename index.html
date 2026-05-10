@@ -4627,46 +4627,68 @@ function renderQRGen() {
 // =====================================================================
 // SALES SUMMARY MODAL
 // =====================================================================
-function openSalesModal() {
+async function openSalesModal() {
+  // Show modal immediately with loading state
+  document.getElementById('salesOverlay').classList.add('open');
+  document.getElementById('smKpis').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px;">Loading · جاري التحميل...</div>';
+
+  // Always fetch fresh from DB
   const today = new Date().toISOString().split('T')[0];
-  const allOrders = [...orders, ...history];
-  const todayOrders = allOrders.filter(o=>o.date===today && !o.isCall);
-  const revenue = todayOrders.filter(o=>o.status==='cashed').reduce((s,o)=>s+o.grand,0);
-  const totalOrders = todayOrders.length;
-  const avgOrder = totalOrders ? revenue/todayOrders.filter(o=>o.status==='cashed').length||0 : 0;
-  const tables = new Set(todayOrders.map(o=>o.table)).size;
+  let todayDbOrders = [];
+  try {
+    const data = await apiFetch(`/api/orders/history?date=${today}`);
+    todayDbOrders = (data.orders || []).map(o => ({
+      id: o.id,
+      table: String(o.tableNumber),
+      items: (o.items||[]).map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
+      grand: o.total,
+      status: 'cashed',
+      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', hour12: true }),
+      date: today,
+      isCall: false,
+    }));
+  } catch(e) {
+    console.error('Failed to load sales data:', e.message);
+  }
+
+  // Also include any cashed orders from current session not yet in history
+  const sessionCashed = orders.filter(o => o.status === 'cashed' && o.date === today && !o.isCall);
+  const allToday = [...todayDbOrders, ...sessionCashed];
+
+  const revenue   = allToday.reduce((s,o)=>s+o.grand, 0);
+  const totalOrders = allToday.length;
+  const avgOrder  = totalOrders ? revenue / totalOrders : 0;
+  const tables    = new Set(allToday.map(o=>o.table)).size;
 
   document.getElementById('smKpis').innerHTML = `
     <div class="sm-kpi"><div class="sm-kpi-val">JD ${revenue.toFixed(2)}</div><div class="sm-kpi-lbl">Revenue Today · إيراد اليوم</div></div>
     <div class="sm-kpi"><div class="sm-kpi-val">${totalOrders}</div><div class="sm-kpi-lbl">Orders Today · طلبات اليوم</div></div>
-    <div class="sm-kpi"><div class="sm-kpi-val">JD ${isNaN(avgOrder)?'0.00':avgOrder.toFixed(2)}</div><div class="sm-kpi-lbl">Avg Order Value · متوسط الطلب</div></div>
+    <div class="sm-kpi"><div class="sm-kpi-val">JD ${avgOrder.toFixed(2)}</div><div class="sm-kpi-lbl">Avg Order Value · متوسط الطلب</div></div>
     <div class="sm-kpi"><div class="sm-kpi-val">${tables}</div><div class="sm-kpi-lbl">Tables Served · طاولات خُدمت</div></div>`;
 
   // Top items
   const itemCounts = {};
-  todayOrders.forEach(o=>(o.items||[]).forEach(i=>{
-    if (!itemCounts[i.en]) itemCounts[i.en]={icon:i.icon,en:i.en,qty:0};
+  allToday.forEach(o=>(o.items||[]).forEach(i=>{
+    if (!itemCounts[i.en]) itemCounts[i.en]={icon:i.icon||'',en:i.en,qty:0};
     itemCounts[i.en].qty += i.qty;
   }));
   const topItems = Object.values(itemCounts).sort((a,b)=>b.qty-a.qty).slice(0,6);
   document.getElementById('smTopItems').innerHTML = topItems.length
     ? topItems.map((it,idx)=>`<div class="sm-top-item">
-        <span class="sm-rank">${['🥇','🥈','🥉','4','5','6'][idx]}</span>
-        <span class="sm-item-icon">${it.icon}</span>
-        <span class="sm-item-name">${it.en}</span>
-        <span class="sm-item-qty">×${it.qty}</span>
+        <span class="sm-rank">${idx+1}</span>
+        <span class="sm-item-name">${stripEmoji(it.en)}</span>
+        <span class="sm-item-qty">x${it.qty}</span>
       </div>`).join('')
     : '<p style="color:var(--text3);font-size:12px;">No orders yet today · لا طلبات اليوم.</p>';
 
   // Orders by hour
   const hourCounts = {};
-  todayOrders.forEach(o=>{
-    const h = (o.time||'00:00').split(':')[0];
+  allToday.forEach(o=>{
+    const h = (o.time||'00:00').split(':')[0].replace(/\D/g,'').padStart(2,'0');
     hourCounts[h] = (hourCounts[h]||0)+1;
   });
   const maxH = Math.max(1,...Object.values(hourCounts));
-  const hours = Array.from({length:24},(_,i)=>String(i).padStart(2,'0'));
-  const activeHours = hours.filter(h=>hourCounts[h]);
+  const activeHours = Object.keys(hourCounts).sort();
   document.getElementById('smHourBars').innerHTML = activeHours.length
     ? activeHours.map(h=>`<div class="sm-bar-row">
         <span class="sm-bar-label">${h}:00</span>
@@ -4674,8 +4696,6 @@ function openSalesModal() {
         <span style="font-size:10px;color:var(--gold2);width:20px;">${hourCounts[h]}</span>
       </div>`).join('')
     : '<p style="color:var(--text3);font-size:12px;">No hourly data yet · لا بيانات بعد.</p>';
-
-  document.getElementById('salesOverlay').classList.add('open');
 }
 function closeSalesModal() {
   document.getElementById('salesOverlay').classList.remove('open');
