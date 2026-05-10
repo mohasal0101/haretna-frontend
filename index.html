@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no">
 <title>أهوة حارتنا — Haretna Café</title>
 <!-- Socket.io client for real-time admin updates -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -53,7 +53,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow-x:hidden;}
-body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;visibility:hidden;font-size:15px;font-weight:500;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;visibility:hidden;font-size:15px;font-weight:500;touch-action:pan-x pan-y;}
 body.ready{visibility:visible;}
 
 /* ── Notification sidebar ─────────────────────────────── */
@@ -1529,7 +1529,7 @@ const STAFF_USERS = {};
 // FULL MENU DATA — loaded from API on boot, fallback empty
 // =====================================================================
 let MENU = [
-  { id:'breakfast', en:'Breakfast', ar:'كسر السفرة', icon:'🍳', items:[
+  { id:'breakfast', en:'Breakfast', ar:'الفطور', icon:'🍳', items:[
     {id:'br1',en:'Hummus',ar:'حمص',price:2.50,icon:'🫘'},
     {id:'br2',en:'Hummus with Meat',ar:'حمص باللحمة',price:3.50,icon:'🫘'},
     {id:'br3',en:'Falafel (5 pcs)',ar:'فلافل (5 قطع)',price:1.10,icon:'🧆'},
@@ -1547,7 +1547,7 @@ let MENU = [
     {id:'br15',en:'Labneh',ar:'لبنة',price:1.75,icon:'🫙'},
     {id:'br16',en:'Labneh Balls in Olive Oil',ar:'لبنة كرات بزيت الزيتون',price:2.75,icon:'🫒'},
   ]},
-  { id:'sandwiches-b', en:'Breakfast Sandwiches', ar:'ساندويش كسر السفرة', icon:'🥪', items:[
+  { id:'sandwiches-b', en:'Breakfast Sandwiches', ar:'ساندويش الفطور', icon:'🥪', items:[
     {id:'sb1',en:'Feta & Beetroot Sandwich',ar:'صاندويش فيتا وشمندر',price:3.25,icon:'🥪'},
     {id:'sb2',en:'Turkey & Cheese Sandwich',ar:'صاندويش تيركي وجبنة',price:3.25,icon:'🥪'},
     {id:'sb3',en:'Haretna Omelette Sandwich',ar:'صاندويش أومليت حارتنا',price:3.50,icon:'🥪'},
@@ -2832,17 +2832,21 @@ function closeLightbox() {
 function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
   document.getElementById('customerMenu').classList.add('no-fade');
-  const cartBar = document.getElementById('cartBar');
-  const cartFoot = document.querySelector('.cart-foot');
-  if (cartBar && cartFoot) {
-    const barH = cartBar.classList.contains('visible') ? cartBar.offsetHeight : 0;
-    cartFoot.style.paddingBottom = barH > 0 ? (barH + 12) + 'px' : '';
-  }
+  // Hide floating category button and cart bar while cart is open
+  const floatBtn = document.getElementById('floatCatBtn');
+  const cartBarEl = document.getElementById('cartBar');
+  if (floatBtn) floatBtn.style.display = 'none';
+  if (cartBarEl) cartBarEl.style.display = 'none';
   renderCart();
 }
 function closeCart() {
   document.getElementById('cartOverlay').classList.remove('open');
   document.getElementById('customerMenu').classList.remove('no-fade');
+  // Restore floating category button and cart bar
+  const floatBtn = document.getElementById('floatCatBtn');
+  const cartBarEl = document.getElementById('cartBar');
+  if (floatBtn) floatBtn.style.display = '';
+  if (cartBarEl) cartBarEl.style.display = '';
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -4153,10 +4157,17 @@ function closeCallPopupOutside(e) {
 // TABLE CALL BUTTONS
 // =====================================================================
 const CALL_LABELS = {
-  waiter:  '🙋 Waiter requested at',
-  bill:    '💳 Bill requested at',
-  napkins: '🧻 Napkins needed at',
-  water:   '💧 Water requested at',
+  waiter:  '🙋 Waiter requested at · طلب نادل — طاولة',
+  bill:    '💳 Bill requested at · طلب حساب — طاولة',
+  napkins: '🧻 Napkins needed at · طلب مناديل — طاولة',
+  water:   '💧 Water requested at · طلب ماء — طاولة',
+};
+
+const CALL_LABELS_AR = {
+  waiter:  '🙋 نادل مطلوب',
+  bill:    '💳 طلب الحساب',
+  napkins: '🧻 مناديل مطلوبة',
+  water:   '💧 ماء مطلوب',
 };
 let callCooldowns = {}; // type -> timestamp
 
@@ -4237,8 +4248,8 @@ function renderNotifSidebar() {
     <div class="notif-item ${c.isNew ? 'notif-new' : ''}" id="notif-${c.id}">
       <button class="notif-dismiss" onclick="dismissCall('${c.id}')" title="Dismiss">✕</button>
       <div class="notif-icon">${CALL_ICONS[c.callType] || '🔔'}</div>
-      <div class="notif-table">Table ${c.table}</div>
-      <div class="notif-msg">${c.callMsg}</div>
+      <div class="notif-table">Table ${c.table} · طاولة ${c.table}</div>
+      <div class="notif-msg">${c.callMsg}<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;opacity:0.8;">${CALL_LABELS_AR[c.callType] || ''}</span></div>
       <div class="notif-time">${c.time}</div>
     </div>
   `).join('');
