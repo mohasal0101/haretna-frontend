@@ -1846,21 +1846,8 @@ let pendingOrderData = null;
 let isLoggedIn = false;
 
 // Admin-editable offers and trending
-let OFFERS = [
-  {
-    id:'offer1', title:'Happy Hour ☕', titleAr:'ساعة السعادة',
-    desc:'Hot coffee + any dessert — better together',
-    descAr:'قهوة ساخنة + حلوى — مع بعض أحسن',
-    itemIds:['hc1','ds1'], price:4.50, active:true
-  },
-  {
-    id:'offer2', title:'Combo Deal 🍔', titleAr:'عرض الكومبو',
-    desc:'Haretna Burger + Fries + Soft Drink',
-    descAr:'برجر حارتنا + بطاطس + مشروب',
-    itemIds:['sw11','ap4','sd1'], price:9.50, active:true
-  },
-];
-let ADMIN_TRENDING_IDS = ['sw11','ap4','ap6','hc15','ds2','ap9','pz4','hk1','sw8','fj3'];
+let OFFERS = []; // Loaded from DB via loadMenuFromAPI
+let ADMIN_TRENDING_IDS = []; // Loaded from DB via loadMenuFromAPI
 
 // =====================================================================
 // DRINK FLAVORS — matched by item name keywords (case-insensitive)
