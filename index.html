@@ -327,14 +327,14 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 .cart-overlay{position:fixed;inset:0;z-index:800;display:none;}
 .cart-overlay.open{display:block;}
 .cart-bg{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);}
-.cart-panel{position:absolute;right:0;top:0;bottom:0;width:min(370px,100vw);background:var(--chalk);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideR .3s ease;}
+.cart-panel{position:absolute;right:0;top:0;bottom:0;width:min(370px,100vw);background:var(--chalk);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideR .3s ease;height:100%;height:-webkit-fill-available;}
 @keyframes slideR{from{transform:translateX(100%)}to{transform:translateX(0)}}
-.cart-head{padding:16px 14px;border-bottom:1px solid var(--border);background:var(--chalk2);display:flex;align-items:center;justify-content:space-between;}
+.cart-head{padding:16px 14px;border-bottom:1px solid var(--border);background:var(--chalk2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .cart-head h3{font-family:'Rubik',sans-serif;font-size:16px;letter-spacing:2px;color:var(--gold2);}
 .cart-head-ar{font-family:'Rubik',sans-serif;font-size:19px;color:var(--cream3);margin-right:6px;}
 .close-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .close-btn:hover{border-color:var(--gold);color:var(--cream);}
-.cart-body{flex:1;overflow-y:auto;padding:10px;}
+.cart-body{flex:1;overflow-y:auto;padding:10px;min-height:0;}
 .cart-empty{text-align:center;padding:60px 20px;color:var(--text3);}
 .cart-empty .ce-ar{font-family:'Rubik',sans-serif;font-size:32px;opacity:.3;margin-bottom:10px;}
 .cart-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
@@ -361,8 +361,8 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 .trend-name{font-family:'Rubik',sans-serif;font-size:9px;color:var(--cream2);line-height:1.3;margin-bottom:2px;}
 .trend-price{font-size:10px;color:var(--gold2);font-weight:700;}
 
-.cart-foot{padding:12px 14px 20px;border-top:1px solid var(--border);background:var(--chalk2);}
-.cart-overlay.open .cart-foot{padding-bottom:20px;}
+.cart-foot{padding:12px 14px env(safe-area-inset-bottom, 16px);border-top:1px solid var(--border);background:var(--chalk2);flex-shrink:0;}
+.cart-overlay.open .cart-foot{padding-bottom:env(safe-area-inset-bottom, 16px);}
 #cartBar.visible ~ * .cart-foot, .cart-foot.bar-up{padding-bottom:76px;}
 .cart-totals{margin-bottom:10px;}
 .ct-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
@@ -485,7 +485,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 
 .oc-h{background:var(--chalk2);padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .oc-h-left .oc-tbl{font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--gold2);}
-.oc-h-left .oc-time{font-size:10px;color:var(--text3);}
+.oc-h-left .oc-time{font-size:11px;color:var(--gold);font-family:'Rubik',sans-serif;font-weight:600;margin-top:2px;letter-spacing:0.5px;}
 .status-pill{font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1px;padding:3px 9px;border-radius:2px;text-transform:uppercase;border:1px solid;}
 .sp-new{background:rgba(200,149,42,.12);color:var(--gold);border-color:rgba(200,149,42,.4);}
 .sp-prep{background:rgba(74,154,138,.12);color:var(--teal);border-color:rgba(74,154,138,.4);}
@@ -3155,7 +3155,7 @@ async function loadAdminOrders() {
         note: cleanNote,
         sub: o.subtotal, tax: o.tax, grand: hydratedGrand || o.total,
         status: o.status.toLowerCase(),
-        time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+        time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         date: new Date(o.createdAt).toISOString().split('T')[0],
         isNew: false, isCall: false, hasNewItems: false,
       };
@@ -3210,7 +3210,7 @@ async function loadAdminCalls() {
       callType: c.type,
       callMsg: c.message,
       status: 'new',
-      time: new Date(c.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+      time: new Date(c.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
       date: new Date(c.createdAt).toISOString().split('T')[0],
       isNew: false,
       items: [], note: '', sub: 0, tax: 0, grand: 0,
@@ -3235,7 +3235,7 @@ async function loadHistory(date) {
       note: o.note || '',
       sub: o.subtotal, tax: o.tax, grand: o.total,
       status: 'cashed',
-      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
       date: new Date(o.createdAt).toISOString().split('T')[0],
     }));
     return data;
@@ -3279,7 +3279,7 @@ function renderAdmin() {
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
@@ -4183,7 +4183,7 @@ async function sendTableCall(type) {
   const btn = document.getElementById('call' + type.charAt(0).toUpperCase() + type.slice(1));
   if (btn) { btn.classList.add('sent'); setTimeout(() => btn.classList.remove('sent'), 30000); }
 
-  const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
+  const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const callMsg  = `${CALL_LABELS[type]} Table ${currentTable}`;
 
   // Save to DB — backend saves and emits socket to admin
@@ -4470,7 +4470,7 @@ function connectAdminSocket() {
         note: order.note || '',
         sub: order.subtotal, tax: order.tax, grand: order.total,
         status: 'new',
-        time: new Date(order.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' }),
+        time: new Date(order.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         date: new Date(order.createdAt).toISOString().split('T')[0],
         isNew: true, isCall: false, hasNewItems: false,
       };
@@ -4511,7 +4511,7 @@ function connectAdminSocket() {
   adminSocket.on('table:call', (call) => {
     const alreadyExists = orders.find(o => o.isCall && o.id === call.id);
     if (alreadyExists) return;
-    const callTime = new Date(call.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit' });
+    const callTime = new Date(call.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const callOrder = {
       id: call.id,
       table: String(call.tableNumber),
