@@ -58,67 +58,11 @@ body.ready{visibility:visible;}
 
 /* ── Notification sidebar ─────────────────────────────── */
 .admin-with-sidebar{display:flex;height:calc(100vh - 58px);overflow:hidden;}
-/* ── Hamburger slide-in sidebar ── */
-.notif-sidebar-trigger{
-  position:relative;
-  width:44px;min-width:44px;
-  background:var(--chalk);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-start;
-  padding-top:14px;gap:5px;cursor:pointer;
-  flex-shrink:0;
-}
-.notif-sidebar-trigger:hover{background:var(--chalk2);}
-.hamburger-line{width:18px;height:2px;background:var(--cream2);border-radius:2px;transition:background .2s;}
-.notif-sidebar-trigger:hover .hamburger-line{background:var(--gold2);}
-.notif-badge{
-  margin-top:6px;
-  background:var(--gold);color:var(--bg);
-  border-radius:20px;padding:1px 6px;
-  font-size:9px;font-weight:700;
-  min-width:16px;text-align:center;
-  display:none;font-family:'Rubik',sans-serif;
-}
-.notif-badge.has-items{display:block;}
-/* Slide-in drawer */
-.notif-drawer{
-  position:fixed;top:0;left:0;bottom:0;
-  width:300px;
-  background:var(--chalk);
-  border-right:1px solid var(--border2);
-  z-index:8000;
-  display:flex;flex-direction:column;
-  transform:translateX(-100%);
-  transition:transform .28s cubic-bezier(.4,0,.2,1);
-  box-shadow:4px 0 32px rgba(0,0,0,.5);
-}
-.notif-drawer.open{transform:translateX(0);}
-.notif-drawer-overlay{
-  position:fixed;inset:0;z-index:7999;
-  background:rgba(0,0,0,.45);
-  backdrop-filter:blur(2px);
-  display:none;
-}
-.notif-drawer-overlay.open{display:block;}
-.notif-drawer-head{
-  padding:16px 16px 12px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  flex-shrink:0;
-}
-.notif-drawer-title{
-  font-family:'Rubik',sans-serif;font-size:10px;
-  letter-spacing:2px;color:var(--gold2);text-transform:uppercase;
-}
-.notif-drawer-close{
-  background:var(--chalk2);border:1px solid var(--border2);
-  color:var(--text3);width:28px;height:28px;border-radius:50%;
-  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-}
-.notif-drawer-close:hover{color:var(--cream);border-color:var(--gold);}
-.notif-list{flex:1;overflow-y:auto;padding:10px;}
-.notif-item{background:rgba(200,149,42,.08);border:1px solid rgba(200,149,42,.25);border-radius:8px;padding:10px 12px;margin-bottom:8px;position:relative;}
+.notif-sidebar{width:260px;min-width:260px;background:var(--chalk);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.notif-sidebar-head{padding:12px 14px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:1.5px;color:var(--gold2);text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.notif-sidebar-head .notif-count{background:var(--gold);color:var(--bg);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;}
+.notif-list{flex:1;overflow-y:auto;padding:8px;}
+.notif-item{background:rgba(200,149,42,.08);border:1px solid rgba(200,149,42,.25);border-radius:6px;padding:10px 12px;margin-bottom:8px;position:relative;}
 .notif-item.notif-new{border-color:var(--gold);animation:newPulse .8s ease 3;}
 .notif-icon{font-size:22px;margin-bottom:4px;}
 .notif-msg{font-size:11px;color:var(--cream2);font-family:'Rubik',sans-serif;line-height:1.4;}
@@ -126,10 +70,20 @@ body.ready{visibility:visible;}
 .notif-time{font-size:9px;color:var(--text3);margin-top:4px;}
 .notif-dismiss{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0;}
 .notif-dismiss:hover{color:var(--gold);}
-.notif-empty{padding:32px 12px;text-align:center;color:var(--text3);font-size:11px;}
+.notif-empty{padding:24px 12px;text-align:center;color:var(--text3);font-size:11px;}
 .admin-main{flex:1;overflow-y:auto;padding:16px;}
 @media(max-width:700px){
-  .notif-drawer{width:85vw;}
+  .notif-sidebar{
+    display:flex;
+    width:100%;min-width:unset;
+    border-right:none;border-bottom:1px solid var(--border);
+    flex-direction:row;align-items:center;
+    max-height:52px;overflow:hidden;
+    transition:max-height .3s ease;
+  }
+  .notif-sidebar.expanded{max-height:300px;flex-direction:column;align-items:stretch;}
+  .notif-sidebar-head{cursor:pointer;flex:1;border-bottom:none;}
+  .notif-list{width:100%;}
   .admin-with-sidebar{flex-direction:column;}
 }
 button,input,textarea,select{font-family:'Rubik',sans-serif;}
@@ -853,6 +807,27 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
 /* Bell button */
 .bell-btn{background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);width:38px;height:38px;border-radius:var(--radius);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .2s;position:relative;flex-shrink:0;}
 .bell-btn:active{border-color:var(--gold);background:var(--chalk3);}
+/* ── Customer call drawer ── */
+.cust-hamburger{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:38px;height:38px;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.cust-hamburger span{display:block;width:20px;height:2px;background:var(--cream2);border-radius:2px;transition:background .2s;}
+.cust-hamburger:active span,.cust-hamburger:hover span{background:var(--gold2);}
+.cust-drawer-overlay{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;}
+.cust-drawer-overlay.open{display:block;}
+.cust-drawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--chalk);border-right:1px solid var(--border2);z-index:1201;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 32px rgba(0,0,0,.6);}
+.cust-drawer.open{transform:translateX(0);}
+.cust-drawer-head{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.cust-drawer-title{font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:2px;color:var(--gold2);text-transform:uppercase;}
+.cust-drawer-close{background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cust-drawer-close:hover{color:var(--cream);border-color:var(--gold);}
+.cust-drawer-subtitle{padding:12px 16px 8px;font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.cust-call-grid{display:flex;flex-direction:column;gap:6px;padding:12px;}
+.cust-call-btn{background:var(--chalk3);border:1px solid var(--border2);color:var(--cream2);font-family:'Rubik',sans-serif;font-size:12px;padding:12px 14px;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s;display:flex;align-items:center;gap:12px;text-align:left;}
+.cust-call-btn:active,.cust-call-btn.sent{background:rgba(200,149,42,.12);border-color:var(--gold);color:var(--gold2);}
+.cust-call-btn .cc-emoji{font-size:22px;flex-shrink:0;}
+.cust-call-btn .cc-text{display:flex;flex-direction:column;gap:2px;}
+.cust-call-btn .cc-en{font-size:12px;font-weight:500;}
+.cust-call-btn .cc-ar{font-size:11px;color:var(--text3);direction:rtl;}
+.cust-call-btn.sent .cc-ar{color:var(--gold2);}
 @keyframes bellPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,149,42,.4);}50%{box-shadow:0 0 0 6px rgba(200,149,42,0);}}
 .bell-btn.pulse{animation:bellPulse 1.8s ease infinite;}
 
@@ -1339,12 +1314,50 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div><div class="h-logo-ar">أهوة حارتنا</div><div class="h-logo-en">Haretna Café</div></div>
     <div class="h-table-badge"><div class="h-tbl-lbl">Table · طاولة</div><div class="h-tbl-num" id="tableDisplay">—</div></div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button class="bell-btn" id="bellBtn" onclick="toggleCallPopup()">🔔</button>
+      <button class="cust-hamburger" id="custHamburger" onclick="toggleCustDrawer()" title="Request Service">
+        <span></span><span></span><span></span>
+      </button>
       <button class="cart-btn" onclick="openCart()">🛒 <span class="cart-badge" id="cartBadge">0</span></button>
     </div>
   </div>
 
   <!-- Call popup (anchored under header) -->
+  <!-- Customer service drawer -->
+  <div class="cust-drawer-overlay" id="custDrawerOverlay" onclick="toggleCustDrawer()"></div>
+  <div class="cust-drawer" id="custDrawer">
+    <div class="cust-drawer-head">
+      <span class="cust-drawer-title">How can we help? · كيف نساعدك؟</span>
+      <button class="cust-drawer-close" onclick="toggleCustDrawer()">✕</button>
+    </div>
+    <div class="cust-drawer-subtitle">Request Service · طلب خدمة</div>
+    <div class="cust-call-grid">
+      <button class="cust-call-btn" id="cc-waiter" onclick="sendTableCall('waiter');toggleCustDrawer()">
+        <span class="cc-emoji">🙋</span><span class="cc-text"><span class="cc-en">Call Waiter</span><span class="cc-ar">نادِ النادل</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-bill" onclick="sendTableCall('bill');toggleCustDrawer()">
+        <span class="cc-emoji">💳</span><span class="cc-text"><span class="cc-en">Bill Please</span><span class="cc-ar">الحساب</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-napkins" onclick="sendTableCall('napkins');toggleCustDrawer()">
+        <span class="cc-emoji">🧻</span><span class="cc-text"><span class="cc-en">Napkins</span><span class="cc-ar">مناديل</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-water" onclick="sendTableCall('water');toggleCustDrawer()">
+        <span class="cc-emoji">💧</span><span class="cc-text"><span class="cc-en">Water</span><span class="cc-ar">ماء</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-coal" onclick="sendTableCall('coal');toggleCustDrawer()">
+        <span class="cc-emoji">🪨</span><span class="cc-text"><span class="cc-en">Coal</span><span class="cc-ar">فحم</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-ashtray" onclick="sendTableCall('ashtray');toggleCustDrawer()">
+        <span class="cc-emoji">🫙</span><span class="cc-text"><span class="cc-en">Ashtray</span><span class="cc-ar">مكته</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-cards" onclick="sendTableCall('cards');toggleCustDrawer()">
+        <span class="cc-emoji">🃏</span><span class="cc-text"><span class="cc-en">Cards</span><span class="cc-ar">شده</span></span>
+      </button>
+      <button class="cust-call-btn" id="cc-clean" onclick="sendTableCall('clean');toggleCustDrawer()">
+        <span class="cc-emoji">🧹</span><span class="cc-text"><span class="cc-en">Clean Table</span><span class="cc-ar">تنظيف طاولة</span></span>
+      </button>
+    </div>
+  </div>
+
   <div id="callPopup" class="call-popup">
     <div class="call-popup-title">How can we help? · كيف نساعدك؟</div>
     <div class="call-popup-grid">
@@ -1480,20 +1493,10 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   </div>
   <div class="admin-with-sidebar">
     <!-- ── Notification Sidebar ── -->
-    <!-- Hamburger trigger -->
-    <div class="notif-sidebar-trigger" onclick="toggleNotifDrawer()" title="Table Requests">
-      <div class="hamburger-line"></div>
-      <div class="hamburger-line"></div>
-      <div class="hamburger-line"></div>
-      <span class="notif-badge" id="notifCount"></span>
-    </div>
-    <!-- Slide-in drawer overlay -->
-    <div class="notif-drawer-overlay" id="notifOverlay" onclick="toggleNotifDrawer()"></div>
-    <!-- Slide-in drawer -->
-    <div class="notif-drawer" id="notifDrawer">
-      <div class="notif-drawer-head">
-        <span class="notif-drawer-title">🔔 Table Requests · طلبات</span>
-        <button class="notif-drawer-close" onclick="toggleNotifDrawer()">✕</button>
+    <div class="notif-sidebar">
+      <div class="notif-sidebar-head" onclick="this.closest('.notif-sidebar').classList.toggle('expanded')">
+        🔔 Table Requests · طلبات الطاولات
+        <span class="notif-count" id="notifCount">0</span>
       </div>
       <div class="notif-list" id="notifList">
         <div class="notif-empty">No requests yet · لا يوجد طلبات</div>
@@ -2678,7 +2681,8 @@ let ADDONS = {};
 let _addonsSelectedId = null;
 
 function openAddonsPanel() {
-  // ADDONS loaded from DB via loadMenuFromAPI
+  // Load from localStorage
+  // ADDONS loaded from DB via loadMenuFromAPI — no localStorage needed
   _addonsSelectedId = null;
   document.getElementById('addonsEditor').style.display = 'none';
   document.getElementById('addonsSearch').value = '';
@@ -2738,89 +2742,45 @@ function renderAddonsChips() {
   }).join('');
 }
 
-async function addAddonOption() {
+function addAddonOption() {
   const inp = document.getElementById('addonsNewOption');
   const val = inp.value.trim();
   if (!val) { toast('Type an option first · اكتب خياراً أولاً'); return; }
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
+  // Support comma-separated batch entry
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
-  for (const name of newOpts) {
+  newOpts.forEach(name => {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
-    if (!existing) {
-      try {
-        const res = await apiFetch(`/api/addons/${_addonsSelectedId}`, {
-          method: 'POST',
-          body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
-        });
-        ADDONS[_addonsSelectedId].options.push({ id: res.id, name, oos: false });
-      } catch(e) {
-        console.error('Failed to save addon:', e);
-        toast('Error saving addon: ' + e.message);
-      }
-    }
-  }
+    if (!existing) ADDONS[_addonsSelectedId].options.push({ name, oos: false });
+  });
   inp.value = '';
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
 
-async function toggleAddonOos(idx) {
+function toggleAddonOos(idx) {
   if (!_addonsSelectedId) return;
   const opt = ADDONS[_addonsSelectedId].options[idx];
   if (typeof opt === 'string') {
     ADDONS[_addonsSelectedId].options[idx] = { name: opt, oos: true };
   } else {
     opt.oos = !opt.oos;
-    if (opt.id) {
-      try {
-        await apiFetch(`/api/addons/${opt.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ isActive: !opt.oos }),
-        });
-      } catch(e) { console.error('Failed to update addon:', e); }
-    }
   }
   renderAddonsChips();
 }
 
-async function removeAddonOption(idx) {
+function removeAddonOption(idx) {
   if (!_addonsSelectedId) return;
-  const opt = ADDONS[_addonsSelectedId].options[idx];
-  const addonId = typeof opt === 'object' ? opt.id : null;
-  if (addonId) {
-    try {
-      await apiFetch(`/api/addons/${addonId}`, { method: 'DELETE' });
-    } catch(e) { console.error('Failed to delete addon:', e); }
-  }
   ADDONS[_addonsSelectedId].options.splice(idx, 1);
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
 
-async function saveAddons() {
-  // Reload ADDONS from DB to ensure we have latest IDs
-  try {
-    const cats = await apiFetch('/api/menu');
-    ADDONS = {};
-    cats.forEach(cat => {
-      cat.items.forEach(item => {
-        if (item.addons && item.addons.length > 0) {
-          ADDONS[item.id] = {
-            options: item.addons.map(a => ({
-              id: a.id, name: a.nameEn, nameAr: a.nameAr,
-              price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
-            }))
-          };
-        }
-      });
-    });
-    toast('Add-ons saved! · تم حفظ الإضافات');
-  } catch(e) {
-    console.error('Failed to reload addons:', e);
-    toast('Saved locally · تم الحفظ');
-  }
-  document.getElementById('addonsPanel').classList.remove('open');
+function saveAddons() {
+  // ADDONS saved to DB via API — no localStorage needed
+  toast('Add-ons saved! · تم حفظ الإضافات');
+  // Refresh item popup flavor chips if open
 }
 
 // Override getFlavorsForItem to use admin-defined add-ons first, then fallback to FLAVORS_MAP
@@ -3407,7 +3367,7 @@ function renderAdmin() {
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 ${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time: ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
@@ -4260,6 +4220,14 @@ function dismissCallBanner() {
   if (bell) bell.classList.remove('pulse');
 }
 
+function toggleCustDrawer() {
+  const drawer = document.getElementById('custDrawer');
+  const overlay = document.getElementById('custDrawerOverlay');
+  if (!drawer) return;
+  const isOpen = drawer.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('open', isOpen);
+}
+
 function toggleCallPopup() {
   _callPopupOpen = !_callPopupOpen;
   document.getElementById('callPopup').classList.toggle('open', _callPopupOpen);
@@ -4318,6 +4286,8 @@ async function sendTableCall(type) {
 
   const btn = document.getElementById('call' + type.charAt(0).toUpperCase() + type.slice(1));
   if (btn) { btn.classList.add('sent'); setTimeout(() => btn.classList.remove('sent'), 30000); }
+  const custBtn = document.getElementById('cc-' + type);
+  if (custBtn) { custBtn.classList.add('sent'); setTimeout(() => custBtn.classList.remove('sent'), 30000); }
 
   const callTime = new Date().toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const callMsg  = `${CALL_LABELS[type]} Table ${currentTable}`;
@@ -4359,14 +4329,6 @@ async function dismissCall(id) {
 // NOTIFICATION SIDEBAR
 // =====================================================================
 
-function toggleNotifDrawer() {
-  const drawer = document.getElementById('notifDrawer');
-  const overlay = document.getElementById('notifOverlay');
-  if (!drawer) return;
-  const isOpen = drawer.classList.toggle('open');
-  overlay.classList.toggle('open', isOpen);
-}
-
 function renderNotifSidebar() {
   const calls = orders.filter(o => o.isCall);
   const countEl = document.getElementById('notifCount');
@@ -4374,20 +4336,14 @@ function renderNotifSidebar() {
   if (!listEl) return;
 
   if (countEl) {
-    countEl.textContent = calls.length || '';
-    countEl.classList.toggle('has-items', calls.length > 0);
+    countEl.textContent = calls.length;
     // Pulse count badge if there are pending calls
     countEl.style.animation = calls.length > 0 ? 'pulse 1.5s infinite' : '';
   }
 
   // Auto-expand sidebar on mobile when calls arrive
-  // Auto-open drawer when new call arrives
-  const drawer = document.getElementById('notifDrawer');
-  const overlay = document.getElementById('notifOverlay');
-  if (drawer && calls.length > 0) {
-    drawer.classList.add('open');
-    if (overlay) overlay.classList.add('open');
-  }
+  const sidebar = document.querySelector('.notif-sidebar');
+  if (sidebar && calls.length > 0) sidebar.classList.add('expanded');
 
   if (!calls.length) {
     listEl.innerHTML = '<div class="notif-empty">No requests yet · لا يوجد طلبات</div>';
@@ -4709,6 +4665,13 @@ async function loadMenuFromAPI() {
     }));
     // Populate outOfStock set
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
+    // Build ADDONS from DB
+    ADDONS = {};
+    MENU.flatMap(c => c.items).forEach(i => {
+      if (i.addons && i.addons.length > 0) {
+        ADDONS[i.id] = { options: i.addons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })) };
+      }
+    });
     // Build ADDONS from DB addons
     ADDONS = {};
     MENU.flatMap(c => c.items).forEach(i => {
