@@ -3337,7 +3337,7 @@ async function loadAdminOrders() {
         stacked.push({...o, items: o.items.map(i=>({...i}))});
       }
     }
-    orders = stacked.filter(o => !_dismissedOrderIds.has(String(o.id)));
+    orders = stacked.filter(o => !_dismissedOrderIds.has(String(o.id)) && o.status !== 'cashed');
   } catch (e) {
     console.error('Failed to load orders:', e.message);
   }
@@ -3557,16 +3557,18 @@ async function removeOrderItem(orderId, itemId) {
 
 async function cashOut(id) {
   try {
-    await apiFetch(`/api/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'CASHED' }) });
+    // Mark all orders for this table as CASHED (the stacked card may have multiple)
     const o = orders.find(o=>o.id===id);
-    if (o) {
-      history.unshift({...o, status:'cashed'});
-      orders = orders.filter(x=>x.id!==id);
-      _dismissedOrderIds.delete(String(id));
-      _saveDismissed();
-      renderAdmin();
-      toast(`Table ${o.table} — Cashed out · تم السداد`);
-    }
+    if (!o) return;
+    // Get all real order IDs involved in this stacked card
+    const tableOrders = orders.filter(x => x.table === o.table && !x.isCall);
+    await Promise.all(tableOrders.map(to =>
+      apiFetch(`/api/orders/${to.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'CASHED' }) }).catch(()=>{})
+    ));
+    history.unshift({...o, status:'cashed'});
+    orders = orders.filter(x => x.table !== o.table || x.isCall);
+    renderAdmin();
+    toast(`Table ${o.table} — Cashed out · تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
 }
 
@@ -3739,6 +3741,7 @@ function renderOffersList() {
           <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);cursor:pointer;">
             <input type="checkbox" ${o.active?'checked':''} onchange="toggleOffer(${i},this.checked)"/> Active
           </label>
+          <button onclick="editOffer(${i})" style="background:rgba(200,149,42,.15);border:1px solid var(--gold);color:var(--gold2);padding:4px 9px;border-radius:var(--radius);font-size:10px;cursor:pointer;font-family:'Rubik',sans-serif;letter-spacing:1px;margin-bottom:3px;">Edit</button>
           <button onclick="deleteOffer(${i})" style="background:var(--red);color:white;border:none;padding:4px 9px;border-radius:var(--radius);font-size:10px;cursor:pointer;font-family:'Rubik',sans-serif;letter-spacing:1px;">Delete</button>
         </div>
       </div>
@@ -3755,6 +3758,53 @@ async function deleteOffer(idx) {
   OFFERS.splice(idx, 1);
   try { await apiFetch(`/api/offers/${id}`, { method: 'DELETE' }); } catch(e){}
   renderOffersList();
+}
+
+function editOffer(idx) {
+  const o = OFFERS[idx];
+  if (!o) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'editOfferOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:24px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">Edit Offer</div>
+        <button onclick="document.getElementById('editOfferOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
+      </div>
+      <input id="eoTitleEn" value="${o.title||''}" placeholder="Title (English)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="eoTitleAr" value="${o.titleAr||''}" placeholder="العنوان بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
+      <input id="eoDesc" value="${o.desc||''}" placeholder="Description" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="eoPrice" type="number" step="0.01" min="0" value="${o.price||''}" placeholder="Price (JD)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
+      <button onclick="submitEditOffer(${idx})" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">Save Changes</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitEditOffer(idx) {
+  const o = OFFERS[idx];
+  const titleEn = document.getElementById('eoTitleEn').value.trim();
+  const titleAr = document.getElementById('eoTitleAr').value.trim();
+  const desc    = document.getElementById('eoDesc').value.trim();
+  const price   = parseFloat(document.getElementById('eoPrice').value);
+  if (!titleEn) { toast('Please enter English title'); return; }
+  if (isNaN(price)||price<0) { toast('Please enter a valid price'); return; }
+  try {
+    const res = await apiFetch(`/api/offers/${o.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        titleEn, titleAr: titleAr||titleEn,
+        descriptionEn: desc||o.desc||'', descriptionAr: desc||o.descAr||'',
+        price,
+      }),
+    });
+    OFFERS[idx] = { ...o, title: titleEn, titleAr: titleAr||titleEn, desc, price };
+    document.getElementById('editOfferOverlay').remove();
+    renderOffersList();
+    toast('Offer updated!');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
 }
 
 function renderOfferItemPicker() {
