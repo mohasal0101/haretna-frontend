@@ -1480,13 +1480,13 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
     <div class="badge-staff">Admin</div>
     <div class="live-dot-wrap"><div class="live-dot"></div>Live</div>
     <div class="at-btns">
-      <button class="at-btn" onclick="openStockPanel()">📦 Stock · المخزون</button>
-      <button class="at-btn" onclick="openOffersPanel()">🏷️ Offers · العروض</button>
-      <button class="at-btn" onclick="openTrendingPanel()">🔥 Trending · الأكثر طلباً</button>
-      <button class="at-btn" onclick="openAddonsPanel()">✨ Add-ons · إضافات</button>
-      <button class="at-btn" onclick="openSalesModal()">📊 Sales · المبيعات</button>
-      <button class="at-btn" onclick="showView('menuManagerPage');renderMenuManager()">🖼️ Menu · القائمة</button>
-      <button class="at-btn" onclick="showView('historyPage');renderHistory()">📋 History · السجل</button>
+      <button class="at-btn" onclick="openStockPanel()">Stock · المخزون</button>
+      <button class="at-btn" onclick="openOffersPanel()">Offers · العروض</button>
+      <button class="at-btn" onclick="openTrendingPanel()">Trending · الأكثر طلباً</button>
+      <button class="at-btn" onclick="openAddonsPanel()">Add-ons · إضافات</button>
+      <button class="at-btn" onclick="openSalesModal()">Sales · المبيعات</button>
+      <button class="at-btn" onclick="showView('menuManagerPage');renderMenuManager()">Menu · القائمة</button>
+      <button class="at-btn" onclick="showView('historyPage');renderHistory()">History · السجل</button>
       <button class="sound-toggle on" id="soundToggle" onclick="toggleSound()">🔔 Sound · صوت</button>
       <button class="at-btn" onclick="doLogout()">← Exit · خروج</button>
     </div>
@@ -1566,7 +1566,7 @@ body.cart-bar-visible #floatCatBtn{bottom:92px;}
   <div class="admin-topbar">
     <div class="at-logo">QR Codes · أكواد المائدة <small>Haretna Café</small></div>
     <div class="at-btns">
-      <button class="at-btn" onclick="window.print()">🖨 Print All · طباعة الكل</button>
+      <button class="at-btn" onclick="window.print()">Print All · طباعة الكل</button>
       <button class="at-btn" onclick="showView('landing')">← Back · رجوع</button>
     </div>
   </div>
@@ -2742,45 +2742,87 @@ function renderAddonsChips() {
   }).join('');
 }
 
-function addAddonOption() {
+async function addAddonOption() {
   const inp = document.getElementById('addonsNewOption');
   const val = inp.value.trim();
   if (!val) { toast('Type an option first · اكتب خياراً أولاً'); return; }
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
-  // Support comma-separated batch entry
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
-  newOpts.forEach(name => {
+  for (const name of newOpts) {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
-    if (!existing) ADDONS[_addonsSelectedId].options.push({ name, oos: false });
-  });
+    if (!existing) {
+      try {
+        const res = await apiFetch(`/api/addons/${_addonsSelectedId}`, {
+          method: 'POST',
+          body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
+        });
+        ADDONS[_addonsSelectedId].options.push({ id: res.id, name, oos: false });
+      } catch(e) {
+        console.error('Failed to save addon:', e);
+        toast('Error saving addon: ' + e.message);
+      }
+    }
+  }
   inp.value = '';
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
 
-function toggleAddonOos(idx) {
+async function toggleAddonOos(idx) {
   if (!_addonsSelectedId) return;
   const opt = ADDONS[_addonsSelectedId].options[idx];
   if (typeof opt === 'string') {
     ADDONS[_addonsSelectedId].options[idx] = { name: opt, oos: true };
   } else {
     opt.oos = !opt.oos;
+    if (opt.id) {
+      try {
+        await apiFetch(`/api/addons/${opt.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isActive: !opt.oos }),
+        });
+      } catch(e) { console.error('Failed to update addon OOS:', e); }
+    }
   }
   renderAddonsChips();
 }
 
-function removeAddonOption(idx) {
+async function removeAddonOption(idx) {
   if (!_addonsSelectedId) return;
+  const opt = ADDONS[_addonsSelectedId].options[idx];
+  const addonId = typeof opt === 'object' ? opt.id : null;
+  if (addonId) {
+    try { await apiFetch(`/api/addons/${addonId}`, { method: 'DELETE' }); }
+    catch(e) { console.error('Failed to delete addon:', e); }
+  }
   ADDONS[_addonsSelectedId].options.splice(idx, 1);
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
 
-function saveAddons() {
-  // ADDONS saved to DB via API — no localStorage needed
-  toast('Add-ons saved! · تم حفظ الإضافات');
-  // Refresh item popup flavor chips if open
+async function saveAddons() {
+  try {
+    const cats = await apiFetch('/api/menu');
+    ADDONS = {};
+    cats.forEach(cat => {
+      cat.items.forEach(item => {
+        if (item.addons && item.addons.length > 0) {
+          ADDONS[item.id] = {
+            options: item.addons.map(a => ({
+              id: a.id, name: a.nameEn, nameAr: a.nameAr,
+              price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
+            }))
+          };
+        }
+      });
+    });
+    toast('Add-ons saved! · تم حفظ الإضافات');
+  } catch(e) {
+    console.error('Failed to reload addons:', e);
+    toast('Saved · تم الحفظ');
+  }
+  document.getElementById('addonsPanel').classList.remove('open');
 }
 
 // Override getFlavorsForItem to use admin-defined add-ons first, then fallback to FLAVORS_MAP
@@ -3387,6 +3429,7 @@ function renderAdmin() {
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
               <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
               ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
+              ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
             ${flavorTags?`<div style="margin-top:4px;">${flavorTags}</div>`:''}
             ${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}
@@ -3914,7 +3957,7 @@ async function submitAddItem(catId) {
       method: 'POST',
       body: JSON.stringify({
         nameEn, nameAr, descriptionEn: desc||null,
-        price, icon, categoryId: cat._dbId || catId,
+        price, icon, categoryId: cat._dbId,
         displayOrder: cat.items.length,
       }),
     });
@@ -4350,15 +4393,30 @@ function renderNotifSidebar() {
     return;
   }
 
-  listEl.innerHTML = calls.map(c => `
+  listEl.innerHTML = `
+    <div style="padding:8px 8px 4px;display:flex;justify-content:flex-end;">
+      <button onclick="dismissAllCalls()" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:4px;cursor:pointer;text-transform:uppercase;">Dismiss All · مسح الكل</button>
+    </div>
+    ${calls.map(c => `
     <div class="notif-item ${c.isNew ? 'notif-new' : ''}" id="notif-${c.id}">
-      <button class="notif-dismiss" onclick="dismissCall('${c.id}')" title="Dismiss">✕</button>
-      <div class="notif-icon">${CALL_ICONS[c.callType] || '🔔'}</div>
+      <button class="notif-dismiss" onclick="dismissCall('${c.id}')" title="Dismiss">x</button>
       <div class="notif-table">Table ${c.table} · طاولة ${c.table}</div>
       <div class="notif-msg">${c.callMsg}<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;opacity:0.8;">${CALL_LABELS_AR[c.callType] || ''}</span></div>
       <div class="notif-time">${c.time}</div>
-    </div>
-  `).join('');
+    </div>`).join('')}`;
+}
+
+async function dismissAllCalls() {
+  const calls = orders.filter(o => o.isCall);
+  await Promise.all(calls.map(c =>
+    !String(c.id).startsWith('call_')
+      ? apiFetch(`/api/calls/${c.id}/dismiss`, { method: 'PATCH' }).catch(()=>{})
+      : Promise.resolve()
+  ));
+  orders = orders.filter(o => !o.isCall);
+  renderAdmin();
+  renderNotifSidebar();
+  toast('All requests dismissed · تم مسح جميع الطلبات');
 }
 
 // =====================================================================
@@ -4529,9 +4587,10 @@ function connectAdminSocket() {
   });
 
   adminSocket.on('order:new', (order) => {
+    const _orderTime = new Date(order.createdAt||Date.now()).toLocaleTimeString('en-JO',{hour:'2-digit',minute:'2-digit',hour12:true});
     const rawItems = order.items.map(i => ({
       id: i.menuItemId, _itemId: i.id, en: i.nameEn, ar: i.nameAr,
-      icon: i.icon, price: i.unitPrice, qty: i.quantity, isNew: true,
+      icon: i.icon, price: i.unitPrice, qty: i.quantity, isNew: true, addedAt: _orderTime,
     }));
     const { flavorEntries } = parseItemNotesFromOrderNote(order.note || '', rawItems);
     const incomingItems = applyFlavorNotes(rawItems, flavorEntries).map(i => ({...i, isNew: true}));
@@ -4646,6 +4705,7 @@ async function loadMenuFromAPI() {
     const categories = await apiFetch('/api/menu');
     MENU = categories.map(cat => ({
       id: cat.slug,
+      _dbId: cat.id,
       en: cat.nameEn,
       ar: cat.nameAr,
       icon: cat.icon,
