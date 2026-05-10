@@ -3502,11 +3502,14 @@ async function setOrderStatus(id, status) {
     const o = orders.find(o=>o.id===id);
     if (o) {
       o.status = status.toLowerCase();
-      // Clear new-item highlights and merge duplicate rows when admin hits Preparing
+      // On PREPARING: just clear new-item highlights, keep items separate
       if (status === 'PREPARING') {
         o.isNew = false;
         o.hasNewItems = false;
-        // Merge duplicate items (same id) into one row with combined qty
+        o.items.forEach(item => { item.isNew = false; });
+      }
+      // On READY: merge duplicate items into one cumulated row
+      if (status === 'READY') {
         const merged = [];
         o.items.forEach(item => {
           const existing = merged.find(m => m.id === item.id);
