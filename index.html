@@ -3204,6 +3204,16 @@ async function confirmOrder() {
       .map((e, i) => `[${i}:${stripEmoji(e.en)}]: ${e.note}`);
     const fullNote = [itemNotesParts.join(' | '), d.note].filter(Boolean).join(' || ');
 
+    if (!currentTable || isNaN(parseInt(currentTable))) {
+      toast('No table selected · يرجى اختيار طاولة');
+      openCart();
+      return;
+    }
+    if (!apiItems.length) {
+      toast('No valid items in order · لا توجد عناصر صالحة في الطلب');
+      openCart();
+      return;
+    }
     const order = await apiFetch('/api/orders', {
       method: 'POST',
       body: JSON.stringify({
