@@ -2347,6 +2347,7 @@ function addOfferToCart(offerId) {
   const offerItems = (offer.itemIds||[]).map(id=>findItem(id)?.item).filter(Boolean);
   if (cart[offerId]) {
     cart[offerId].qty++;
+    cart[offerId].bundleItems = offerItems; // refresh in case IDs changed
   } else {
     cart[offerId] = {
       isBundle: true,
@@ -3178,8 +3179,15 @@ async function confirmOrder() {
       if (e.isBundle && e.bundleItems?.length) {
         // Expand bundle into real menu items
         e.bundleItems.forEach(bi => {
-          apiItems.push({ menuItemId: bi._dbId || bi.id, quantity: e.qty });
+          const itemId = bi._dbId || bi.id;
+          console.log('[ORDER] bundle item:', bi.en, '→ menuItemId:', itemId);
+          apiItems.push({ menuItemId: itemId, quantity: e.qty });
         });
+      } else if (e.isBundle && !e.bundleItems?.length) {
+        console.error('[ORDER] bundle has no items:', e.item?.en);
+        toast('Offer has no items configured · العرض لا يحتوي على عناصر');
+        openCart();
+        return;
       } else if (!e.isBundle) {
         apiItems.push({ menuItemId: e.id, quantity: e.qty });
       }
