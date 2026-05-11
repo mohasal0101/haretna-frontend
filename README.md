@@ -52,7 +52,7 @@
 └── README.md
 ```
 
-The frontend is intentionally a single self-contained HTML file with no build step, no bundler, and no framework dependencies. This makes it trivial to deploy anywhere — just serve the file.
+The frontend is intentionally a single self-contained HTML file with no build step, no bundler, and no framework dependencies. This makes it trivial to deploy anywhere just serve the file.
 
 The backend lives in a separate repository and exposes a REST API consumed by this frontend.
 
@@ -137,7 +137,7 @@ The frontend reads `?table=` from the URL on load and uses it for all orders and
 
 ## Admin Access
 
-Navigate to the menu and tap the admin login button (key icon in the header). Enter your staff credentials. Admin features — item editing, stock toggling, image uploads, the order dashboard, and offers management — are all gated behind this login.
+Navigate to the menu and tap the admin login button (key icon in the header). Enter your staff credentials. Admin features — item editing, stock toggling, image uploads, the order dashboard, and offers management are all gated behind this login.
 
 Credentials are managed on the backend. Contact your backend administrator or check your Railway environment variables to reset them.
 
