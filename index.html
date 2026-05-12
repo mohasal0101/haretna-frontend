@@ -2896,8 +2896,8 @@ async function handleImgUpload(id, input) {
       });
       const data = await res.json();
       if (data.imageUrl) {
-        customImages[id] = data.imageUrl;
-        menuItem.imageUrl = data.imageUrl;
+        customImages[id] = imgUrl(data.imageUrl);
+        menuItem.imageUrl = imgUrl(data.imageUrl);
         toast('Image uploaded to cloud! ☁️ · تم رفع الصورة');
       }
     } catch (e) {
@@ -4277,7 +4277,7 @@ async function mmSaveChanges() {
         body: formData,
       });
       const data = await res.json();
-      if (data.imageUrl) { customImages[id] = data.imageUrl; successCount++; }
+      if (data.imageUrl) { customImages[id] = imgUrl(data.imageUrl); successCount++; }
       else failCount++;
     } catch (err) { console.error('Upload error for', id, err); failCount++; }
   }
@@ -4819,7 +4819,7 @@ function connectAdminSocket() {
     }
     if (imageUrl !== undefined) {
       item.imageUrl = imageUrl;
-      customImages[item.id] = imageUrl || null;
+      customImages[item.id] = imgUrl(imageUrl) || null;
     }
     renderMenu();
   });
@@ -4912,7 +4912,7 @@ async function loadMenuFromAPI() {
       }
     });
     // Load images from API into customImages
-    MENU.flatMap(c=>c.items).forEach(i => { if (i.imageUrl) customImages[i.id] = i.imageUrl; });
+    MENU.flatMap(c=>c.items).forEach(i => { if (i.imageUrl) customImages[i.id] = imgUrl(i.imageUrl); });
     // Load trending from API — map DB UUIDs back to frontend item ids
     const trending = await apiFetch('/api/menu/trending');
     const allItems = MENU.flatMap(c => c.items);
