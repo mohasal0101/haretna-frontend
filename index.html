@@ -3463,9 +3463,12 @@ function renderAdmin() {
             flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
             freeNote = (flavorMatch[3]||'').trim();
           }
+          const _catRes = findItemInMenu(i.id);
+          const _cat = _catRes ? MENU.find(c=>c.id===_catRes.catId) : null;
+          const catLabel = _cat ? `<span style="font-size:10px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;">${_cat.ar}</span>` : '';
           const nameBlock = `<div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-              <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
+              ${catLabel}<span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
               ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
               ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
@@ -4207,21 +4210,58 @@ function renderMMGrid(catId) {
          </div>`;
     return `<div class="mm-item ${src?'mm-has-img':''}" id="mmcard-${item.id}">
       ${imgEl}
-      <div class="mm-item-info">
+      <div class="mm-item-info" id="mminfo-${item.id}">
         <div class="mm-item-en">${item.en}</div>
         <div class="mm-item-ar">${item.ar}</div>
         <div class="mm-item-price">JD ${item.price.toFixed(2)}</div>
       </div>
+      <div id="mmedit-${item.id}" style="display:none;padding:6px 8px;background:var(--chalk3);border-top:1px solid var(--border);">
+        <input id="mmen-${item.id}" value="${item.en.replace(/"/g,'&quot;')}" placeholder="English name" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:5px 8px;border-radius:4px;font-size:11px;box-sizing:border-box;margin-bottom:4px;outline:none;font-family:'Rubik',sans-serif;"/>
+        <input id="mmar-${item.id}" value="${(item.ar||'').replace(/"/g,'&quot;')}" placeholder="الاسم بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:5px 8px;border-radius:4px;font-size:11px;box-sizing:border-box;margin-bottom:4px;outline:none;font-family:'Rubik',sans-serif;direction:rtl;"/>
+        <input id="mmpr-${item.id}" value="${item.price.toFixed(2)}" type="number" step="0.01" placeholder="Price" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:5px 8px;border-radius:4px;font-size:11px;box-sizing:border-box;margin-bottom:4px;outline:none;font-family:'Rubik',sans-serif;"/>
+        <button onclick="saveMMEdit('${item.id}','${item._dbId}')" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:6px;border-radius:4px;font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;">Save · حفظ</button>
+      </div>
       <input type="file" accept="image/*" id="mmUpl-${item.id}" style="display:none" onchange="handleMMUpload('${item.id}',this)"/>
-      <button class="mm-upload-btn" onclick="document.getElementById('mmUpl-${item.id}').click()">
-        ${src ? '🔄 Change Photo' : '📷 Add Photo'}
-      </button>
+      <div style="display:flex;gap:4px;padding:4px 6px;">
+        <button class="mm-upload-btn" style="flex:1;" onclick="document.getElementById('mmUpl-${item.id}').click()">
+          ${src ? '🔄 Change Photo' : '📷 Add Photo'}
+        </button>
+        <button onclick="toggleMMEdit('${item.id}')" style="flex:1;background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.4);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;padding:6px;border-radius:var(--radius);cursor:pointer;">✏️ Edit · تعديل</button>
+      </div>
       <button onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item" style="position:absolute;top:5px;left:5px;background:rgba(180,30,30,.85);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2;">✕</button>
     </div>`;
   }).join('');
 }
 
-let mmPendingUploads = {};
+function toggleMMEdit(id) {
+  const form = document.getElementById('mmedit-'+id);
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveMMEdit(id, dbId) {
+  const en = document.getElementById('mmen-'+id).value.trim();
+  const ar = document.getElementById('mmar-'+id).value.trim();
+  const price = parseFloat(document.getElementById('mmpr-'+id).value);
+  if (!en || isNaN(price)) { toast('Please fill in all fields · أكمل جميع الحقول'); return; }
+  try {
+    const res = await apiFetch(`/api/menu/item/${dbId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nameEn: en, nameAr: ar, price })
+    });
+    // Update local MENU data
+    for (const cat of MENU) {
+      const item = cat.items.find(i => i.id === id);
+      if (item) { item.en = en; item.ar = ar; item.price = price; break; }
+    }
+    document.getElementById('mmedit-'+id).style.display = 'none';
+    renderMMGrid(_mmActiveCat);
+    toast('Saved · تم الحفظ ✅');
+  } catch(e) {
+    toast('Save failed · فشل الحفظ: ' + e.message);
+  }
+}
+
+
 
 function mmEnableSave() {
   const btn = document.getElementById('mmSaveBtn');
