@@ -2875,6 +2875,9 @@ async function handleImgUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
 
+  // Resize to exactly 1448x1086 before uploading
+  const resized = await compressImage(file, 1448, 0.92);
+
   // Find backend DB id
   const menuItem = MENU.flatMap(c=>c.items).find(i=>i.id===id);
   if (menuItem && menuItem._dbId) {
@@ -2882,7 +2885,7 @@ async function handleImgUpload(id, input) {
     try {
       toast('Uploading image… ⏳ · جاري رفع الصورة');
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', resized);
       const token = getToken();
       const res = await fetch(`${API_URL}/api/upload/menu-item/${menuItem._dbId}`, {
         method: 'POST',
@@ -2903,7 +2906,7 @@ async function handleImgUpload(id, input) {
     // Fallback: store locally as base64
     const reader = new FileReader();
     reader.onload = e => { customImages[id] = e.target.result; toast('Image updated! 📷'); };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(resized);
     return;
   }
 
@@ -4242,11 +4245,19 @@ function compressImage(file, maxWidth, quality) {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxWidth / img.width);
+      const TARGET_W = 1448, TARGET_H = 1086;
       const canvas = document.createElement('canvas');
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.width = TARGET_W;
+      canvas.height = TARGET_H;
+      const ctx = canvas.getContext('2d');
+      // Fill background
+      ctx.fillStyle = '#1a1410';
+      ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+      // Scale image to cover 1448x1086, centered
+      const scale = Math.max(TARGET_W / img.width, TARGET_H / img.height);
+      const sw = img.width * scale, sh = img.height * scale;
+      const sx = (TARGET_W - sw) / 2, sy = (TARGET_H - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh);
       canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
     };
     img.onerror = () => resolve(file);
