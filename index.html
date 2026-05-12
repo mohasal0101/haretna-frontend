@@ -648,7 +648,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 #itemPopupOverlay.open{display:flex;}
 #itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
 .ip-handle{width:36px;height:3px;background:var(--border2);border-radius:2px;margin:12px auto 6px;flex-shrink:0;}
-.ip-img-wrap{width:100%;height:240px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
+.ip-img-wrap{width:100%;aspect-ratio:4/3;height:auto;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
 .ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 .ip-img-empty{width:100%;height:140px;display:flex;align-items:center;justify-content:center;background:var(--chalk3);}
 .ip-img-empty svg{opacity:.2;}
@@ -3443,11 +3443,11 @@ function renderAdmin() {
   }
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
-    const statusLabel = {new:'New · جديد',preparing:'Preparing · يُحضَّر',ready:'Ready · جاهز',sent:'Ready · جاهز',done:'Done · منتهي',cashed:'Cashed · مدفوع'}[o.status]||'New · جديد';
+    const statusLabel = {new:'New',preparing:'Preparing',ready:'Ready',sent:'Ready',done:'Done',cashed:'Cashed'}[o.status]||'New';
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table} · طاولة ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time · وقت الطلب: ${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time: ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
@@ -3463,12 +3463,9 @@ function renderAdmin() {
             flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
             freeNote = (flavorMatch[3]||'').trim();
           }
-          const _catRes = findItemInMenu(i._itemId || i.id);
-          const _cat = _catRes ? MENU.find(c=>c.id===_catRes.catId) : null;
-          const catLabel = _cat ? `<span style="font-size:10px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;">${_cat.ar}</span>` : '';
           const nameBlock = `<div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-              ${catLabel}<span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
+              <span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
               ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
               ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
@@ -3487,11 +3484,11 @@ function renderAdmin() {
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
-          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing · يُحضَّر</button>`:''}
-          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready · جاهز</button>`:''}
-          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done · منتهي</button>`:''}
-          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out · سداد</button>`:''}
-          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt · فاتورة</button>
+          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
+          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
+          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
+          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
+          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt</button>
         </div>
       </div>
     </div>`;
