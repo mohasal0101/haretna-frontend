@@ -363,7 +363,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 
 .cart-foot{padding:12px 14px env(safe-area-inset-bottom, 16px);border-top:1px solid var(--border);background:var(--chalk2);flex-shrink:0;}
 .cart-overlay.open .cart-foot{padding-bottom:env(safe-area-inset-bottom, 16px);}
-#cartBar.visible ~ * .cart-foot, .cart-foot.bar-up{padding-bottom:76px;}
+.cart-foot.bar-up{padding-bottom:76px;}
 .cart-totals{margin-bottom:10px;}
 .ct-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
 .ct-label{color:var(--text3);}
@@ -704,10 +704,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 
 /* Categories — always fixed at bottom center */
 #floatCatBtn{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
+  position:relative;
   z-index:1001;
   display:none;
   align-items:center;
@@ -725,11 +722,11 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
   white-space:nowrap;
   box-shadow:0 -2px 12px rgba(0,0,0,.3);
   -webkit-tap-highlight-color:transparent;
-  transition:bottom .35s cubic-bezier(.34,1.26,.64,1);
+  align-self:center;
 }
-#floatCatBtn:active{transform:translateX(-50%) scale(.97);}
+#floatCatBtn:active{transform:scale(.97);}
 #floatCatBtn.visible{display:flex;}
-body.cart-bar-visible #floatCatBtn{bottom:78px;}
+body.cart-bar-visible #floatCatBtn{display:flex;}
 #floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
@@ -1168,6 +1165,10 @@ body.cart-bar-visible #floatCatBtn{bottom:78px;}
 
 <!-- STICKY CART BAR -->
 <div id="cartBar">
+  <button id="floatCatBtn" onclick="openCatPicker()">
+    <span class="fcb-label">Categories · الأقسام</span>
+    <span class="fcb-arrow">▲</span>
+  </button>
   <div id="cartBarInner" onclick="openCart()">
     <div class="cb-left">
       <div class="cb-badge" id="cbCount">0</div>
@@ -1183,12 +1184,6 @@ body.cart-bar-visible #floatCatBtn{bottom:78px;}
     </div>
   </div>
 </div>
-
-<!-- FLOATING CATEGORY BUTTON — always visible when on menu -->
-<button id="floatCatBtn" onclick="openCatPicker()">
-  <span class="fcb-label">Categories · الأقسام</span>
-  <span class="fcb-arrow">▲</span>
-</button>
 
 <!-- CUSTOM CONFIRM DIALOG -->
 <div id="confirmOverlay">
@@ -2554,8 +2549,10 @@ function syncCartFootPadding() {
   const cartBar = document.getElementById('cartBar');
   const visible = cartBar && cartBar.classList.contains('visible');
   document.body.classList.toggle('cart-bar-visible', !!visible);
+  // Don't add padding when the cart drawer is open — it pushes Place Order out of view
+  const cartOpen = document.getElementById('cartOverlay').classList.contains('open');
   const cartFoot = document.querySelector('.cart-foot');
-  if (cartFoot) cartFoot.style.paddingBottom = visible ? '92px' : '';
+  if (cartFoot) cartFoot.style.paddingBottom = (visible && !cartOpen) ? '92px' : '';
 }
 
 
@@ -2968,6 +2965,9 @@ function openCart() {
   const cartBarEl = document.getElementById('cartBar');
   if (floatBtn) floatBtn.style.display = 'none';
   if (cartBarEl) cartBarEl.style.display = 'none';
+  // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
+  const cartFoot = document.querySelector('.cart-foot');
+  if (cartFoot) cartFoot.style.paddingBottom = '';
   renderCart();
 }
 function closeCart() {
@@ -3144,6 +3144,11 @@ function startOrderCountdown() {
   };
   closeCart();
   document.getElementById('orderCountdown').classList.add('open');
+  // Hide cart bar and categories button during countdown
+  const _cdFloatBtn = document.getElementById('floatCatBtn');
+  const _cdCartBar = document.getElementById('cartBar');
+  if (_cdFloatBtn) _cdFloatBtn.style.display = 'none';
+  if (_cdCartBar) _cdCartBar.style.display = 'none';
   cdRemaining = 3;
   document.getElementById('cdNum').textContent = '3';
   document.getElementById('ringFill').style.strokeDashoffset = '283';
@@ -3163,6 +3168,11 @@ function startOrderCountdown() {
 function cancelOrderCountdown() {
   clearInterval(cdTimer);
   document.getElementById('orderCountdown').classList.remove('open');
+  // Restore cart bar and categories button
+  const _cdFloatBtn = document.getElementById('floatCatBtn');
+  const _cdCartBar = document.getElementById('cartBar');
+  if (_cdFloatBtn) _cdFloatBtn.style.display = '';
+  if (_cdCartBar) _cdCartBar.style.display = '';
   pendingOrderData = null;
   toast('Order cancelled · تم إلغاء الطلب');
   openCart();
@@ -3433,11 +3443,12 @@ function renderAdmin() {
   }
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
-    const statusLabel = {new:'New',preparing:'Preparing',ready:'Ready',sent:'Ready',done:'Done',cashed:'Cashed'}[o.status]||'New';
-    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
+    const statusLabel = {new:'New · جديد',preparing:'Preparing · يُحضَّر',ready:'Ready · جاهز',sent:'Ready · جاهز',done:'Done · منتهي',cashed:'Cashed · مدفوع'}[o.status]||'New · جديد';
+    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items · عناصر جديدة</span>` : '';
+    const isNewBadge = o.isNew ? '' : '';  
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time: ${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table} · طاولة ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time · وقت الطلب: ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
@@ -3474,11 +3485,11 @@ function renderAdmin() {
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
-          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
-          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
-          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
-          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
-          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt</button>
+          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing · يُحضَّر</button>`:''}
+          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready · جاهز</button>`:''}
+          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done · منتهي</button>`:''}
+          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out · سداد</button>`:''}
+          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt · فاتورة</button>
         </div>
       </div>
     </div>`;
