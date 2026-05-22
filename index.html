@@ -1273,6 +1273,16 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
         <option value="7">Table 7</option><option value="8">Table 8</option>
         <option value="9">Table 9</option><option value="10">Table 10</option>
         <option value="11">Table 11</option><option value="12">Table 12</option>
+        <option value="13">Table 13</option><option value="14">Table 14</option>
+        <option value="15">Table 15</option><option value="16">Table 16</option>
+        <option value="17">Table 17</option><option value="18">Table 18</option>
+        <option value="101">Table 101</option><option value="102">Table 102</option>
+        <option value="103">Table 103</option><option value="104">Table 104</option>
+        <option value="105">Table 105</option><option value="106">Table 106</option>
+        <option value="107">Table 107</option><option value="108">Table 108</option>
+        <option value="109">Table 109</option><option value="110">Table 110</option>
+        <option value="111">Table 111</option><option value="112">Table 112</option>
+        <option value="1111">VIP · 1111</option>
       </select>
     </div>
     <button class="btn-enter" onclick="enterMenu()">View Menu · عرض القائمة</button>
@@ -2309,7 +2319,7 @@ function addItem(itemId) {
     if (qs) { qs.textContent=`×${qty}`; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-  toast(`${item.en} added! · تمت الإضافة`);
+
 }
 
 let _currentPopupOfferId = null;
@@ -2524,7 +2534,7 @@ function ipAddToCart() {
     if (qs) { qs.textContent='x'+qty; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-  toast(item.en + ' x' + _ipQty + ' added! · تمت الإضافة');
+
   closeItemPopup();
 }
 
