@@ -3209,6 +3209,11 @@ async function confirmOrder() {
       .map((e, i) => `[${i}:${stripEmoji(e.en)}]: ${e.note}`);
     const fullNote = [itemNotesParts.join(' | '), d.note].filter(Boolean).join(' || ');
 
+    if (isSessionExpired()) {
+      toast('Session expired — please scan the QR code again · انتهت الجلسة، يرجى مسح الرمز من جديد');
+      openCart();
+      return;
+    }
     if (!currentTable || isNaN(parseInt(currentTable))) {
       toast('No table selected · يرجى اختيار طاولة');
       openCart();
@@ -5026,8 +5031,45 @@ window.addEventListener('load', async () => {
 
   try { drawQR(document.getElementById('landQR'), 0); } catch(e){}
 
+  // ── 1-hour table session ──────────────────────────────
+  const SESSION_KEY = 'haretna_table_session';
+  const SESSION_TTL = 60 * 60 * 1000; // 1 hour in ms
+
+  function saveTableSession(table) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ table, ts: Date.now() }));
+  }
+  function getTableSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+      if (!s) return null;
+      if (Date.now() - s.ts > SESSION_TTL) {
+        localStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return s;
+    } catch { return null; }
+  }
+  function isSessionExpired() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+      if (!s) return false;
+      return Date.now() - s.ts > SESSION_TTL;
+    } catch { return false; }
+  }
+  // ─────────────────────────────────────────────────────
+
   if (validTable) {
     dbg('Valid table detected: ' + tableParam);
+
+    // Start or refresh the 1-hour session
+    const existingSession = getTableSession();
+    if (!existingSession || existingSession.table !== tableParam) {
+      saveTableSession(tableParam);
+      dbg('New table session started for table ' + tableParam);
+    } else {
+      dbg('Existing session valid, ' + Math.round((SESSION_TTL - (Date.now() - existingSession.ts)) / 60000) + ' min remaining');
+    }
+
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
     document.getElementById('tableSelect').value = tableParam;
