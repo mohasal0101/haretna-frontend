@@ -1587,6 +1587,29 @@ function getToken() { return localStorage.getItem('haretna_token'); }
 function setToken(t) { localStorage.setItem('haretna_token', t); }
 function clearToken() { localStorage.removeItem('haretna_token'); }
 
+// ── 1-hour table session (global) ────────────────────────
+const SESSION_KEY = 'haretna_table_session';
+const SESSION_TTL = 60 * 60 * 1000;
+function saveTableSession(table) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ table, ts: Date.now() }));
+}
+function getTableSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (!s) return null;
+    if (Date.now() - s.ts > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+function isSessionExpired() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (!s) return false;
+    return Date.now() - s.ts > SESSION_TTL;
+  } catch { return false; }
+}
+// ─────────────────────────────────────────────────────────
+
 // Authenticated fetch helper
 async function apiFetch(path, options = {}) {
   const token = getToken();
@@ -5030,33 +5053,6 @@ window.addEventListener('load', async () => {
   // Trending & offers are loaded from the API — no localStorage override
 
   try { drawQR(document.getElementById('landQR'), 0); } catch(e){}
-
-  // ── 1-hour table session ──────────────────────────────
-  const SESSION_KEY = 'haretna_table_session';
-  const SESSION_TTL = 60 * 60 * 1000; // 1 hour in ms
-
-  function saveTableSession(table) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ table, ts: Date.now() }));
-  }
-  function getTableSession() {
-    try {
-      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (!s) return null;
-      if (Date.now() - s.ts > SESSION_TTL) {
-        localStorage.removeItem(SESSION_KEY);
-        return null;
-      }
-      return s;
-    } catch { return null; }
-  }
-  function isSessionExpired() {
-    try {
-      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (!s) return false;
-      return Date.now() - s.ts > SESSION_TTL;
-    } catch { return false; }
-  }
-  // ─────────────────────────────────────────────────────
 
   if (validTable) {
     dbg('Valid table detected: ' + tableParam);
