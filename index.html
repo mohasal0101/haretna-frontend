@@ -205,10 +205,13 @@ body::after{
 /* ============================================================
    MENU HERO
    ============================================================ */
-.menu-hero{text-align:center;padding:22px 16px 10px;background:linear-gradient(to bottom,rgba(200,149,42,.05),transparent);position:relative;}
-.menu-hero::after{content:'✦ ✦ ✦';display:block;font-size:9px;letter-spacing:8px;color:var(--ornament);margin-top:8px;}
+.menu-hero{text-align:center;padding:22px 16px 14px;background:linear-gradient(to bottom,rgba(200,149,42,.05),transparent);position:relative;}
 .mh-ar{font-family:'Rubik',sans-serif;font-size:30px;color:var(--cream);}
 .mh-en{font-family:'Rubik',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
+.mh-cats{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;}
+.mh-ornament{font-size:9px;letter-spacing:6px;color:var(--ornament);}
+.mh-cats{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;}
+.mh-ornament{font-size:9px;letter-spacing:6px;color:var(--ornament);}
 
 /* ============================================================
    FLOATING CATEGORY PICKER
@@ -705,69 +708,50 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 
 
 
-/* ── Categories pill — always fixed at bottom center ── */
-#catFixedBar{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  z-index:1001;
-  display:none;
-  justify-content:center;
-  padding:0 0 12px;
-  pointer-events:none;
-}
-#catFixedBar.show{display:flex;}
+/* ── Categories pill — inside menu hero ── */
+.mh-cats{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;}
+.mh-ornament{font-size:9px;letter-spacing:6px;color:var(--ornament);}
 #floatCatBtn{
-  pointer-events:all;
-  display:flex;
+  display:inline-flex;
   align-items:center;
-  gap:8px;
-  background:var(--chalk);
+  gap:6px;
+  background:var(--chalk2);
   border:1px solid var(--border2);
-  border-radius:22px;
-  padding:9px 24px;
+  border-radius:20px;
+  padding:6px 16px;
   font-family:'Rubik',sans-serif;
-  font-size:11px;
+  font-size:10px;
   letter-spacing:1px;
   color:var(--cream2);
   cursor:pointer;
   white-space:nowrap;
-  box-shadow:0 2px 16px rgba(0,0,0,.45);
   -webkit-tap-highlight-color:transparent;
+  transition:all .2s;
 }
-#floatCatBtn:active{transform:scale(.97);}
-#floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
-#floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
+#floatCatBtn:hover{border-color:var(--gold);color:var(--gold);}
+#floatCatBtn:active{transform:scale(.96);}
+#floatCatBtn .fcb-arrow{font-size:9px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
 
-/* Cart bar — slides up from below */
 /* ── Your Order bar — hidden until items in cart ── */
 #cartBar{
   position:fixed;
-  bottom:46px;left:0;right:0;
+  bottom:16px;left:0;right:0;
   z-index:1000;
   display:none;
   justify-content:center;
   padding:0 16px;
   pointer-events:none;
 }
-#cartBar.visible{
-  display:flex;
-  pointer-events:all;
-}
-#cartBar.hidden-for-cart{display:none!important;}
+#cartBar.visible{display:flex;pointer-events:all;}
 #cartBarInner{
-  width:100%;
-  max-width:500px;
+  width:100%;max-width:500px;
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
   border-radius:14px;
   box-shadow:0 4px 20px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);
-  display:flex;
-  align-items:center;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  overflow:hidden;
-  padding:11px 16px;
-  gap:10px;
+  display:flex;align-items:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  overflow:hidden;padding:11px 16px;gap:10px;
 }
 #cartBarInner:active{transform:scale(.98);}
 @keyframes cartBarPulse{
@@ -776,7 +760,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
   100%{box-shadow:0 4px 20px rgba(0,0,0,.45),0 0 0 0 rgba(200,149,42,0);}
 }
 #cartBar.pulse #cartBarInner{animation:cartBarPulse .5s ease-out;}
-/* Cart bar internals */
 .cb-icon{font-size:18px;flex-shrink:0;}
 .cb-badge{background:rgba(0,0,0,.22);color:#fff;font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0;}
 .cb-label{font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;color:rgba(20,12,4,.85);flex:1;}
@@ -1165,15 +1148,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 </div>
 
 <!-- STICKY CART BAR -->
-<!-- Categories pill -->
-<div id="catFixedBar">
-  <button id="floatCatBtn" onclick="openCatPicker()">
-    <span class="fcb-label">Categories · الأقسام</span>
-    <span class="fcb-arrow">▲</span>
-  </button>
-</div>
-
-<!-- Your Order bar — hidden until items added -->
 <div id="cartBar">
   <div id="cartBarInner" onclick="openCart()">
     <span class="cb-icon">🛒</span>
@@ -1431,7 +1405,18 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
     <button class="call-banner-close" onclick="dismissCallBanner()">✕</button>
   </div>
 
-  <div class="menu-hero"><div class="mh-ar">قائمة الطعام والمشروبات</div><div class="mh-en">Menu</div></div>
+  <div class="menu-hero">
+    <div class="mh-ar">قائمة الطعام والمشروبات</div>
+    <div class="mh-en">Menu</div>
+    <div class="mh-cats">
+      <span class="mh-ornament">✦</span>
+      <button id="floatCatBtn" onclick="openCatPicker()">
+        <span class="fcb-label">Categories · الأقسام</span>
+        <span class="fcb-arrow">▾</span>
+      </button>
+      <span class="mh-ornament">✦</span>
+    </div>
+  </div>
   <div class="menu-body" id="menuBody"></div>
 </div>
 
@@ -1904,9 +1889,7 @@ function showView(id) {
   document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   // Show cartBar (categories + order pill) only on customer menu
-  const catFixedBar = document.getElementById('catFixedBar');
-  if (catFixedBar) catFixedBar.classList.toggle('show', id === 'customerMenu');
-  // cartBar visibility handled by updateCartBar() alone
+
   window.scrollTo(0,0);
 }
 
@@ -3023,12 +3006,7 @@ function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
   document.getElementById('customerMenu').classList.add('no-fade');
   // Hide floating category button and cart bar while cart is open
-  const floatBtn = document.getElementById('floatCatBtn');
-  const cartBarEl = document.getElementById('cartBar');
-  const _catFB = document.getElementById('catFixedBar');
-  if (_catFB) _catFB.classList.remove('show');
-  const _cb = document.getElementById('cartBar');
-  if (_cb) _cb.classList.add('hidden-for-cart');
+
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3038,12 +3016,7 @@ function closeCart() {
   document.getElementById('cartOverlay').classList.remove('open');
   document.getElementById('customerMenu').classList.remove('no-fade');
   // Restore floating category button and cart bar
-  const floatBtn = document.getElementById('floatCatBtn');
-  const cartBarEl = document.getElementById('cartBar');
-  const _catFB2 = document.getElementById('catFixedBar');
-  if (_catFB2) _catFB2.classList.add('show');
-  const _cb2 = document.getElementById('cartBar');
-  if (_cb2) _cb2.classList.remove('hidden-for-cart');
+
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
