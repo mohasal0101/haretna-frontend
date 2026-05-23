@@ -1023,7 +1023,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;">Add New Combo Offer · إضافة عرض جديد</div>
       <input id="newOfferTitle" placeholder="Title e.g. Combo Deal 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferTitleAr" placeholder="العنوان بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
-      <input id="newOfferDesc" placeholder="Short description in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="newOfferDesc" placeholder="Short description in English (optional · اختياري)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD) · سعر الكومبو" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <div style="font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:7px;text-transform:uppercase;">Expiry Date (optional) · تاريخ الانتهاء</div>
       <input id="newOfferExpiry" type="date" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;color-scheme:dark;"/>
@@ -1056,7 +1056,11 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
     </div>
     <p style="font-size:11px;color:var(--text3);margin-bottom:14px;">Select items to feature in the Trending section on the customer menu.<br><span style="font-family:'Rubik',sans-serif;">اختر العناصر لعرضها في قسم الأكثر طلباً.</span></p>
     <select id="trendCatFilter" onchange="renderTrendingItemList()" style="width:100%;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream);padding:8px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;appearance:none;box-sizing:border-box;"></select>
-    <input id="trendSearch" oninput="renderTrendingItemList()" placeholder="Search items… · ابحث عن عنصر" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:10px;box-sizing:border-box;"/>
+    <input id="trendSearch" oninput="renderTrendingItemList()" placeholder="Search items… · ابحث عن عنصر" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:8px;box-sizing:border-box;"/>
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:12px;color:var(--gold2);">
+      <input type="checkbox" id="trendSelectedOnly" onchange="renderTrendingItemList()" style="width:15px;height:15px;accent-color:var(--gold);"/>
+      Show selected only · عرض المحدد فقط
+    </label>
     <div id="trendingItemList" style="max-height:340px;overflow-y:auto;"></div>
     <button onclick="saveTrendingAndClose()" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#906018,var(--gold2));color:var(--bg);border:none;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">✓ Save & Apply to Menu · حفظ وتطبيق</button>
   </div>
@@ -1180,6 +1184,17 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
     <div class="addons-item-list" id="addonsItemList"></div>
     <div id="addonsEditor" style="display:none;">
       <div class="addons-selected-name" id="addonsSelectedName"></div>
+      <span class="addons-label">Selection limits · حدود الاختيار</span>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <label style="flex:1;font-family:'Rubik',sans-serif;font-size:11px;color:var(--text3);">
+          Min · الحد الأدنى
+          <input class="addons-input" id="addonsMin" type="number" min="0" value="0" style="margin-top:4px;width:100%;padding:7px 10px;" oninput="updateAddonsLimits()"/>
+        </label>
+        <label style="flex:1;font-family:'Rubik',sans-serif;font-size:11px;color:var(--text3);">
+          Max · الحد الأقصى <span style="color:var(--text3);font-size:9px;">(0 = unlimited · 0 = بلا حد)</span>
+          <input class="addons-input" id="addonsMax" type="number" min="0" value="0" style="margin-top:4px;width:100%;padding:7px 10px;" oninput="updateAddonsLimits()"/>
+        </label>
+      </div>
       <span class="addons-label">Current options · الخيارات الحالية</span>
       <div class="addons-chips-wrap" id="addonsChips"></div>
       <span class="addons-label">Add new option · أضف خياراً</span>
@@ -2435,6 +2450,16 @@ function openItemPopup(itemId) {
   const flavorsGrid = document.getElementById('ipFlavorsGrid');
   if (flavors.length && flavorsWrap && flavorsGrid) {
     flavorsWrap.style.display = 'block';
+    const addonCfg = ADDONS[itemId];
+    const minSel = addonCfg?.min || 1;
+    const maxSel = addonCfg?.max || 0;
+    const limitHint = maxSel > 0
+      ? ` (${minSel}–${maxSel})`
+      : minSel > 1 ? ` (min ${minSel})` : '';
+    const flavorsLabelEl = flavorsWrap.querySelector('.ip-flavors-label');
+    if (flavorsLabelEl) {
+      flavorsLabelEl.textContent = (addonCfg?.label || 'Choose option · اختر خياراً') + limitHint;
+    }
     flavorsGrid.innerHTML = flavors.map(f =>
       `<button class="ip-flavor-chip" onclick="selectFlavor('${f}',this)">
         <span class="flavor-check"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 4L4 7.5L10 1" stroke="#1a1208" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2473,14 +2498,18 @@ function selectFlavor(flavor, el) {
     _selectedFlavor.splice(idx, 1);
     el.classList.remove('selected');
   } else {
-    if (_selectedFlavor.length >= 2) return; // max 2
+    const addonCfg = ADDONS[_currentPopupItemId];
+    const maxAllowed = addonCfg?.max || 0; // 0 = unlimited
+    if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
     _selectedFlavor.push(flavor);
     el.classList.add('selected');
   }
-  // Grey out unchosen chips when 2 are selected
-  document.querySelectorAll('.ip-flavor-chip').forEach(c => {
-    const isSelected = c.classList.contains('selected');
-    c.classList.toggle('disabled', _selectedFlavor.length >= 2 && !isSelected);
+  // Grey out unchosen chips when max is reached
+  const _addonCfg = ADDONS[_currentPopupItemId];
+  const _maxAllowed = _addonCfg?.max || 0;
+  document.querySelectorAll('.ip-flavor-chip').forEach(chip => {
+    const isSelected = chip.classList.contains('selected');
+    chip.classList.toggle('disabled', _maxAllowed > 0 && _selectedFlavor.length >= _maxAllowed && !isSelected);
   });
 }
 
@@ -2500,12 +2529,35 @@ function ipAddToCart() {
   const res = findItemInMenu(_currentPopupItemId);
   if (!res) return;
   const {item} = res;
-  // Enforce minimum 1 flavor if flavor selector is visible
+  // Enforce min/max selection if flavor/addon selector is visible
   const flavorsWrap = document.getElementById('ipFlavorsWrap');
-  if (flavorsWrap && flavorsWrap.style.display !== 'none' && _selectedFlavor.length === 0) {
+  if (flavorsWrap && flavorsWrap.style.display !== 'none') {
+    const addonCfg = ADDONS[_currentPopupItemId];
+    const minRequired = addonCfg?.min || 1; // default: at least 1 must be chosen
+    const maxAllowed  = addonCfg?.max || 0; // 0 = unlimited
     const label = flavorsWrap.querySelector('.ip-flavors-label');
-    if (label) { label.style.color = 'var(--red,#e05252)'; setTimeout(() => label.style.color = '', 1200); }
-    return;
+    if (_selectedFlavor.length < minRequired) {
+      if (label) {
+        label.style.color = 'var(--red,#e05252)';
+        label.textContent = minRequired === 1
+          ? `Please choose an option · اختر خياراً`
+          : `Choose at least ${minRequired} · اختر ${minRequired} على الأقل`;
+        setTimeout(() => {
+          label.style.color = '';
+          // restore original label text
+          label.textContent = addonCfg?.label || 'Choose option · اختر خياراً';
+        }, 2000);
+      }
+      return;
+    }
+    if (maxAllowed > 0 && _selectedFlavor.length > maxAllowed) {
+      if (label) {
+        label.style.color = 'var(--red,#e05252)';
+        label.textContent = `Choose at most ${maxAllowed} · اختر ${maxAllowed} كحد أقصى`;
+        setTimeout(() => { label.style.color = ''; label.textContent = addonCfg?.label || ''; }, 2000);
+      }
+      return;
+    }
   }
   const noteRaw = (document.getElementById('ipNoteInput')?.value || '').trim();
   const flavorPart = _selectedFlavor.length ? `Flavor: ${_selectedFlavor.join(' & ')}` : '';
@@ -2732,12 +2784,19 @@ function selectAddonsItem(itemId) {
   document.getElementById('addonsNewOption').value = '';
   // Load fresh from DB each time
   apiFetch(`/api/addons/${itemId}`).then(dbAddons => {
+    const existing = ADDONS[itemId] || {};
     ADDONS[itemId] = {
-      options: dbAddons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive }))
+      options: dbAddons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })),
+      min: existing.min || 0,
+      max: existing.max || 0,
     };
+    document.getElementById('addonsMin').value = ADDONS[itemId].min;
+    document.getElementById('addonsMax').value = ADDONS[itemId].max;
     renderAddonsChips();
   }).catch(() => {
-    if (!ADDONS[itemId]) ADDONS[itemId] = { label: item.en, options: [] };
+    if (!ADDONS[itemId]) ADDONS[itemId] = { label: item.en, options: [], min: 0, max: 0 };
+    document.getElementById('addonsMin').value = ADDONS[itemId].min || 0;
+    document.getElementById('addonsMax').value = ADDONS[itemId].max || 0;
     renderAddonsChips();
   });
   renderAddonsItemList(document.getElementById('addonsSearch').value);
@@ -2758,6 +2817,15 @@ function renderAddonsChips() {
       <button class="addons-chip-del" onclick="removeAddonOption(${i})" title="Remove">x</button>
     </div>`;
   }).join('');
+}
+
+function updateAddonsLimits() {
+  if (!_addonsSelectedId) return;
+  const min = parseInt(document.getElementById('addonsMin').value) || 0;
+  const max = parseInt(document.getElementById('addonsMax').value) || 0;
+  if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { options: [], min: 0, max: 0 };
+  ADDONS[_addonsSelectedId].min = min;
+  ADDONS[_addonsSelectedId].max = max;
 }
 
 async function addAddonOption() {
@@ -2823,8 +2891,13 @@ async function removeAddonOption(idx) {
 }
 
 async function saveAddons() {
+  // Persist limits for currently selected item
+  updateAddonsLimits();
   try {
     const cats = await apiFetch('/api/menu');
+    // Reload options from DB but keep min/max from local state
+    const savedLimits = {};
+    Object.entries(ADDONS).forEach(([id, a]) => { savedLimits[id] = { min: a.min||0, max: a.max||0 }; });
     ADDONS = {};
     cats.forEach(cat => {
       cat.items.forEach(item => {
@@ -2833,7 +2906,9 @@ async function saveAddons() {
             options: item.addons.map(a => ({
               id: a.id, name: a.nameEn, nameAr: a.nameAr,
               price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
-            }))
+            })),
+            min: savedLimits[item.id]?.min || 0,
+            max: savedLimits[item.id]?.max || 0,
           };
         }
       });
@@ -3281,6 +3356,11 @@ async function confirmOrder() {
     document.getElementById('cartNote').value = '';
     updateCartBadge();
     updateCartBar();
+    // Restore float cat button and cart bar (hidden during countdown)
+    const _postFloatBtn = document.getElementById('floatCatBtn');
+    const _postCartBar = document.getElementById('cartBar');
+    if (_postFloatBtn) _postFloatBtn.style.display = '';
+    if (_postCartBar) _postCartBar.style.display = '';
     renderMenu(); // reset all item qty indicators to 0
     pendingOrderData = null;
     showView('orderConfirm');
@@ -3491,7 +3571,7 @@ function renderAdmin() {
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">Order time: ${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">طاولة ${o.table}${newItemsBadge}</div><div class="oc-time">وقت الطلب: ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
@@ -3531,11 +3611,11 @@ function renderAdmin() {
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
-          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">Preparing</button>`:''}
-          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">Ready</button>`:''}
-          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">Done</button>`:''}
-          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">Cash Out</button>`:''}
-          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">Receipt</button>
+          ${(o.status==='new'||o.hasNewItems)?`<button class="oa-btn oa-prep" onclick="setOrderStatus('${o.id}','PREPARING')">يُحضَّر</button>`:''}
+          ${o.status==='preparing'?`<button class="oa-btn oa-sent" onclick="setOrderStatus('${o.id}','READY')">جاهز</button>`:''}
+          ${o.status==='ready'?`<button class="oa-btn oa-done" onclick="setOrderStatus('${o.id}','DONE')">منتهي</button>`:''}
+          ${o.status==='done'?`<button class="oa-btn oa-cash" onclick="cashOut('${o.id}')">تم السداد</button>`:''}
+          <button class="oa-btn oa-receipt" onclick="showReceipt('${o.id}')">فاتورة</button>
         </div>
       </div>
     </div>`;
@@ -3593,7 +3673,7 @@ async function setOrderStatus(id, status) {
         o.items = merged;
       }
       renderAdmin();
-      toast(`Table ${o.table} → ${status}`);
+      toast(`طاولة ${o.table} → ${status}`);
     }
   } catch (e) { toast('Error: ' + e.message); }
 }
@@ -3605,7 +3685,7 @@ async function removeOrderItem(orderId, itemId) {
   showConfirm({
     icon: '✕',
     title: `Remove "${itemName}"? · حذف "${itemName}"؟`,
-    msg: `This will permanently remove this item from Table ${o?.table||''}. This cannot be undone.\nسيتم حذف هذا العنصر نهائياً من الطاولة ${o?.table||''}.`,
+    msg: `سيتم حذف هذا العنصر نهائياً من طاولة ${o?.table||''}. لا يمكن التراجع.`,
     okLabel: 'Remove Item · حذف',
     onOk: async () => {
       try {
@@ -3645,7 +3725,7 @@ async function cashOut(id) {
     history.unshift({...o, status:'cashed'});
     orders = orders.filter(x => x.table !== o.table || x.isCall);
     renderAdmin();
-    toast(`Table ${o.table} — Cashed out · تم السداد`);
+    toast(`طاولة ${o.table} — تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
 }
 
@@ -4557,8 +4637,10 @@ async function saveTrendingAndClose() {
 function renderTrendingItemList() {
   const catFilter = document.getElementById('trendCatFilter').value;
   const search = document.getElementById('trendSearch').value.toLowerCase();
+  const selectedOnly = document.getElementById('trendSelectedOnly')?.checked;
   let source = catFilter ? (MENU.find(c=>c.id===catFilter)?.items||[]) : MENU.flatMap(c=>c.items);
   if (search) source = source.filter(i=>i.en.toLowerCase().includes(search)||i.ar.includes(search));
+  if (selectedOnly) source = source.filter(i=>ADMIN_TRENDING_IDS.includes(i.id));
   document.getElementById('trendingItemList').innerHTML = source.map(i=>`
     <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
