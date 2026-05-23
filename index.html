@@ -367,7 +367,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 .trend-price{font-size:10px;color:var(--gold2);font-weight:700;}
 
 .cart-foot{padding:12px 14px env(safe-area-inset-bottom, 16px);border-top:1px solid var(--border);background:var(--chalk2);flex-shrink:0;}
-.cart-overlay.open .cart-foot{padding-bottom:env(safe-area-inset-bottom, 16px);}
+.cart-overlay.open .cart-foot{padding-bottom:max(env(safe-area-inset-bottom, 16px), 16px);}
 .cart-foot.bar-up{padding-bottom:76px;}
 .cart-totals{margin-bottom:10px;}
 .ct-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
@@ -652,6 +652,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 #itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
 #itemPopupOverlay.open{display:flex;}
 #itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
+#itemPopup .ip-scroll-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .ip-handle{width:40px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;}
 .ip-img-wrap{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
 .ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:opacity .2s;}
@@ -1125,6 +1126,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
     <div id="ipImgWrap" class="ip-img-wrap"><div class="ip-handle"></div></div>
+    <div class="ip-scroll-body">
     <div class="ip-header">
       <div class="ip-title-en" id="ipTitleEn"></div>
       <div class="ip-title-ar" id="ipTitleAr"></div>
@@ -1140,6 +1142,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
       <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
     </div>
+    </div><!-- end ip-scroll-body -->
     <div class="ip-footer">
       <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
       <div class="ip-qty-ctrl" id="ipQtyCtrl">
@@ -3097,7 +3100,7 @@ function openCart() {
   document.getElementById('customerMenu').classList.add('no-fade');
   // Hide cart bar while cart sheet is open
   const cartBar = document.getElementById('cartBar');
-  if (cartBar) cartBar.style.opacity = '0';
+  if (cartBar) { cartBar.style.opacity = '0'; cartBar.style.pointerEvents = 'none'; }
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3108,7 +3111,7 @@ function closeCart() {
   document.getElementById('customerMenu').classList.remove('no-fade');
   // Restore cart bar
   const cartBar = document.getElementById('cartBar');
-  if (cartBar) cartBar.style.opacity = '';
+  if (cartBar) { cartBar.style.opacity = ''; cartBar.style.pointerEvents = ''; }
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -4076,11 +4079,11 @@ async function addOffer() {
     const res = await apiFetch('/api/offers', {
       method: 'POST',
       body: JSON.stringify({
-        titleEn: t, titleAr: ta||t,
+        titleEn: t, titleAr: ta||t||' ',
         descriptionEn: d || null, descriptionAr: d || null,
         price: p, isActive: true,
         itemIds: dbItemIds,
-        expiresAt,
+        expiresAt: expiresAt || null,
         timeFrom: timeFrom||null,
         timeTo: timeTo||null,
       }),
