@@ -734,6 +734,8 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 /* Cart bar — slides up from below */
 #cartBar{
   position:fixed;
+#cartBar{
+  position:fixed;
   bottom:0;left:0;right:0;
   z-index:1000;
   display:flex;
@@ -741,21 +743,13 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   align-items:center;
   background:transparent;
   padding:0 16px 16px;
-  transform:translateY(110%);
+  transform:translateY(0);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
-  pointer-events:none;
+  pointer-events:all;
   border-top:none;
 }
-#cartBar.visible{transform:translateY(0);pointer-events:all;}
-
-#floatCatWrap{
-  position:fixed;
-  bottom:16px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:1001;
-  pointer-events:all;
-}
+#cartBar.visible #cartBarInner{display:flex;}
+#cartBarInner{display:none;}
   width:100%;
   max-width:500px;
   margin-top:10px;
@@ -1170,16 +1164,12 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   </div>
 </div>
 
-<!-- ALWAYS VISIBLE CATEGORIES BUTTON -->
-<div id="floatCatWrap">
+<!-- STICKY CART BAR -->
+<div id="cartBar">
   <button id="floatCatBtn" onclick="openCatPicker()">
     <span class="fcb-label">Categories · الأقسام</span>
     <span class="fcb-arrow">▲</span>
   </button>
-</div>
-
-<!-- STICKY CART BAR -->
-<div id="cartBar">
   <div id="cartBarInner" onclick="openCart()">
     <div class="cb-left">
       <div class="cb-badge" id="cbCount">0</div>
@@ -2617,11 +2607,9 @@ function syncCartFootPadding() {
 function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
-  const catWrap = document.getElementById('floatCatWrap');
   if (!bar) return;
   if (count > 0) {
     bar.classList.add('visible');
-    if (catWrap) catWrap.style.bottom = '108px'; // move above cart bar
     const sub = cartSub();
     const countEl = document.getElementById('cbCount');
     const totalEl = document.getElementById('cbTotal');
@@ -2636,7 +2624,6 @@ function updateCartBar() {
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
-    if (catWrap) catWrap.style.bottom = '16px'; // back to default
     syncCartFootPadding();
   }
 }
