@@ -648,14 +648,13 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
    ============================================================ */
 #itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
 #itemPopupOverlay.open{display:flex;}
-#itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:82vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
+#itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
 .ip-handle{width:40px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;}
-.ip-img-wrap{width:100%;height:clamp(150px,40vw,210px);overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
-.ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;transition:opacity .2s;}
+.ip-img-wrap{width:100%;height:clamp(150px,40vw,210px);overflow:hidden;flex-shrink:0;position:relative;background:#111;}
+.ip-img-wrap img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;transition:opacity .2s;}
 .ip-img-wrap.no-img{height:0;display:none;}
 .ip-img-empty{width:100%;height:0;display:none;}
 .ip-img-empty svg{opacity:.2;}
-.ip-body-scroll{overflow-y:auto;flex:1 1 auto;min-height:0;}
 .ip-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .ip-title-en{font-family:'Rubik',sans-serif;font-size:16px;font-weight:700;color:var(--cream2);letter-spacing:.5px;margin-bottom:2px;}
 .ip-title-ar{font-family:'Rubik',sans-serif;font-size:18px;color:var(--cream3);margin-bottom:6px;}
@@ -1142,22 +1141,20 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
       <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
     <div id="ipImgWrap" class="ip-img-wrap"><div class="ip-handle"></div></div>
-    <div class="ip-body-scroll">
-      <div class="ip-header">
-        <div class="ip-title-en" id="ipTitleEn"></div>
-        <div class="ip-title-ar" id="ipTitleAr"></div>
-        <div class="ip-desc" id="ipDesc"></div>
-        <div class="ip-price" id="ipPrice"></div>
-      </div>
-      <!-- Flavor selector (shown only for items with flavors) -->
-      <div class="ip-flavors-wrap" id="ipFlavorsWrap" style="display:none;">
-        <span class="ip-flavors-label">Choose a Flavor · اختر النكهة</span>
-        <div class="ip-flavors-grid" id="ipFlavorsGrid"></div>
-      </div>
-      <div class="ip-note-wrap">
-        <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
-        <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
-      </div>
+    <div class="ip-header">
+      <div class="ip-title-en" id="ipTitleEn"></div>
+      <div class="ip-title-ar" id="ipTitleAr"></div>
+      <div class="ip-desc" id="ipDesc"></div>
+      <div class="ip-price" id="ipPrice"></div>
+    </div>
+    <!-- Flavor selector (shown only for items with flavors) -->
+    <div class="ip-flavors-wrap" id="ipFlavorsWrap" style="display:none;">
+      <span class="ip-flavors-label">Choose a Flavor · اختر النكهة</span>
+      <div class="ip-flavors-grid" id="ipFlavorsGrid"></div>
+    </div>
+    <div class="ip-note-wrap">
+      <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
+      <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
     </div>
     <div class="ip-footer">
       <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
