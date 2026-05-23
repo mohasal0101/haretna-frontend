@@ -270,10 +270,10 @@ body::after{
 .cv-icon{font-size:24px;}
 .cv-body{flex:1;overflow-y:auto;padding:8px 12px 120px;}
 .menu-body{padding:0 12px 120px;}
-body .menu-body{padding-bottom:60px;}
-body .cv-body{padding-bottom:60px;}
-body.cart-bar-visible .menu-body{padding-bottom:130px;}
-body.cart-bar-visible .cv-body{padding-bottom:130px;}
+body .menu-body{padding-bottom:62px;}
+body .cv-body{padding-bottom:62px;}
+body.cart-bar-visible .menu-body{padding-bottom:120px;}
+body.cart-bar-visible .cv-body{padding-bottom:120px;}
 .cat-section{padding-bottom:8px;}
 
 /* ============================================================
@@ -705,46 +705,55 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 
 
 
-/* Categories — always fixed at bottom center */
+/* Categories pill — always visible, fully independent */
 #floatCatBtn{
   position:relative;
-  z-index:1001;
+  pointer-events:all;
   display:flex;
   align-items:center;
   gap:8px;
   background:var(--chalk);
   border:1px solid var(--border2);
-  border-bottom:none;
-  border-radius:14px 14px 0 0;
-  padding:9px 22px;
+  border-radius:22px;
+  padding:9px 24px;
   font-family:'Rubik',sans-serif;
   font-size:11px;
   letter-spacing:1px;
   color:var(--cream2);
   cursor:pointer;
   white-space:nowrap;
-  box-shadow:0 -2px 12px rgba(0,0,0,.3);
+  box-shadow:0 2px 16px rgba(0,0,0,.45);
   -webkit-tap-highlight-color:transparent;
-  align-self:center;
-  margin-bottom: -9px;
 }
 #floatCatBtn:active{transform:scale(.97);}
-#floatCatBtn.visible{display:flex;}
-body.cart-bar-visible #floatCatBtn{display:flex;}
 #floatCatBtn .fcb-label{overflow:hidden;text-overflow:ellipsis;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
 
 /* Cart bar — slides up from below */
-#cartBar{
+/* ── Categories bar — always fixed at bottom, fully independent ── */
+#catFixedBar{
   position:fixed;
   bottom:0;left:0;right:0;
+  z-index:1001;
+  display:flex;
+  justify-content:center;
+  background:transparent;
+  padding:0 0 12px;
+  pointer-events:none;
+}
+#catFixedBar.hidden{display:none;}
+
+/* ── Your Order pill — hidden until items added ── */
+#cartBar{
+  position:fixed;
+  bottom:46px;left:0;right:0;
   z-index:1000;
   display:flex;
   flex-direction:column;
   align-items:center;
   background:transparent;
-  padding:0 16px 12px;
+  padding:0 16px 0;
   transform:translateY(110%);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
   pointer-events:none;
@@ -757,9 +766,9 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 #cartBarInner{
   width:100%;
   max-width:500px;
-  margin-top:8px;
+  margin-top:10px;
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
-  border-radius:14px;
+  border-radius:18px;
   box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15);
   display:flex;
   align-items:center;
@@ -777,15 +786,15 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 #cartBar.pulse #cartBarInner{animation:cartBarPulse .5s ease-out;}
 
 /* Cart pill internals */
-.cb-left{padding:10px 14px;display:flex;align-items:center;gap:8px;flex:1;}
-.cb-badge{background:rgba(0,0,0,.2);color:#fff;font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;letter-spacing:.5px;flex-shrink:0;}
+.cb-left{padding:14px 16px;display:flex;align-items:center;gap:10px;flex:1;}
+.cb-badge{background:rgba(0,0,0,.2);color:#fff;font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;min-width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center;padding:0 7px;letter-spacing:.5px;flex-shrink:0;}
 .cb-text{display:flex;flex-direction:column;}
-.cb-label{font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:.3px;line-height:1.2;}
-.cb-sublabel{font-family:'Rubik',sans-serif;font-size:9px;color:rgba(20,12,4,.6);letter-spacing:.3px;margin-top:1px;}
-.cb-divider{width:1px;height:28px;background:rgba(0,0,0,.15);flex-shrink:0;}
-.cb-right{padding:10px 14px 10px 12px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.cb-total{font-family:'Rubik',sans-serif;font-size:14px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:-.3px;}
-.cb-arrow{font-size:16px;color:rgba(20,12,4,.55);font-weight:300;line-height:1;}
+.cb-label{font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:.3px;line-height:1.2;}
+.cb-sublabel{font-family:'Rubik',sans-serif;font-size:10px;color:rgba(20,12,4,.6);letter-spacing:.3px;margin-top:1px;}
+.cb-divider{width:1px;height:36px;background:rgba(0,0,0,.15);flex-shrink:0;}
+.cb-right{padding:14px 18px 14px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.cb-total{font-family:'Rubik',sans-serif;font-size:17px;font-weight:700;color:rgba(20,12,4,.9);letter-spacing:-.3px;}
+.cb-arrow{font-size:20px;color:rgba(20,12,4,.55);font-weight:300;line-height:1;}
 
 .cart-row-bundle{border-left:3px solid var(--gold2);}
 .cr-combo-tag{background:var(--gold2);color:var(--bg);font-size:8px;font-family:'Rubik',sans-serif;letter-spacing:1px;padding:1px 5px;border-radius:4px;vertical-align:middle;margin-left:4px;}
@@ -1169,11 +1178,16 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 </div>
 
 <!-- STICKY CART BAR -->
-<div id="cartBar">
+<!-- Categories — always fixed at bottom -->
+<div id="catFixedBar">
   <button id="floatCatBtn" onclick="openCatPicker()">
     <span class="fcb-label">Categories · الأقسام</span>
     <span class="fcb-arrow">▲</span>
   </button>
+</div>
+
+<!-- Your Order — hidden until items added -->
+<div id="cartBar">
   <div id="cartBarInner" onclick="openCart()">
     <div class="cb-left">
       <div class="cb-badge" id="cbCount">0</div>
@@ -1909,9 +1923,11 @@ function showView(id) {
   else stopCustomerSync();
   document.querySelectorAll('.view').forEach(v => { v.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
-  // Show cartBar (categories + order pill) only on customer menu
+  // Show both bars only on customer menu
   const cartBar = document.getElementById('cartBar');
+  const catBar  = document.getElementById('catFixedBar');
   if (cartBar) cartBar.style.display = (id === 'customerMenu') ? '' : 'none';
+  if (catBar)  catBar.style.display  = (id === 'customerMenu') ? '' : 'none';
   window.scrollTo(0,0);
 }
 
@@ -3036,6 +3052,8 @@ function openCart() {
   const cartBarEl = document.getElementById('cartBar');
   if (floatBtn) floatBtn.style.display = 'none';
   if (cartBarEl) cartBarEl.style.display = 'none';
+  const catBarEl = document.getElementById('catFixedBar');
+  if (catBarEl) catBarEl.style.display = 'none';
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3049,6 +3067,8 @@ function closeCart() {
   const cartBarEl = document.getElementById('cartBar');
   if (floatBtn) floatBtn.style.display = '';
   if (cartBarEl) cartBarEl.style.display = '';
+  const catBarEl2 = document.getElementById('catFixedBar');
+  if (catBarEl2) catBarEl2.style.display = '';
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -5249,7 +5269,6 @@ window.addEventListener('load', async () => {
 
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
-    window.history.replaceState({}, '', window.location.pathname);
     document.getElementById('tableSelect').value = tableParam;
 
     if (MENU.length) {
