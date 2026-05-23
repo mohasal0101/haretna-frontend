@@ -3491,7 +3491,7 @@ function renderAdmin() {
     const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
-        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">🕐 Order time: ${o.time}</div></div>
+        <div class="oc-h-left"><div class="oc-tbl">Table ${o.table}${newItemsBadge}</div><div class="oc-time">Order time: ${o.time}</div></div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="status-pill ${sp}">${statusLabel}</span>
           <button onclick="dismissOrder('${o.id}')" title="Remove table" style="background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.35);color:#e06060;width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">×</button>
