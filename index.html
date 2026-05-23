@@ -367,7 +367,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 .trend-price{font-size:10px;color:var(--gold2);font-weight:700;}
 
 .cart-foot{padding:12px 14px env(safe-area-inset-bottom, 16px);border-top:1px solid var(--border);background:var(--chalk2);flex-shrink:0;}
-.cart-overlay.open .cart-foot{padding-bottom:max(env(safe-area-inset-bottom, 16px), 16px);}
+.cart-overlay.open .cart-foot{padding-bottom:env(safe-area-inset-bottom, 16px);}
 .cart-foot.bar-up{padding-bottom:76px;}
 .cart-totals{margin-bottom:10px;}
 .ct-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;}
@@ -509,7 +509,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 .oc-remove-btn{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:0 2px;line-height:1;transition:color .2s;}
 .oc-remove-btn:hover{color:var(--red);}
 
-.oc-note{margin:0 12px 8px;padding:8px 11px;background:rgba(200,149,42,.07);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;}
+.oc-note{margin:0 12px 8px;padding:6px 9px;background:var(--chalk2);border-left:2px solid var(--gold);border-radius:0 3px 3px 0;font-size:10px;color:var(--text3);}
 .oc-item-addon{display:inline-block;font-size:9px;color:var(--gold2);background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);border-radius:3px;padding:1px 6px;margin-top:3px;margin-right:3px;font-family:'Rubik',sans-serif;letter-spacing:.5px;}
 .oc-item-note{font-size:9px;color:var(--text3);display:block;margin-top:2px;font-style:italic;}
 .oc-foot{padding:9px 12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
@@ -652,7 +652,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 #itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
 #itemPopupOverlay.open{display:flex;}
 #itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
-#itemPopup .ip-scroll-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .ip-handle{width:40px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;}
 .ip-img-wrap{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
 .ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:opacity .2s;}
@@ -1017,13 +1016,13 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <div id="offersPanel" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;padding:20px;">
   <div style="max-width:500px;margin:0 auto;background:var(--chalk);border:1px solid var(--border2);border-radius:10px;padding:24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">Manage Offers · إدارة العروض</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🏷️ Manage Offers · إدارة العروض</div>
       <button onclick="closeOffersPanel()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <div id="offersList"></div>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
       <div style="font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;">Add New Combo Offer · إضافة عرض جديد</div>
-      <input id="newOfferTitle" placeholder="Title e.g. Combo Deal" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
+      <input id="newOfferTitle" placeholder="Title e.g. Combo Deal 🍔" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferTitleAr" placeholder="العنوان بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;direction:rtl;"/>
       <input id="newOfferDesc" placeholder="Short description in English (optional · اختياري)" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
       <input id="newOfferPrice" type="number" step="0.01" min="0" placeholder="Combo price (JD) · سعر الكومبو" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;"/>
@@ -1053,7 +1052,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <div id="trendingPanel" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;padding:20px;">
   <div style="max-width:500px;margin:0 auto;background:var(--chalk);border:1px solid var(--border2);border-radius:10px;padding:24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">Manage Trending · الأكثر طلباً</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold2);">🔥 Manage Trending · الأكثر طلباً</div>
       <button onclick="closeTrendingPanel()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <p style="font-size:11px;color:var(--text3);margin-bottom:14px;">Select items to feature in the Trending section on the customer menu.<br><span style="font-family:'Rubik',sans-serif;">اختر العناصر لعرضها في قسم الأكثر طلباً.</span></p>
@@ -1126,7 +1125,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
     <div id="ipImgWrap" class="ip-img-wrap"><div class="ip-handle"></div></div>
-    <div class="ip-scroll-body">
     <div class="ip-header">
       <div class="ip-title-en" id="ipTitleEn"></div>
       <div class="ip-title-ar" id="ipTitleAr"></div>
@@ -1142,7 +1140,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
       <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
     </div>
-    </div><!-- end ip-scroll-body -->
     <div class="ip-footer">
       <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
       <div class="ip-qty-ctrl" id="ipQtyCtrl">
@@ -1216,13 +1213,13 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <div id="salesOverlay" onclick="closeSalesModal()">
   <div id="salesModal" onclick="event.stopPropagation()">
     <div class="sm-head">
-      <div class="sm-title">Sales Summary · ملخص المبيعات</div>
+      <div class="sm-title">📊 Sales Summary · ملخص المبيعات</div>
       <button class="sm-close" onclick="closeSalesModal()">✕</button>
     </div>
     <div class="sm-kpis" id="smKpis"></div>
-    <div class="sm-section-title">Top Items Today · الأكثر طلباً اليوم</div>
+    <div class="sm-section-title">🏆 Top Items Today · الأكثر طلباً اليوم</div>
     <div id="smTopItems" style="margin-bottom:20px;"></div>
-    <div class="sm-section-title">Orders by Hour · الطلبات بالساعة</div>
+    <div class="sm-section-title">⏰ Orders by Hour · الطلبات بالساعة</div>
     <div id="smHourBars"></div>
   </div>
 </div>
@@ -1503,7 +1500,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
     <!-- ── Notification Sidebar ── -->
     <div class="notif-sidebar">
       <div class="notif-sidebar-head" onclick="this.closest('.notif-sidebar').classList.toggle('expanded')">
-        Table Requests · طلبات الطاولات
+        🔔 Table Requests · طلبات الطاولات
         <span class="notif-count" id="notifCount">0</span>
       </div>
       <div class="notif-list" id="notifList">
@@ -1521,11 +1518,11 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       </div>
       <div class="filter-row" id="filterRow">
         <button class="filter-btn active" onclick="setFilter('all',this)">All · الكل</button>
-        <button class="filter-btn" onclick="setFilter('new',this)">New · جديد</button>
-        <button class="filter-btn" onclick="setFilter('preparing',this)">Preparing · يُحضَّر</button>
-        <button class="filter-btn" onclick="setFilter('sent',this)">Ready · جاهز</button>
-        <button class="filter-btn" onclick="setFilter('done',this)">Done · منتهي</button>
-        <button class="filter-btn" onclick="setFilter('cashed',this)">Cashed Out · سُدِّد</button>
+        <button class="filter-btn" onclick="setFilter('new',this)">🔴 New · جديد</button>
+        <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing · يُحضَّر</button>
+        <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready · جاهز</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done · منتهي</button>
+        <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out · سُدِّد</button>
       </div>
       <div class="orders-grid" id="ordersGrid"></div>
     </div>
@@ -1552,9 +1549,9 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <!-- ===== MENU MANAGER PAGE ===== -->
 <div id="menuManagerPage" class="view">
   <div class="admin-topbar">
-    <div class="at-logo">Menu Manager · إدارة القائمة <small>Photos & Categories · الصور والأقسام</small></div>
+    <div class="at-logo">🖼️ Menu Manager <small>Photos & Categories</small></div>
     <div class="at-btns">
-      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>Retry Failed · إعادة المحاولة</button>
+      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>🔄 Retry Failed · إعادة المحاولة</button>
       <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back · رجوع</button>
     </div>
   </div>
@@ -2503,15 +2500,17 @@ function selectFlavor(flavor, el) {
   if (el.classList.contains('disabled')) return;
   const idx = _selectedFlavor.indexOf(flavor);
   if (idx > -1) {
+    // Uncheck — only allow if at least 1 will remain (enforced at add time, allow uncheck freely)
     _selectedFlavor.splice(idx, 1);
     el.classList.remove('selected');
   } else {
     const addonCfg = ADDONS[_currentPopupItemId];
-    const maxAllowed = addonCfg?.max || 0;
+    const maxAllowed = addonCfg?.max || 0; // 0 = unlimited
     if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
     _selectedFlavor.push(flavor);
     el.classList.add('selected');
   }
+  // Grey out unchosen chips when max is reached
   const _addonCfg = ADDONS[_currentPopupItemId];
   const _maxAllowed = _addonCfg?.max || 0;
   document.querySelectorAll('.ip-flavor-chip').forEach(chip => {
@@ -2786,14 +2785,11 @@ function selectAddonsItem(itemId) {
   _addonsSelectedId = itemId;
   const item = MENU.flatMap(c=>c.items).find(i=>i.id===itemId);
   if (!item) return;
-  const dbItemId = item._dbId || itemId;
-
   document.getElementById('addonsSelectedName').textContent = stripEmoji(item.en) + ' — ' + stripEmoji(item.ar);
   document.getElementById('addonsEditor').style.display = 'block';
   document.getElementById('addonsNewOption').value = '';
-
   // Load fresh from DB each time
-  apiFetch(`/api/addons/${dbItemId}`).then(dbAddons => {
+  apiFetch(`/api/addons/${itemId}`).then(dbAddons => {
     const existing = ADDONS[itemId] || {};
     ADDONS[itemId] = {
       options: dbAddons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })),
@@ -2836,10 +2832,9 @@ async function updateAddonsLimits() {
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { options: [], min: 0, max: 0 };
   ADDONS[_addonsSelectedId].min = min;
   ADDONS[_addonsSelectedId].max = max;
-  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
-  const dbItemId = menuItem?._dbId || _addonsSelectedId;
+  // Persist to backend immediately
   try {
-    await apiFetch(`/api/menu/items/${dbItemId}`, {
+    await apiFetch(`/api/menu/items/${_addonsSelectedId}`, {
       method: 'PATCH',
       body: JSON.stringify({ addonsMin: min, addonsMax: max }),
     });
@@ -2854,16 +2849,12 @@ async function addAddonOption() {
   if (!val) { toast('Type an option first · اكتب خياراً أولاً'); return; }
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
-
-  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
-  const dbItemId = menuItem?._dbId || _addonsSelectedId;
-
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
   for (const name of newOpts) {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
     if (!existing) {
       try {
-        const res = await apiFetch(`/api/addons/${dbItemId}`, {
+        const res = await apiFetch(`/api/addons/${_addonsSelectedId}`, {
           method: 'POST',
           body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
         });
@@ -3106,7 +3097,7 @@ function openCart() {
   document.getElementById('customerMenu').classList.add('no-fade');
   // Hide cart bar while cart sheet is open
   const cartBar = document.getElementById('cartBar');
-  if (cartBar) { cartBar.style.opacity = '0'; cartBar.style.pointerEvents = 'none'; }
+  if (cartBar) cartBar.style.opacity = '0';
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3117,7 +3108,7 @@ function closeCart() {
   document.getElementById('customerMenu').classList.remove('no-fade');
   // Restore cart bar
   const cartBar = document.getElementById('cartBar');
-  if (cartBar) { cartBar.style.opacity = ''; cartBar.style.pointerEvents = ''; }
+  if (cartBar) cartBar.style.opacity = '';
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -3404,10 +3395,12 @@ function parseItemNotesFromOrderNote(orderNote, items) {
   const cleanNote = parts.slice(1).join(' || ').trim();
   const flavorEntries = [];
   itemNotePart.split(' | ').forEach(chunk => {
+    // New indexed format: [0:Name]: note
     const m = chunk.match(/^\[(\d+):(.+?)\]:\s*(.+)$/);
     if (m) {
       flavorEntries.push({ idx: parseInt(m[1]), name: m[2].trim(), note: m[3].trim() });
     } else {
+      // Legacy format: [Name]: note
       const m2 = chunk.match(/^\[(.+?)\]:\s*(.+)$/);
       if (m2) flavorEntries.push({ idx: -1, name: m2[1].trim(), note: m2[2].trim() });
     }
@@ -3586,13 +3579,13 @@ function renderAdmin() {
   renderNotifSidebar();
   const grid = document.getElementById('ordersGrid');
   if (!filtered.length) {
-    grid.innerHTML = `<div class="admin-empty"><div class="ae-ar">لا توجد طلبات</div><p>No orders in this category.<br>لا توجد طلبات هنا</p></div>`;
+    grid.innerHTML = `<div class="admin-empty"><div class="ae-ar">📭</div><p>No orders in this category.<br>لا توجد طلبات هنا</p></div>`;
     return;
   }
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
-    const statusLabel = {new:'New · جديد',preparing:'Preparing · يُحضَّر',ready:'Ready · جاهز',sent:'Ready · جاهز',done:'Done · منتهي',cashed:'Cashed · سُدِّد'}[o.status]||'New · جديد';
-    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items · إضافات جديدة</span>` : '';
+    const statusLabel = {new:'New',preparing:'Preparing',ready:'Ready',sent:'Ready',done:'Done',cashed:'Cashed'}[o.status]||'New';
+    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
         <div class="oc-h-left"><div class="oc-tbl">طاولة ${o.table}${newItemsBadge}</div><div class="oc-time">وقت الطلب: ${o.time}</div></div>
@@ -3610,17 +3603,18 @@ function renderAdmin() {
             const flavors = flavorMatch[1].trim().split(' & ');
             flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
             freeNote = (flavorMatch[3]||'').trim();
-          }          const _catRes = findItemInMenu(i.id);
+          }
+          const _catRes = findItemInMenu(i.id);
           const _cat = _catRes ? MENU.find(c=>c.id===_catRes.catId) : null;
           const catLabel = _cat ? `<span style="font-size:10px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;">${_cat.ar}</span>` : '';
           const nameBlock = `<div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
               ${catLabel}<span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
-              ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">جديد · x${i.qty}</span>`:''}
+              ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
               ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
             ${flavorTags?`<div style="margin-top:4px;">${flavorTags}</div>`:''}
-            ${freeNote?`<div style="margin-top:5px;display:flex;align-items:flex-start;gap:5px;"><span style="font-size:9px;color:#c8952a;font-family:'Rubik',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;padding-top:1px;">Note:</span><span style="font-size:11px;color:#f5d87a;background:rgba(200,149,42,.13);border:1px solid rgba(200,149,42,.35);border-radius:4px;padding:2px 8px;line-height:1.4;font-style:italic;">${freeNote}</span></div>`:''}
+            ${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}
           </div>`;
           return `<div class="oc-item-row${i.isNew?' oc-item-new':''}" style="align-items:flex-start;">
             <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);padding-top:1px;">x${i.qty}</span>
@@ -3630,7 +3624,7 @@ function renderAdmin() {
           </div>`;
         }).join('')}
       </div>
-      ${o.note?`<div class="oc-note"><span style="font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:4px;">Order Note · ملاحظة الطلب</span><div style="font-size:11px;color:#f5d87a;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${o.note.replace(/ \| /g,'<br>')}</div></div>`:''}
+      ${o.note?`<div class="oc-note">${o.note}</div>`:''}
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
@@ -3782,19 +3776,19 @@ function showReceipt(id) {
   el.innerHTML = `
     <div class="r-logo-ar">أهوة حارتنا</div>
     <div class="r-logo-en">HARETNA CAFÉ</div>
-    <div class="r-sub">Amman, Jordan · عمّان، الأردن</div>
+    <div class="r-sub">📍 Amman, Jordan</div>
     <hr class="r-div"/>
     <div class="r-row"><span>Table · طاولة</span><span>${o.table}</span></div>
     <div class="r-row"><span>Time · الوقت</span><span>${o.time}</span></div>
     <div class="r-row"><span>Order # · رقم الطلب</span><span>${String(o.id).slice(-5)}</span></div>
     <hr class="r-div"/>
-    ${o.items.map(i=>`<div class="r-row"><span>${stripEmoji(i.en)}${i.ar?' / '+stripEmoji(i.ar):''} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
+    ${o.items.map(i=>`<div class="r-row"><span>${i.icon} ${i.en} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
     <hr class="r-div"/>
     <div class="r-grand"><span>TOTAL · المجموع</span><span>JD ${o.grand.toFixed(2)}</span></div>
     ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note · ملاحظة: ${o.note}</div>`:''}
     <div class="r-thanks">شكراً لزيارتكم ♥<br>Thank you for visiting Haretna Café!<br>Come back soon.</div>
     <div class="r-actions">
-      <button class="r-btn r-print" onclick="printReceiptOnly()">Print · طباعة</button>
+      <button class="r-btn r-print" onclick="printReceiptOnly()">🖨 Print · طباعة</button>
       <button class="r-btn r-close" onclick="document.getElementById('receiptOverlay').classList.remove('open')">Close · إغلاق</button>
     </div>`;
   document.getElementById('receiptOverlay').classList.add('open');
@@ -3815,14 +3809,14 @@ async function renderHistory() {
     <div><div class="hs-num">${filtered.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0)}</div><div class="hs-lbl">Items Sold · عناصر مباعة</div></div>
     <div><div class="hs-num">JD ${total.toFixed(2)}</div><div class="hs-lbl">Revenue · الإيراد</div></div>`;
   if (!filtered.length) {
-    tableEl.innerHTML = `<div class="history-empty"><div class="he-ar">لا توجد طلبات</div><p>No orders found for this date.<br>لا توجد طلبات في هذا التاريخ.</p></div>`;
+    tableEl.innerHTML = `<div class="history-empty"><div class="he-ar">📭</div><p>No orders found for this date.<br>لا توجد طلبات في هذا التاريخ.</p></div>`;
     return;
   }
   tableEl.innerHTML = `
     <div class="ht-head"><span>Table · طاولة</span><span>Items · عناصر</span><span>Time · الوقت</span><span>Total · المجموع</span></div>
     ${filtered.map(o=>`<div class="ht-row" onclick="showReceipt('${o.id}')" style="cursor:pointer">
       <span class="ht-table">T${o.table}</span>
-      <span class="ht-items">${o.items.map(i=>`${stripEmoji(i.en)} ×${i.qty}`).join(', ')}</span>
+      <span class="ht-items">${o.items.map(i=>`${i.icon}${i.en.split(' ')[0]} ×${i.qty}`).join(', ')}</span>
       <span class="ht-time">${o.time}</span>
       <span class="ht-total">JD ${o.grand.toFixed(2)}</span>
     </div>`).join('')}`;
@@ -3835,7 +3829,7 @@ function openStockPanel() {
   // Populate category dropdown
   const sel = document.getElementById('stockCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(cat=>`<option value="${cat.id}">${cat.en} · ${cat.ar}</option>`).join('');
+    MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
   renderStockList('');
   document.getElementById('stockSearch').value='';
   sel.value='';
@@ -3888,7 +3882,7 @@ function openOffersPanel() {
   // Populate category filter for item picker
   const sel = document.getElementById('newOfferCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(c=>`<option value="${c.id}">${c.en} · ${c.ar}</option>`).join('');
+    MENU.map(c=>`<option value="${c.id}">${c.icon} ${c.en}</option>`).join('');
   renderOfferItemPicker();
   updateSelectedOfferItems();
   document.getElementById('offersPanel').style.display='block';
@@ -3977,6 +3971,7 @@ function renderEditOfferItemPicker() {
   el.innerHTML = allItems.map(i => {
     const sel = _editOfferItemIds.includes(i.id);
     return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="font-size:15px;">${i.icon}</span>
       <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
       <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
       <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};">${sel?'✓':'+'}</span>
@@ -4030,6 +4025,7 @@ function renderOfferItemPicker() {
   const source = catFilter ? (MENU.find(c=>c.id===catFilter)?.items||[]) : MENU.flatMap(c=>c.items);
   document.getElementById('offerItemPicker').innerHTML = source.map(i=>`
     <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="font-size:16px;">${i.icon}</span>
       <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
       <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
       <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
@@ -4080,11 +4076,11 @@ async function addOffer() {
     const res = await apiFetch('/api/offers', {
       method: 'POST',
       body: JSON.stringify({
-        titleEn: t, titleAr: ta||t||' ',
-        descriptionEn: d || ' ', descriptionAr: d || ' ',
+        titleEn: t, titleAr: ta||t,
+        descriptionEn: d || null, descriptionAr: d || null,
         price: p, isActive: true,
         itemIds: dbItemIds,
-        expiresAt: expiresAt || null,
+        expiresAt,
         timeFrom: timeFrom||null,
         timeTo: timeTo||null,
       }),
@@ -4625,7 +4621,7 @@ async function removeMMImage(id) {
 function openTrendingPanel() {
   const sel = document.getElementById('trendCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(cat=>`<option value="${cat.id}">${cat.en} · ${cat.ar}</option>`).join('');
+    MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
   document.getElementById('trendSearch').value='';
   renderTrendingItemList();
   document.getElementById('trendingPanel').style.display='block';
@@ -4752,25 +4748,25 @@ function closeCallPopupOutside(e) {
 // TABLE CALL BUTTONS
 // =====================================================================
 const CALL_LABELS = {
-  waiter:  'Waiter requested at · طلب نادل — طاولة',
-  bill:    'Bill requested at · طلب حساب — طاولة',
-  napkins: 'Napkins needed at · طلب مناديل — طاولة',
-  water:   'Water requested at · طلب ماء — طاولة',
-  coal:    'Coal requested at · طلب فحم — طاولة',
-  ashtray: 'Ashtray needed at · طلب مكته — طاولة',
-  cards:   'Cards requested at · طلب شده — طاولة',
-  clean:   'Clean table needed at · تنظيف طاولة — طاولة',
+  waiter:  '🙋 Waiter requested at · طلب نادل — طاولة',
+  bill:    '💳 Bill requested at · طلب حساب — طاولة',
+  napkins: '🧻 Napkins needed at · طلب مناديل — طاولة',
+  water:   '💧 Water requested at · طلب ماء — طاولة',
+  coal:    '🪨 Coal requested at · طلب فحم — طاولة',
+  ashtray: '🫙 Ashtray needed at · طلب مكته — طاولة',
+  cards:   '🃏 Cards requested at · طلب شده — طاولة',
+  clean:   '🧹 Clean table needed at · تنظيف طاولة — طاولة',
 };
 
 const CALL_LABELS_AR = {
-  waiter:  'نادل مطلوب',
-  bill:    'طلب الحساب',
-  napkins: 'مناديل مطلوبة',
-  water:   'ماء مطلوب',
-  coal:    'فحم مطلوب',
-  ashtray: 'مكته مطلوبة',
-  cards:   'شده مطلوبة',
-  clean:   'تنظيف طاولة',
+  waiter:  '🙋 نادل مطلوب',
+  bill:    '💳 طلب الحساب',
+  napkins: '🧻 مناديل مطلوبة',
+  water:   '💧 ماء مطلوب',
+  coal:    '🪨 فحم مطلوب',
+  ashtray: '🫙 مكته مطلوبة',
+  cards:   '🃏 شده مطلوبة',
+  clean:   '🧹 تنظيف طاولة',
 };
 let callCooldowns = {}; // type -> timestamp
 
@@ -5205,10 +5201,32 @@ async function loadMenuFromAPI() {
     ADDONS = {};
     MENU.flatMap(c => c.items).forEach(i => {
       if (i.addons && i.addons.length > 0) {
+        ADDONS[i.id] = { options: i.addons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })) };
+      }
+    });
+    // Build ADDONS from DB addons
+    ADDONS = {};
+    MENU.flatMap(c => c.items).forEach(i => {
+      if (i.addons && i.addons.length > 0) {
         ADDONS[i.id] = {
           options: i.addons.map(a => ({
-            id: a.id, name: a.nameEn, nameAr: a.nameAr,
-            price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
+            name: a.nameEn, nameAr: a.nameAr,
+            price: a.price || 0, icon: a.icon || '', oos: false,
+          }))
+        };
+      }
+    });
+    // Build ADDONS from DB addons so getFlavorsForItem works correctly
+    ADDONS = {};
+    MENU.flatMap(c => c.items).forEach(i => {
+      if (i.addons && i.addons.length > 0) {
+        ADDONS[i.id] = {
+          options: i.addons.map(a => ({
+            name: a.nameEn,
+            nameAr: a.nameAr,
+            price: a.price || 0,
+            icon: a.icon || '',
+            oos: false,
           }))
         };
       }
