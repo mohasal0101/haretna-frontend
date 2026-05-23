@@ -4080,7 +4080,7 @@ async function addOffer() {
       method: 'POST',
       body: JSON.stringify({
         titleEn: t, titleAr: ta||t||' ',
-        descriptionEn: d || null, descriptionAr: d || null,
+        descriptionEn: d || ' ', descriptionAr: d || ' ',
         price: p, isActive: true,
         itemIds: dbItemIds,
         expiresAt: expiresAt || null,
