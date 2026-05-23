@@ -647,10 +647,11 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 #itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
 #itemPopupOverlay.open{display:flex;}
 #itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
-.ip-handle{width:36px;height:3px;background:var(--border2);border-radius:2px;margin:12px auto 6px;flex-shrink:0;}
-.ip-img-wrap{width:100%;height:240px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
-.ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
-.ip-img-empty{width:100%;height:140px;display:flex;align-items:center;justify-content:center;background:var(--chalk3);}
+.ip-handle{width:40px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;}
+.ip-img-wrap{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
+.ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:opacity .2s;}
+.ip-img-wrap.no-img{height:0;display:none;}
+.ip-img-empty{width:100%;height:0;display:none;}
 .ip-img-empty svg{opacity:.2;}
 .ip-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .ip-title-en{font-family:'Rubik',sans-serif;font-size:16px;font-weight:700;color:var(--cream2);letter-spacing:.5px;margin-bottom:2px;}
@@ -1119,7 +1120,6 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 <!-- ITEM DETAIL POPUP -->
 <div id="itemPopupOverlay" onclick="closeItemPopup()">
   <div id="itemPopup" onclick="event.stopPropagation()">
-    <div class="ip-handle"></div>
     <div id="ipAdminBar" class="ip-admin-bar" style="display:none;">
       <span class="ip-admin-label">Admin · Edit Item · تعديل العنصر</span>
       <button class="ip-edit-btn" onclick="toggleItemEdit()">Edit Details · تعديل</button>
@@ -1135,7 +1135,7 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
       <input id="ipEditPrice" type="number" step="0.01" min="0" placeholder="0.00"/>
       <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
-    <div id="ipImgWrap" class="ip-img-wrap"></div>
+    <div id="ipImgWrap" class="ip-img-wrap"><div class="ip-handle"></div></div>
     <div class="ip-header">
       <div class="ip-title-en" id="ipTitleEn"></div>
       <div class="ip-title-ar" id="ipTitleAr"></div>
@@ -2416,9 +2416,16 @@ function openItemPopup(itemId) {
   const imgWrap = document.getElementById('ipImgWrap');
   const imgSrc = customImages[itemId];
   const oos = outOfStock.has(itemId);
-  imgWrap.innerHTML = imgSrc
-    ? `${oos?'<div class="ip-oos-badge">Out of Stock · نفد المخزون</div>':''}<img src="${imgSrc}" alt="${item.en}">`
-    : `<div class="ip-img-empty">${oos?'<div class="ip-oos-badge" style="position:relative;display:inline-block;margin-bottom:8px;">Out of Stock · نفد المخزون</div>':''}<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+  if (imgSrc) {
+    imgWrap.classList.remove('no-img');
+    imgWrap.innerHTML = `<img src="${imgSrc}" alt="${item.en}" onload="this.style.opacity=1" style="opacity:0;">${oos?'<div class="ip-oos-badge" style="position:absolute;top:12px;right:12px;">Out of Stock · نفد المخزون</div>':''}`;
+    // Fade in once loaded (already started above via onload)
+    const img = imgWrap.querySelector('img');
+    if (img.complete) img.style.opacity = '1';
+  } else {
+    imgWrap.classList.add('no-img');
+    imgWrap.innerHTML = oos ? '<div class="ip-oos-badge" style="position:relative;display:inline-block;margin:8px;">Out of Stock · نفد المخزون</div>' : '';
+  }
 
   document.getElementById('ipTitleEn').textContent = stripEmoji(item.en);
   document.getElementById('ipTitleAr').textContent = stripEmoji(item.ar);
@@ -4282,8 +4289,8 @@ async function saveMMEdit(id, dbId) {
   const price = parseFloat(document.getElementById('mmpr-'+id).value);
   if (!en || isNaN(price)) { toast('Please fill in all fields · أكمل جميع الحقول'); return; }
   try {
-    const res = await apiFetch(`/api/menu/item/${dbId}`, {
-      method: 'PUT',
+    const res = await apiFetch(`/api/menu/items/${dbId}`, {
+      method: 'PATCH',
       body: JSON.stringify({ nameEn: en, nameAr: ar, price })
     });
     // Update local MENU data
