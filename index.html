@@ -2462,9 +2462,11 @@ function openItemPopup(itemId) {
     const addonCfg = ADDONS[itemId];
     const minSel = addonCfg?.min || 1;
     const maxSel = addonCfg?.max || 0;
-    const limitHint = maxSel > 0
-      ? ` (${minSel}–${maxSel})`
-      : minSel > 1 ? ` (min ${minSel})` : '';
+    const limitHint = maxSel === 1
+      ? ` — Choose 1 · اختر واحداً فقط`
+      : maxSel > 1
+        ? ` — Choose ${minSel}–${maxSel} · اختر من ${minSel} إلى ${maxSel}`
+        : minSel > 1 ? ` — min ${minSel}` : '';
     const flavorsLabelEl = flavorsWrap.querySelector('.ip-flavors-label');
     if (flavorsLabelEl) {
       flavorsLabelEl.textContent = (addonCfg?.label || 'Choose option · اختر خياراً') + limitHint;
@@ -2501,21 +2503,30 @@ function ipChangeQty(d) {
 
 function selectFlavor(flavor, el) {
   if (el.classList.contains('disabled')) return;
+  const addonCfg = ADDONS[_currentPopupItemId];
+  const maxAllowed = addonCfg?.max || 0; // 0 = unlimited
+
   const idx = _selectedFlavor.indexOf(flavor);
   if (idx > -1) {
-    // Uncheck — only allow if at least 1 will remain (enforced at add time, allow uncheck freely)
+    // Uncheck
     _selectedFlavor.splice(idx, 1);
     el.classList.remove('selected');
   } else {
-    const addonCfg = ADDONS[_currentPopupItemId];
-    const maxAllowed = addonCfg?.max || 0; // 0 = unlimited
-    if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
-    _selectedFlavor.push(flavor);
-    el.classList.add('selected');
+    if (maxAllowed === 1) {
+      // Radio mode — deselect all others first
+      _selectedFlavor = [];
+      document.querySelectorAll('.ip-flavor-chip').forEach(c => c.classList.remove('selected'));
+      _selectedFlavor.push(flavor);
+      el.classList.add('selected');
+    } else {
+      // Multi-select mode — block if max reached
+      if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
+      _selectedFlavor.push(flavor);
+      el.classList.add('selected');
+    }
   }
   // Grey out unchosen chips when max is reached
-  const _addonCfg = ADDONS[_currentPopupItemId];
-  const _maxAllowed = _addonCfg?.max || 0;
+  const _maxAllowed = addonCfg?.max || 0;
   document.querySelectorAll('.ip-flavor-chip').forEach(chip => {
     const isSelected = chip.classList.contains('selected');
     chip.classList.toggle('disabled', _maxAllowed > 0 && _selectedFlavor.length >= _maxAllowed && !isSelected);
@@ -3832,7 +3843,7 @@ function openStockPanel() {
   // Populate category dropdown
   const sel = document.getElementById('stockCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
+    MENU.map(cat=>`<option value="${cat.id}">${cat.en} · ${cat.ar}</option>`).join('');
   renderStockList('');
   document.getElementById('stockSearch').value='';
   sel.value='';
@@ -3885,7 +3896,7 @@ function openOffersPanel() {
   // Populate category filter for item picker
   const sel = document.getElementById('newOfferCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(c=>`<option value="${c.id}">${c.icon} ${c.en}</option>`).join('');
+    MENU.map(c=>`<option value="${c.id}">${c.en} · ${c.ar}</option>`).join('');
   renderOfferItemPicker();
   updateSelectedOfferItems();
   document.getElementById('offersPanel').style.display='block';
@@ -3973,11 +3984,13 @@ function renderEditOfferItemPicker() {
   const allItems = MENU.flatMap(c => c.items);
   el.innerHTML = allItems.map(i => {
     const sel = _editOfferItemIds.includes(i.id);
-    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="font-size:15px;">${i.icon}</span>
-      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
-      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};">${sel?'✓':'+'}</span>
+    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="flex:1;min-width:0;">
+        <span style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);display:block;">${i.en}</span>
+        <span style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);">${i.ar||''}</span>
+      </span>
+      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};flex-shrink:0;">${sel?'✓':'+'}</span>
     </div>`;
   }).join('');
 }
@@ -4027,11 +4040,13 @@ function renderOfferItemPicker() {
   const catFilter = document.getElementById('newOfferCatFilter').value;
   const source = catFilter ? (MENU.find(c=>c.id===catFilter)?.items||[]) : MENU.flatMap(c=>c.items);
   document.getElementById('offerItemPicker').innerHTML = source.map(i=>`
-    <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="font-size:16px;">${i.icon}</span>
-      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
-      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
+    <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="flex:1;min-width:0;">
+        <span style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);display:block;">${i.en}</span>
+        <span style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);">${i.ar||''}</span>
+      </span>
+      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};flex-shrink:0;">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
     </div>`).join('');
 }
 function toggleOfferItem(id) {
@@ -4624,7 +4639,7 @@ async function removeMMImage(id) {
 function openTrendingPanel() {
   const sel = document.getElementById('trendCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(cat=>`<option value="${cat.id}">${cat.icon} ${cat.en}</option>`).join('');
+    MENU.map(cat=>`<option value="${cat.id}">${cat.en} · ${cat.ar}</option>`).join('');
   document.getElementById('trendSearch').value='';
   renderTrendingItemList();
   document.getElementById('trendingPanel').style.display='block';
