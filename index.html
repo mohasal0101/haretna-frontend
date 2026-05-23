@@ -300,7 +300,7 @@ body.cart-bar-visible .cv-body{padding-bottom:110px;}
 
 /* Item image */
 .item-img-wrap{width:56px;height:56px;flex-shrink:0;border-radius:4px;overflow:hidden;border:1px solid var(--border2);background:var(--chalk2);cursor:zoom-in;position:relative;}
-.item-img-wrap img{width:100%;height:100%;object-fit:contain;background:var(--chalk2);transition:transform .3s ease;}
+.item-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease;}
 .item-img-wrap:hover img{transform:scale(1.08);}
 .item-img-wrap .img-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--border2);}
 .img-empty-sm{background:var(--chalk2);border-radius:4px;}
@@ -734,8 +734,6 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 /* Cart bar — slides up from below */
 #cartBar{
   position:fixed;
-#cartBar{
-  position:fixed;
   bottom:0;left:0;right:0;
   z-index:1000;
   display:flex;
@@ -743,26 +741,26 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   align-items:center;
   background:transparent;
   padding:0 16px 16px;
-  transform:translateY(0);
+  transform:translateY(110%);
   transition:transform .35s cubic-bezier(.34,1.26,.64,1);
-  pointer-events:all;
+  pointer-events:none;
   border-top:none;
 }
-#cartBar.visible{pointer-events:all;}
+#cartBar.visible{transform:translateY(0);pointer-events:all;}
+
 #cartBarInner{
-  display:none;
   width:100%;
   max-width:500px;
   margin-top:10px;
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
   border-radius:18px;
   box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15);
+  display:flex;
   align-items:center;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   overflow:hidden;
 }
-#cartBar.visible #cartBarInner{display:flex;}
 #cartBarInner:active{transform:scale(.98);}
 
 @keyframes cartBarPulse{
@@ -905,7 +903,7 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 .mm-ch-info .mm-ch-ar{font-family:'Rubik',sans-serif;font-size:15px;color:var(--text3);}
 .mm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
 .mm-item{background:var(--chalk2);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;}
-.mm-item-img{width:100%;height:110px;object-fit:contain;background:var(--chalk2);display:block;}
+.mm-item-img{width:100%;height:110px;object-fit:cover;display:block;}
 .mm-item-placeholder{width:100%;height:110px;background:var(--chalk3);display:flex;align-items:center;justify-content:center;color:var(--border2);}
 .mm-item-info{padding:8px 10px 6px;}
 .mm-item-en{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:.5px;color:var(--cream2);margin-bottom:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1874,7 +1872,6 @@ let cdTimer = null;
 let cdRemaining = 3;
 let pendingOrderData = null;
 let isLoggedIn = false;
-let mmPendingUploads = {};  // itemId -> blob, pending image uploads
 
 // Admin-editable offers and trending
 let OFFERS = []; // Loaded from DB via loadMenuFromAPI
@@ -2556,7 +2553,7 @@ function toggleItemEdit() {
   form.style.display = visible ? 'none' : 'block';
 }
 
-async function saveItemEdit() {
+function saveItemEdit() {
   if (!_currentPopupItemId) return;
   const en = document.getElementById('ipEditEn').value.trim();
   const ar = document.getElementById('ipEditAr').value.trim();
@@ -2567,19 +2564,6 @@ async function saveItemEdit() {
   const res = findItemInMenu(_currentPopupItemId);
   if (!res) return;
   const {item} = res;
-
-  // Save to database first
-  try {
-    await apiFetch(`/api/menu/items/${item._dbId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ nameEn: en, nameAr: ar, descriptionEn: desc || null, price }),
-    });
-  } catch (e) {
-    toast('Failed to save · فشل الحفظ');
-    return;
-  }
-
-  // Update local state after successful save
   item.en = en; item.ar = ar; item.desc = desc || null; item.price = price;
   document.getElementById('ipTitleEn').textContent = en;
   document.getElementById('ipTitleAr').textContent = ar;
@@ -4298,8 +4282,8 @@ async function saveMMEdit(id, dbId) {
   const price = parseFloat(document.getElementById('mmpr-'+id).value);
   if (!en || isNaN(price)) { toast('Please fill in all fields · أكمل جميع الحقول'); return; }
   try {
-    const res = await apiFetch(`/api/menu/items/${dbId}`, {
-      method: 'PATCH',
+    const res = await apiFetch(`/api/menu/item/${dbId}`, {
+      method: 'PUT',
       body: JSON.stringify({ nameEn: en, nameAr: ar, price })
     });
     // Update local MENU data
