@@ -738,7 +738,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 #floatCatBtn .fcb-arrow{font-size:10px;color:var(--gold);transition:transform .2s;}
 #floatCatBtn.open .fcb-arrow{transform:rotate(180deg);}
 
-/* ── Your Order pill — HIDDEN until items added to cart ── */
+/* ── Your Order pill — hidden until items in cart ── */
 #cartBar{
   position:fixed;
   bottom:46px;left:0;right:0;
@@ -3037,8 +3037,10 @@ function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
   document.getElementById('customerMenu').classList.add('no-fade');
   // Hide floating category button and cart bar while cart is open
-  const catBarEl = document.getElementById('catFixedBar');
-  if (catBarEl) catBarEl.style.display = 'none';
+  const floatBtn = document.getElementById('floatCatBtn');
+  const cartBarEl = document.getElementById('cartBar');
+  const _catB = document.getElementById('catFixedBar');
+  if (_catB) _catB.style.display = 'none';
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3048,8 +3050,10 @@ function closeCart() {
   document.getElementById('cartOverlay').classList.remove('open');
   document.getElementById('customerMenu').classList.remove('no-fade');
   // Restore floating category button and cart bar
-  const catBarEl2 = document.getElementById('catFixedBar');
-  if (catBarEl2) catBarEl2.style.display = '';
+  const floatBtn = document.getElementById('floatCatBtn');
+  const cartBarEl = document.getElementById('cartBar');
+  const _catB2 = document.getElementById('catFixedBar');
+  if (_catB2) _catB2.style.display = '';
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -5308,6 +5312,27 @@ window.addEventListener('load', async () => {
 
   document.body.classList.add('ready');
 });
+
+// ── CART BAR ENFORCER — runs last, overrides anything above ──
+// Ensures #cartBar is ONLY visible when cart has items, no matter what.
+(function enforceCartBar() {
+  function _enforce() {
+    const bar = document.getElementById('cartBar');
+    if (!bar) return;
+    const hasItems = typeof cartCount === 'function' && cartCount() > 0;
+    bar.style.transform = hasItems ? '' : 'translateY(150%)';
+    bar.style.pointerEvents = hasItems ? 'all' : 'none';
+    if (!hasItems) bar.classList.remove('visible');
+  }
+  // Run on every animation frame for the first 2 seconds after load
+  let frames = 0;
+  function loop() { _enforce(); if (++frames < 120) requestAnimationFrame(loop); }
+  if (document.readyState === 'complete') loop();
+  else window.addEventListener('load', loop);
+  // Then keep a lightweight interval as safety net
+  setInterval(_enforce, 500);
+})();
+
 </script>
 </body>
 </html>
