@@ -2922,6 +2922,28 @@ async function handleImgUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
 
+  function reRenderCard(itemId) {
+    const found = findItem(itemId);
+    if (!found) return;
+    const card = document.getElementById('icard-'+itemId);
+    if (card) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderItemHTML(found.item, true);
+      card.replaceWith(tmp.firstElementChild);
+    }
+    // Also refresh item popup image if it's open for this item
+    if (_currentPopupItemId === itemId) {
+      const imgWrap = document.getElementById('ipImgWrap');
+      const imgSrc = customImages[itemId];
+      if (imgWrap && imgSrc) {
+        imgWrap.classList.remove('no-img');
+        imgWrap.innerHTML = `<img src="${imgSrc}" alt="" onload="this.style.opacity=1" style="opacity:0;">`;
+        const img = imgWrap.querySelector('img');
+        if (img && img.complete) img.style.opacity = '1';
+      }
+    }
+  }
+
   // Find backend DB id
   const menuItem = MENU.flatMap(c=>c.items).find(i=>i.id===id);
   if (menuItem && menuItem._dbId) {
@@ -2937,31 +2959,31 @@ async function handleImgUpload(id, input) {
         body: formData,
       });
       const data = await res.json();
+      if (!res.ok) {
+        toast('Upload failed: ' + (data.error || res.statusText) + ' · فشل الرفع');
+        return;
+      }
       if (data.imageUrl) {
         customImages[id] = data.imageUrl;
         menuItem.imageUrl = data.imageUrl;
-        toast('Image uploaded to cloud! ☁️ · تم رفع الصورة');
+        toast('Image uploaded! ☁️ · تم رفع الصورة');
+        reRenderCard(id);
+      } else {
+        toast('Upload failed: no image URL returned · لم يُرجع الخادم رابط الصورة');
       }
     } catch (e) {
-      toast('Upload failed: ' + e.message);
-      return;
+      toast('Upload failed: ' + e.message + ' · فشل الرفع');
     }
   } else {
-    // Fallback: store locally as base64
+    // Fallback: store locally as base64 (no backend DB id available)
     const reader = new FileReader();
-    reader.onload = e => { customImages[id] = e.target.result; toast('Image updated! 📷'); };
+    reader.onload = e => {
+      customImages[id] = e.target.result;
+      toast('Image updated! 📷 · تم تحديث الصورة');
+      reRenderCard(id);
+    };
+    reader.onerror = () => toast('Failed to read image file · فشل قراءة الصورة');
     reader.readAsDataURL(file);
-    return;
-  }
-
-  // Re-render the card
-  const res = findItem(id);
-  if (!res) return;
-  const card = document.getElementById('icard-'+id);
-  if (card) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = renderItemHTML(res.item, true);
-    card.replaceWith(tmp.firstElementChild);
   }
 }
 
@@ -4374,8 +4396,20 @@ async function mmSaveChanges() {
         body: formData,
       });
       const data = await res.json();
-      if (data.imageUrl) { customImages[id] = data.imageUrl; successCount++; }
-      else failCount++;
+      if (!res.ok) {
+        console.error('Upload error for', id, data.error || res.statusText);
+        failCount++;
+        continue;
+      }
+      if (data.imageUrl) {
+        customImages[id] = data.imageUrl;
+        // Also update the MENU item so the image persists across re-renders
+        const menuItem = MENU.flatMap(c=>c.items).find(i=>i.id===id);
+        if (menuItem) menuItem.imageUrl = data.imageUrl;
+        successCount++;
+      } else {
+        failCount++;
+      }
     } catch (err) { console.error('Upload error for', id, err); failCount++; }
   }
   mmPendingUploads = {};
@@ -4384,7 +4418,7 @@ async function mmSaveChanges() {
     toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved! · تم الحفظ`);
     mmDisableSave(); btn.textContent = '💾 Save · حفظ';
   } else {
-    toast(`⚠️ ${successCount} saved, ${failCount} failed`);
+    toast(`⚠️ ${successCount} saved, ${failCount} failed · ${failCount} فشل`);
     btn.textContent = '💾 Save'; mmEnableSave();
   }
 }
