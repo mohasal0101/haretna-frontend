@@ -3414,7 +3414,14 @@ function parseItemNotesFromOrderNote(orderNote, items) {
   if (!orderNote) return { flavorEntries: [], cleanNote: '' };
   const parts = orderNote.split(' || ');
   const itemNotePart = parts[0] || '';
-  const cleanNote = parts.slice(1).join(' || ').trim();
+  // Only keep the general note (after ||) — strip any remaining flavor-only lines
+  const rawCleanNote = parts.slice(1).join(' || ').trim();
+  // Filter out any segments that are purely flavor notations
+  const cleanNote = rawCleanNote
+    .split(' | ')
+    .filter(seg => seg && !seg.match(/^\[.*?\]:\s*Flavor:/))
+    .join(' | ')
+    .trim();
   const flavorEntries = [];
   itemNotePart.split(' | ').forEach(chunk => {
     // New indexed format: [0:Name]: note
@@ -3625,8 +3632,7 @@ function renderAdmin() {
             const flavors = flavorMatch[1].trim().split(' & ');
             flavorTags = flavors.map(f=>`<span class="oc-item-addon">${f}</span>`).join('');
             freeNote = (flavorMatch[3]||'').trim();
-          }
-          const _catRes = findItemInMenu(i.id);
+          }          const _catRes = findItemInMenu(i.id);
           const _cat = _catRes ? MENU.find(c=>c.id===_catRes.catId) : null;
           const catLabel = _cat ? `<span style="font-size:10px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;">${_cat.ar}</span>` : '';
           const nameBlock = `<div style="flex:1;min-width:0;">
@@ -3646,7 +3652,7 @@ function renderAdmin() {
           </div>`;
         }).join('')}
       </div>
-      ${o.note?`<div class="oc-note"><span style="font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:4px;">Order Note · ملاحظة الطلب</span><div style="font-size:11px;color:#f5d87a;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${o.note.replace(/ \| /g,'<br>')}</div></div>`:''}
+      ${(o.note && !o.note.match(/^\[\d+:.*?\]:\s*Flavor:/)) ?`<div class="oc-note"><span style="font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:4px;">Order Note · ملاحظة الطلب</span><div style="font-size:11px;color:#f5d87a;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${o.note.replace(/ \| /g,'<br>')}</div></div>`:''}
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
@@ -5219,41 +5225,27 @@ async function loadMenuFromAPI() {
         isInStock: item.isInStock,
         isTrending: item.isTrending,
         addons: item.addons || [],
+        addonsMin: item.addonsMin || 0,
+        addonsMax: item.addonsMax || 0,
       })),
     }));
     // Populate outOfStock set
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
-    // Build ADDONS from DB
-    ADDONS = {};
-    MENU.flatMap(c => c.items).forEach(i => {
-      if (i.addons && i.addons.length > 0) {
-        ADDONS[i.id] = { options: i.addons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })) };
-      }
-    });
-    // Build ADDONS from DB addons
+    // Build ADDONS from DB — single pass, includes min/max limits
     ADDONS = {};
     MENU.flatMap(c => c.items).forEach(i => {
       if (i.addons && i.addons.length > 0) {
         ADDONS[i.id] = {
           options: i.addons.map(a => ({
-            name: a.nameEn, nameAr: a.nameAr,
-            price: a.price || 0, icon: a.icon || '', oos: false,
-          }))
-        };
-      }
-    });
-    // Build ADDONS from DB addons so getFlavorsForItem works correctly
-    ADDONS = {};
-    MENU.flatMap(c => c.items).forEach(i => {
-      if (i.addons && i.addons.length > 0) {
-        ADDONS[i.id] = {
-          options: i.addons.map(a => ({
+            id: a.id,
             name: a.nameEn,
             nameAr: a.nameAr,
             price: a.price || 0,
             icon: a.icon || '',
-            oos: false,
-          }))
+            oos: !a.isActive,
+          })),
+          min: i.addonsMin || 0,
+          max: i.addonsMax || 0,
         };
       }
     });
