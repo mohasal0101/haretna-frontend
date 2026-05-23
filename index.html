@@ -2799,11 +2799,12 @@ function selectAddonsItem(itemId) {
   _addonsSelectedId = itemId;
   const item = MENU.flatMap(c=>c.items).find(i=>i.id===itemId);
   if (!item) return;
+  const dbItemId = item._dbId || itemId;
   document.getElementById('addonsSelectedName').textContent = stripEmoji(item.en) + ' — ' + stripEmoji(item.ar);
   document.getElementById('addonsEditor').style.display = 'block';
   document.getElementById('addonsNewOption').value = '';
   // Load fresh from DB each time
-  apiFetch(`/api/addons/${itemId}`).then(dbAddons => {
+  apiFetch(`/api/addons/${dbItemId}`).then(dbAddons => {
     const existing = ADDONS[itemId] || {};
     ADDONS[itemId] = {
       options: dbAddons.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })),
@@ -2846,9 +2847,11 @@ async function updateAddonsLimits() {
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { options: [], min: 0, max: 0 };
   ADDONS[_addonsSelectedId].min = min;
   ADDONS[_addonsSelectedId].max = max;
-  // Persist to backend immediately
+  // Resolve backend DB UUID
+  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
+  const dbItemId = menuItem?._dbId || _addonsSelectedId;
   try {
-    await apiFetch(`/api/menu/items/${_addonsSelectedId}`, {
+    await apiFetch(`/api/menu/items/${dbItemId}`, {
       method: 'PATCH',
       body: JSON.stringify({ addonsMin: min, addonsMax: max }),
     });
@@ -2863,12 +2866,17 @@ async function addAddonOption() {
   if (!val) { toast('Type an option first · اكتب خياراً أولاً'); return; }
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
+
+  // Resolve the backend DB UUID for this item
+  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
+  const dbItemId = menuItem?._dbId || _addonsSelectedId;
+
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
   for (const name of newOpts) {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
     if (!existing) {
       try {
-        const res = await apiFetch(`/api/addons/${_addonsSelectedId}`, {
+        const res = await apiFetch(`/api/addons/${dbItemId}`, {
           method: 'POST',
           body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
         });
