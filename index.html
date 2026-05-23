@@ -2462,11 +2462,9 @@ function openItemPopup(itemId) {
     const addonCfg = ADDONS[itemId];
     const minSel = addonCfg?.min || 1;
     const maxSel = addonCfg?.max || 0;
-    const limitHint = maxSel === 1
-      ? ` — Choose 1 · اختر واحداً فقط`
-      : maxSel > 1
-        ? ` — Choose ${minSel}–${maxSel} · اختر من ${minSel} إلى ${maxSel}`
-        : minSel > 1 ? ` — min ${minSel}` : '';
+    const limitHint = maxSel > 0
+      ? ` (${minSel}–${maxSel})`
+      : minSel > 1 ? ` (min ${minSel})` : '';
     const flavorsLabelEl = flavorsWrap.querySelector('.ip-flavors-label');
     if (flavorsLabelEl) {
       flavorsLabelEl.textContent = (addonCfg?.label || 'Choose option · اختر خياراً') + limitHint;
@@ -2503,30 +2501,19 @@ function ipChangeQty(d) {
 
 function selectFlavor(flavor, el) {
   if (el.classList.contains('disabled')) return;
-  const addonCfg = ADDONS[_currentPopupItemId];
-  const maxAllowed = addonCfg?.max || 0; // 0 = unlimited
-
   const idx = _selectedFlavor.indexOf(flavor);
   if (idx > -1) {
-    // Uncheck
     _selectedFlavor.splice(idx, 1);
     el.classList.remove('selected');
   } else {
-    if (maxAllowed === 1) {
-      // Radio mode — deselect all others first
-      _selectedFlavor = [];
-      document.querySelectorAll('.ip-flavor-chip').forEach(c => c.classList.remove('selected'));
-      _selectedFlavor.push(flavor);
-      el.classList.add('selected');
-    } else {
-      // Multi-select mode — block if max reached
-      if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
-      _selectedFlavor.push(flavor);
-      el.classList.add('selected');
-    }
+    const addonCfg = ADDONS[_currentPopupItemId];
+    const maxAllowed = addonCfg?.max || 0;
+    if (maxAllowed > 0 && _selectedFlavor.length >= maxAllowed) return;
+    _selectedFlavor.push(flavor);
+    el.classList.add('selected');
   }
-  // Grey out unchosen chips when max is reached
-  const _maxAllowed = addonCfg?.max || 0;
+  const _addonCfg = ADDONS[_currentPopupItemId];
+  const _maxAllowed = _addonCfg?.max || 0;
   document.querySelectorAll('.ip-flavor-chip').forEach(chip => {
     const isSelected = chip.classList.contains('selected');
     chip.classList.toggle('disabled', _maxAllowed > 0 && _selectedFlavor.length >= _maxAllowed && !isSelected);
@@ -2872,7 +2859,6 @@ async function addAddonOption() {
   const dbItemId = menuItem?._dbId || _addonsSelectedId;
 
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
-  let anyAdded = false;
   for (const name of newOpts) {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
     if (!existing) {
@@ -2882,26 +2868,13 @@ async function addAddonOption() {
           body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
         });
         ADDONS[_addonsSelectedId].options.push({ id: res.id, name, oos: false });
-        anyAdded = true;
       } catch(e) {
         console.error('Failed to save addon:', e);
-        toast('Could not save — this item may not exist in the database yet. · لم يتم الحفظ، قد لا يكون هذا العنصر في قاعدة البيانات بعد.');
+        toast('Error saving addon: ' + e.message);
       }
     }
   }
   inp.value = '';
-  // Reload fresh from DB so ADDONS stays in sync with what's actually saved
-  if (anyAdded) {
-    try {
-      const fresh = await apiFetch(`/api/addons/${dbItemId}`);
-      const existing = ADDONS[_addonsSelectedId] || {};
-      ADDONS[_addonsSelectedId] = {
-        options: fresh.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })),
-        min: existing.min || 0,
-        max: existing.max || 0,
-      };
-    } catch(e) { /* keep local state */ }
-  }
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
@@ -2943,10 +2916,27 @@ async function removeAddonOption(idx) {
 
 async function saveAddons() {
   // Persist limits for currently selected item
-  await updateAddonsLimits();
+  updateAddonsLimits();
   try {
-    // Full reload so ADDONS, MENU items and customer popup all see fresh data
-    await loadMenuFromAPI();
+    const cats = await apiFetch('/api/menu');
+    // Reload options from DB but keep min/max from local state
+    const savedLimits = {};
+    Object.entries(ADDONS).forEach(([id, a]) => { savedLimits[id] = { min: a.min||0, max: a.max||0 }; });
+    ADDONS = {};
+    cats.forEach(cat => {
+      cat.items.forEach(item => {
+        if (item.addons && item.addons.length > 0) {
+          ADDONS[item.id] = {
+            options: item.addons.map(a => ({
+              id: a.id, name: a.nameEn, nameAr: a.nameAr,
+              price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
+            })),
+            min: savedLimits[item.id]?.min || 0,
+            max: savedLimits[item.id]?.max || 0,
+          };
+        }
+      });
+    });
     toast('Add-ons saved! · تم حفظ الإضافات');
   } catch(e) {
     console.error('Failed to reload addons:', e);
@@ -3411,22 +3401,13 @@ function parseItemNotesFromOrderNote(orderNote, items) {
   if (!orderNote) return { flavorEntries: [], cleanNote: '' };
   const parts = orderNote.split(' || ');
   const itemNotePart = parts[0] || '';
-  // Only keep the general note (after ||) — strip any remaining flavor-only lines
-  const rawCleanNote = parts.slice(1).join(' || ').trim();
-  // Filter out any segments that are purely flavor notations
-  const cleanNote = rawCleanNote
-    .split(' | ')
-    .filter(seg => seg && !seg.match(/^\[.*?\]:\s*Flavor:/))
-    .join(' | ')
-    .trim();
+  const cleanNote = parts.slice(1).join(' || ').trim();
   const flavorEntries = [];
   itemNotePart.split(' | ').forEach(chunk => {
-    // New indexed format: [0:Name]: note
     const m = chunk.match(/^\[(\d+):(.+?)\]:\s*(.+)$/);
     if (m) {
       flavorEntries.push({ idx: parseInt(m[1]), name: m[2].trim(), note: m[3].trim() });
     } else {
-      // Legacy format: [Name]: note
       const m2 = chunk.match(/^\[(.+?)\]:\s*(.+)$/);
       if (m2) flavorEntries.push({ idx: -1, name: m2[1].trim(), note: m2[2].trim() });
     }
@@ -3649,7 +3630,7 @@ function renderAdmin() {
           </div>`;
         }).join('')}
       </div>
-      ${(o.note && !o.note.match(/^\[\d+:.*?\]:\s*Flavor:/)) ?`<div class="oc-note"><span style="font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:4px;">Order Note · ملاحظة الطلب</span><div style="font-size:11px;color:#f5d87a;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${o.note.replace(/ \| /g,'<br>')}</div></div>`:''}
+      ${o.note?`<div class="oc-note"><span style="font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:4px;">Order Note · ملاحظة الطلب</span><div style="font-size:11px;color:#f5d87a;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${o.note.replace(/ \| /g,'<br>')}</div></div>`:''}
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
@@ -3995,13 +3976,10 @@ function renderEditOfferItemPicker() {
   const allItems = MENU.flatMap(c => c.items);
   el.innerHTML = allItems.map(i => {
     const sel = _editOfferItemIds.includes(i.id);
-    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="flex:1;min-width:0;">
-        <span style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);display:block;">${i.en}</span>
-        <span style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);">${i.ar||''}</span>
-      </span>
-      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};flex-shrink:0;">${sel?'✓':'+'}</span>
+    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
+      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};">${sel?'✓':'+'}</span>
     </div>`;
   }).join('');
 }
@@ -4051,13 +4029,10 @@ function renderOfferItemPicker() {
   const catFilter = document.getElementById('newOfferCatFilter').value;
   const source = catFilter ? (MENU.find(c=>c.id===catFilter)?.items||[]) : MENU.flatMap(c=>c.items);
   document.getElementById('offerItemPicker').innerHTML = source.map(i=>`
-    <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="flex:1;min-width:0;">
-        <span style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);display:block;">${i.en}</span>
-        <span style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);">${i.ar||''}</span>
-      </span>
-      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};flex-shrink:0;">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
+    <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
+      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
+      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
     </div>`).join('');
 }
 function toggleOfferItem(id) {
@@ -5222,27 +5197,19 @@ async function loadMenuFromAPI() {
         isInStock: item.isInStock,
         isTrending: item.isTrending,
         addons: item.addons || [],
-        addonsMin: item.addonsMin || 0,
-        addonsMax: item.addonsMax || 0,
       })),
     }));
     // Populate outOfStock set
     MENU.flatMap(c=>c.items).forEach(i => { if (!i.isInStock) outOfStock.add(i.id); });
-    // Build ADDONS from DB — single pass, includes min/max limits
+    // Build ADDONS from DB
     ADDONS = {};
     MENU.flatMap(c => c.items).forEach(i => {
       if (i.addons && i.addons.length > 0) {
         ADDONS[i.id] = {
           options: i.addons.map(a => ({
-            id: a.id,
-            name: a.nameEn,
-            nameAr: a.nameAr,
-            price: a.price || 0,
-            icon: a.icon || '',
-            oos: !a.isActive,
-          })),
-          min: i.addonsMin || 0,
-          max: i.addonsMax || 0,
+            id: a.id, name: a.nameEn, nameAr: a.nameAr,
+            price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
+          }))
         };
       }
     });
