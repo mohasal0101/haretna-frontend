@@ -748,20 +748,21 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   pointer-events:all;
   border-top:none;
 }
-#cartBar.visible #cartBarInner{display:flex;}
-#cartBarInner{display:none;}
+#cartBar.visible{pointer-events:all;}
+#cartBarInner{
+  display:none;
   width:100%;
   max-width:500px;
   margin-top:10px;
   background:linear-gradient(135deg,#7a4510 0%,#c8952a 50%,#e0a830 100%);
   border-radius:18px;
   box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15);
-  display:flex;
   align-items:center;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   overflow:hidden;
 }
+#cartBar.visible #cartBarInner{display:flex;}
 #cartBarInner:active{transform:scale(.98);}
 
 @keyframes cartBarPulse{
