@@ -5260,6 +5260,7 @@ window.addEventListener('load', async () => {
 
     currentTable = tableParam;
     document.getElementById('tableDisplay').textContent = tableParam;
+    window.history.replaceState({}, '', window.location.pathname);
     document.getElementById('tableSelect').value = tableParam;
 
     if (MENU.length) {
