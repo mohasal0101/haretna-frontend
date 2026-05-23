@@ -2872,6 +2872,7 @@ async function addAddonOption() {
   const dbItemId = menuItem?._dbId || _addonsSelectedId;
 
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
+  let anyAdded = false;
   for (const name of newOpts) {
     const existing = ADDONS[_addonsSelectedId].options.find(o=>(typeof o==='object'?o.name:o)===name);
     if (!existing) {
@@ -2881,6 +2882,7 @@ async function addAddonOption() {
           body: JSON.stringify({ nameEn: name, nameAr: name, price: 0, icon: '' }),
         });
         ADDONS[_addonsSelectedId].options.push({ id: res.id, name, oos: false });
+        anyAdded = true;
       } catch(e) {
         console.error('Failed to save addon:', e);
         toast('Could not save — this item may not exist in the database yet. · لم يتم الحفظ، قد لا يكون هذا العنصر في قاعدة البيانات بعد.');
@@ -2888,6 +2890,18 @@ async function addAddonOption() {
     }
   }
   inp.value = '';
+  // Reload fresh from DB so ADDONS stays in sync with what's actually saved
+  if (anyAdded) {
+    try {
+      const fresh = await apiFetch(`/api/addons/${dbItemId}`);
+      const existing = ADDONS[_addonsSelectedId] || {};
+      ADDONS[_addonsSelectedId] = {
+        options: fresh.map(a => ({ id: a.id, name: a.nameEn, nameAr: a.nameAr, price: a.price||0, icon: a.icon||'', oos: !a.isActive })),
+        min: existing.min || 0,
+        max: existing.max || 0,
+      };
+    } catch(e) { /* keep local state */ }
+  }
   renderAddonsChips();
   renderAddonsItemList(document.getElementById('addonsSearch').value);
 }
@@ -2929,27 +2943,10 @@ async function removeAddonOption(idx) {
 
 async function saveAddons() {
   // Persist limits for currently selected item
-  updateAddonsLimits();
+  await updateAddonsLimits();
   try {
-    const cats = await apiFetch('/api/menu');
-    // Reload options from DB but keep min/max from local state
-    const savedLimits = {};
-    Object.entries(ADDONS).forEach(([id, a]) => { savedLimits[id] = { min: a.min||0, max: a.max||0 }; });
-    ADDONS = {};
-    cats.forEach(cat => {
-      cat.items.forEach(item => {
-        if (item.addons && item.addons.length > 0) {
-          ADDONS[item.id] = {
-            options: item.addons.map(a => ({
-              id: a.id, name: a.nameEn, nameAr: a.nameAr,
-              price: a.price || 0, icon: a.icon || '', oos: !a.isActive,
-            })),
-            min: savedLimits[item.id]?.min || 0,
-            max: savedLimits[item.id]?.max || 0,
-          };
-        }
-      });
-    });
+    // Full reload so ADDONS, MENU items and customer popup all see fresh data
+    await loadMenuFromAPI();
     toast('Add-ons saved! · تم حفظ الإضافات');
   } catch(e) {
     console.error('Failed to reload addons:', e);
