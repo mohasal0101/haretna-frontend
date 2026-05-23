@@ -1556,7 +1556,7 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   <div class="admin-topbar">
     <div class="at-logo">🖼️ Menu Manager <small>Photos & Categories</small></div>
     <div class="at-btns">
-      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>💾 Save · حفظ</button>
+      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>🔄 Retry Failed · إعادة المحاولة</button>
       <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back · رجوع</button>
     </div>
   </div>
@@ -1871,7 +1871,8 @@ let cart = {};
 let orders = [];
 let history = [];
 let outOfStock = new Set();
-let customImages = {};  // itemId -> base64
+let customImages = {};  // itemId -> base64 or Cloudinary URL
+let mmPendingUploads = {};  // itemId -> compressed Blob (retry queue for failed uploads)
 let adminFilter = 'all';
 let cdTimer = null;
 let cdRemaining = 3;
@@ -4365,24 +4366,117 @@ function compressImage(file, maxWidth, quality) {
   });
 }
 
+// ── Upload debug overlay ────────────────────────────────────────────
+function showUploadDebug(lines) {
+  let box = document.getElementById('uploadDebugBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'uploadDebugBox';
+    box.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1208;border:1px solid #c8952a;border-radius:8px;padding:14px 18px;font-family:monospace;font-size:11px;color:#f0e8d8;max-width:90vw;min-width:320px;line-height:1.7;box-shadow:0 8px 32px rgba(0,0,0,.7);';
+    box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="color:#c8952a;letter-spacing:1px;">UPLOAD DEBUG</b><button onclick="this.closest('#uploadDebugBox').remove()" style="background:none;border:none;color:#c8952a;cursor:pointer;font-size:16px;line-height:1;">✕</button></div><div id="uploadDebugLines"></div>';
+    document.body.appendChild(box);
+  }
+  const el = document.getElementById('uploadDebugLines');
+  el.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+}
+// ────────────────────────────────────────────────────────────────────
+
 async function handleMMUpload(id, input) {
   const file = input.files[0];
   if (!file) return;
+
+  const debugLines = [`📁 File: ${file.name} (${(file.size/1024).toFixed(1)} KB)`];
+  showUploadDebug(debugLines);
+
+  // Compress first, then show a local preview immediately while uploading
   const compressed = await compressImage(file, 800, 0.75);
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async (e) => {
+    // Set base64 preview right away so the card shows the image instantly
     customImages[id] = e.target.result;
-    mmPendingUploads[id] = compressed;
     renderMMGrid(_mmActiveCat);
-    mmEnableSave();
+
+    const menuItem = MENU.flatMap(c => c.items).find(i => i.id === id);
+    debugLines.push(`🔑 Item ID: ${id}`);
+    debugLines.push(`📋 menuItem found: ${!!menuItem}`);
+    debugLines.push(`🔑 Token: ${getToken() ? getToken().substring(0,20)+'…' : 'MISSING ❌'}`);
+    if (!menuItem) {
+      debugLines.push('❌ Item not found in MENU — cannot upload');
+      showUploadDebug(debugLines);
+      toast('Item not found · العنصر غير موجود');
+      return;
+    }
+
+    const uploadUrl = `${API_URL}/api/upload/menu-item/${id}`;
+    debugLines.push(`🌐 URL: ${uploadUrl}`);
+    showUploadDebug(debugLines);
+
+    // Dim the card while uploading
+    const cardEl = document.getElementById('mmcard-' + id);
+    if (cardEl) cardEl.style.opacity = '0.55';
+
+    try {
+      const formData = new FormData();
+      formData.append('image', compressed, 'photo.jpg');
+      debugLines.push(`⏳ Sending request…`);
+      showUploadDebug(debugLines);
+
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: formData,
+      });
+
+      const rawText = await res.text();
+      debugLines.push(`📡 HTTP Status: ${res.status} ${res.statusText}`);
+      debugLines.push(`📄 Response: ${rawText.substring(0, 200)}`);
+      showUploadDebug(debugLines);
+
+      let data = {};
+      try { data = JSON.parse(rawText); } catch(e) { data = { error: rawText }; }
+
+      if (!res.ok) {
+        debugLines.push(`❌ Failed: ${data.error || res.statusText}`);
+        showUploadDebug(debugLines);
+        toast('Upload failed (' + res.status + '): ' + (data.error || res.statusText));
+        mmPendingUploads[id] = compressed;
+        mmEnableSave();
+      } else if (data.imageUrl) {
+        customImages[id] = data.imageUrl;
+        menuItem.imageUrl = data.imageUrl;
+        delete mmPendingUploads[id];
+        if (Object.keys(mmPendingUploads).length === 0) mmDisableSave();
+        debugLines.push(`✅ Success! URL: ${data.imageUrl.substring(0,60)}…`);
+        showUploadDebug(debugLines);
+        toast('Photo saved to database! ✅ · تم حفظ الصورة في قاعدة البيانات');
+      } else {
+        debugLines.push('⚠️ No imageUrl in response');
+        showUploadDebug(debugLines);
+        toast('Upload failed: no URL returned · لم يُرجع الخادم رابط الصورة');
+        mmPendingUploads[id] = compressed;
+        mmEnableSave();
+      }
+    } catch (err) {
+      debugLines.push(`💥 Exception: ${err.message}`);
+      showUploadDebug(debugLines);
+      console.error('Upload error for', id, err);
+      toast('Upload failed: ' + err.message);
+      mmPendingUploads[id] = compressed;
+      mmEnableSave();
+    } finally {
+      if (cardEl) cardEl.style.opacity = '1';
+      renderMMGrid(_mmActiveCat);
+    }
   };
+  reader.onerror = () => toast('Failed to read image · فشل قراءة الصورة');
   reader.readAsDataURL(compressed);
 }
 
 async function mmSaveChanges() {
+  // Retry any uploads that failed and are still pending
   if (Object.keys(mmPendingUploads).length === 0) return;
   const btn = document.getElementById('mmSaveBtn');
-  btn.textContent = '⏳ Saving...';
+  btn.textContent = '⏳ Retrying...';
   btn.disabled = true;
   btn.style.opacity = '0.6';
   let successCount = 0, failCount = 0;
@@ -4403,8 +4497,7 @@ async function mmSaveChanges() {
       }
       if (data.imageUrl) {
         customImages[id] = data.imageUrl;
-        // Also update the MENU item so the image persists across re-renders
-        const menuItem = MENU.flatMap(c=>c.items).find(i=>i.id===id);
+        const menuItem = MENU.flatMap(c => c.items).find(i => i.id === id);
         if (menuItem) menuItem.imageUrl = data.imageUrl;
         successCount++;
       } else {
@@ -4415,20 +4508,31 @@ async function mmSaveChanges() {
   mmPendingUploads = {};
   renderMMGrid(_mmActiveCat);
   if (failCount === 0) {
-    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved! · تم الحفظ`);
+    toast(`✅ ${successCount} photo${successCount > 1 ? 's' : ''} saved to database! · تم الحفظ`);
     mmDisableSave(); btn.textContent = '💾 Save · حفظ';
   } else {
     toast(`⚠️ ${successCount} saved, ${failCount} failed · ${failCount} فشل`);
-    btn.textContent = '💾 Save'; mmEnableSave();
+    btn.textContent = '💾 Retry · إعادة'; mmEnableSave();
   }
 }
 
-function removeMMImage(id) {
+async function removeMMImage(id) {
   delete customImages[id];
   delete mmPendingUploads[id];
+  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === id);
+  if (menuItem) menuItem.imageUrl = null;
   renderMMGrid(_mmActiveCat);
-  mmEnableSave();
+  if (Object.keys(mmPendingUploads).length === 0) mmDisableSave();
   toast('Photo removed · تم حذف الصورة');
+  // Clear image from database too
+  try {
+    await apiFetch(`/api/menu/items/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ imageUrl: null }),
+    });
+  } catch (e) {
+    console.warn('Could not clear image from DB:', e.message);
+  }
 }
 // =====================================================================
 function openTrendingPanel() {
