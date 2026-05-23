@@ -1216,13 +1216,13 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <div id="salesOverlay" onclick="closeSalesModal()">
   <div id="salesModal" onclick="event.stopPropagation()">
     <div class="sm-head">
-      <div class="sm-title">📊 Sales Summary · ملخص المبيعات</div>
+      <div class="sm-title">Sales Summary · ملخص المبيعات</div>
       <button class="sm-close" onclick="closeSalesModal()">✕</button>
     </div>
     <div class="sm-kpis" id="smKpis"></div>
-    <div class="sm-section-title">🏆 Top Items Today · الأكثر طلباً اليوم</div>
+    <div class="sm-section-title">Top Items Today · الأكثر طلباً اليوم</div>
     <div id="smTopItems" style="margin-bottom:20px;"></div>
-    <div class="sm-section-title">⏰ Orders by Hour · الطلبات بالساعة</div>
+    <div class="sm-section-title">Orders by Hour · الطلبات بالساعة</div>
     <div id="smHourBars"></div>
   </div>
 </div>
@@ -1503,7 +1503,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
     <!-- ── Notification Sidebar ── -->
     <div class="notif-sidebar">
       <div class="notif-sidebar-head" onclick="this.closest('.notif-sidebar').classList.toggle('expanded')">
-        🔔 Table Requests · طلبات الطاولات
+        Table Requests · طلبات الطاولات
         <span class="notif-count" id="notifCount">0</span>
       </div>
       <div class="notif-list" id="notifList">
@@ -1521,11 +1521,11 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       </div>
       <div class="filter-row" id="filterRow">
         <button class="filter-btn active" onclick="setFilter('all',this)">All · الكل</button>
-        <button class="filter-btn" onclick="setFilter('new',this)">🔴 New · جديد</button>
-        <button class="filter-btn" onclick="setFilter('preparing',this)">🟡 Preparing · يُحضَّر</button>
-        <button class="filter-btn" onclick="setFilter('sent',this)">🟢 Ready · جاهز</button>
-        <button class="filter-btn" onclick="setFilter('done',this)">⚪ Done · منتهي</button>
-        <button class="filter-btn" onclick="setFilter('cashed',this)">✅ Cashed Out · سُدِّد</button>
+        <button class="filter-btn" onclick="setFilter('new',this)">New · جديد</button>
+        <button class="filter-btn" onclick="setFilter('preparing',this)">Preparing · يُحضَّر</button>
+        <button class="filter-btn" onclick="setFilter('sent',this)">Ready · جاهز</button>
+        <button class="filter-btn" onclick="setFilter('done',this)">Done · منتهي</button>
+        <button class="filter-btn" onclick="setFilter('cashed',this)">Cashed Out · سُدِّد</button>
       </div>
       <div class="orders-grid" id="ordersGrid"></div>
     </div>
@@ -1552,9 +1552,9 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <!-- ===== MENU MANAGER PAGE ===== -->
 <div id="menuManagerPage" class="view">
   <div class="admin-topbar">
-    <div class="at-logo">🖼️ Menu Manager <small>Photos & Categories</small></div>
+    <div class="at-logo">Menu Manager · إدارة القائمة <small>Photos & Categories · الصور والأقسام</small></div>
     <div class="at-btns">
-      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>🔄 Retry Failed · إعادة المحاولة</button>
+      <button id="mmSaveBtn" class="at-btn" style="background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border-color:var(--gold);opacity:0.4;cursor:not-allowed;" onclick="mmSaveChanges()" disabled>Retry Failed · إعادة المحاولة</button>
       <button class="at-btn" onclick="showView('admin');renderAdmin()">← Back · رجوع</button>
     </div>
   </div>
@@ -3582,13 +3582,13 @@ function renderAdmin() {
   renderNotifSidebar();
   const grid = document.getElementById('ordersGrid');
   if (!filtered.length) {
-    grid.innerHTML = `<div class="admin-empty"><div class="ae-ar">📭</div><p>No orders in this category.<br>لا توجد طلبات هنا</p></div>`;
+    grid.innerHTML = `<div class="admin-empty"><div class="ae-ar">لا توجد طلبات</div><p>No orders in this category.<br>لا توجد طلبات هنا</p></div>`;
     return;
   }
   grid.innerHTML = filtered.map(o=>{
     const sp = {new:'sp-new',preparing:'sp-prep',ready:'sp-sent',sent:'sp-sent',done:'sp-done',cashed:'sp-cashed'}[o.status]||'sp-new';
-    const statusLabel = {new:'New',preparing:'Preparing',ready:'Ready',sent:'Ready',done:'Done',cashed:'Cashed'}[o.status]||'New';
-    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items</span>` : '';
+    const statusLabel = {new:'New · جديد',preparing:'Preparing · يُحضَّر',ready:'Ready · جاهز',sent:'Ready · جاهز',done:'Done · منتهي',cashed:'Cashed · سُدِّد'}[o.status]||'New · جديد';
+    const newItemsBadge = o.hasNewItems ? `<span style="background:rgba(200,149,42,.18);border:1px solid var(--gold);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:8px;letter-spacing:1.5px;padding:2px 8px;border-radius:20px;margin-left:6px;text-transform:uppercase;vertical-align:middle;">+ New Items · إضافات جديدة</span>` : '';
     return `<div class="order-card${o.isNew?' is-new':''}" id="ocard-${o.id}">
       <div class="oc-h">
         <div class="oc-h-left"><div class="oc-tbl">طاولة ${o.table}${newItemsBadge}</div><div class="oc-time">وقت الطلب: ${o.time}</div></div>
@@ -3613,7 +3613,7 @@ function renderAdmin() {
           const nameBlock = `<div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
               ${catLabel}<span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
-              ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
+              ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">جديد · x${i.qty}</span>`:''}
               ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
             ${flavorTags?`<div style="margin-top:4px;">${flavorTags}</div>`:''}
@@ -3779,19 +3779,19 @@ function showReceipt(id) {
   el.innerHTML = `
     <div class="r-logo-ar">أهوة حارتنا</div>
     <div class="r-logo-en">HARETNA CAFÉ</div>
-    <div class="r-sub">📍 Amman, Jordan</div>
+    <div class="r-sub">Amman, Jordan · عمّان، الأردن</div>
     <hr class="r-div"/>
     <div class="r-row"><span>Table · طاولة</span><span>${o.table}</span></div>
     <div class="r-row"><span>Time · الوقت</span><span>${o.time}</span></div>
     <div class="r-row"><span>Order # · رقم الطلب</span><span>${String(o.id).slice(-5)}</span></div>
     <hr class="r-div"/>
-    ${o.items.map(i=>`<div class="r-row"><span>${i.icon} ${i.en} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
+    ${o.items.map(i=>`<div class="r-row"><span>${stripEmoji(i.en)}${i.ar?' / '+stripEmoji(i.ar):''} ×${i.qty}</span><span>JD ${(i.price*i.qty).toFixed(2)}</span></div>`).join('')}
     <hr class="r-div"/>
     <div class="r-grand"><span>TOTAL · المجموع</span><span>JD ${o.grand.toFixed(2)}</span></div>
     ${o.note?`<hr class="r-div"/><div class="r-row" style="font-style:italic;color:#7a6a50;font-size:10px">Note · ملاحظة: ${o.note}</div>`:''}
     <div class="r-thanks">شكراً لزيارتكم ♥<br>Thank you for visiting Haretna Café!<br>Come back soon.</div>
     <div class="r-actions">
-      <button class="r-btn r-print" onclick="printReceiptOnly()">🖨 Print · طباعة</button>
+      <button class="r-btn r-print" onclick="printReceiptOnly()">Print · طباعة</button>
       <button class="r-btn r-close" onclick="document.getElementById('receiptOverlay').classList.remove('open')">Close · إغلاق</button>
     </div>`;
   document.getElementById('receiptOverlay').classList.add('open');
@@ -3812,14 +3812,14 @@ async function renderHistory() {
     <div><div class="hs-num">${filtered.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0)}</div><div class="hs-lbl">Items Sold · عناصر مباعة</div></div>
     <div><div class="hs-num">JD ${total.toFixed(2)}</div><div class="hs-lbl">Revenue · الإيراد</div></div>`;
   if (!filtered.length) {
-    tableEl.innerHTML = `<div class="history-empty"><div class="he-ar">📭</div><p>No orders found for this date.<br>لا توجد طلبات في هذا التاريخ.</p></div>`;
+    tableEl.innerHTML = `<div class="history-empty"><div class="he-ar">لا توجد طلبات</div><p>No orders found for this date.<br>لا توجد طلبات في هذا التاريخ.</p></div>`;
     return;
   }
   tableEl.innerHTML = `
     <div class="ht-head"><span>Table · طاولة</span><span>Items · عناصر</span><span>Time · الوقت</span><span>Total · المجموع</span></div>
     ${filtered.map(o=>`<div class="ht-row" onclick="showReceipt('${o.id}')" style="cursor:pointer">
       <span class="ht-table">T${o.table}</span>
-      <span class="ht-items">${o.items.map(i=>`${i.icon}${i.en.split(' ')[0]} ×${i.qty}`).join(', ')}</span>
+      <span class="ht-items">${o.items.map(i=>`${stripEmoji(i.en)} ×${i.qty}`).join(', ')}</span>
       <span class="ht-time">${o.time}</span>
       <span class="ht-total">JD ${o.grand.toFixed(2)}</span>
     </div>`).join('')}`;
@@ -4751,25 +4751,25 @@ function closeCallPopupOutside(e) {
 // TABLE CALL BUTTONS
 // =====================================================================
 const CALL_LABELS = {
-  waiter:  '🙋 Waiter requested at · طلب نادل — طاولة',
-  bill:    '💳 Bill requested at · طلب حساب — طاولة',
-  napkins: '🧻 Napkins needed at · طلب مناديل — طاولة',
-  water:   '💧 Water requested at · طلب ماء — طاولة',
-  coal:    '🪨 Coal requested at · طلب فحم — طاولة',
-  ashtray: '🫙 Ashtray needed at · طلب مكته — طاولة',
-  cards:   '🃏 Cards requested at · طلب شده — طاولة',
-  clean:   '🧹 Clean table needed at · تنظيف طاولة — طاولة',
+  waiter:  'Waiter requested at · طلب نادل — طاولة',
+  bill:    'Bill requested at · طلب حساب — طاولة',
+  napkins: 'Napkins needed at · طلب مناديل — طاولة',
+  water:   'Water requested at · طلب ماء — طاولة',
+  coal:    'Coal requested at · طلب فحم — طاولة',
+  ashtray: 'Ashtray needed at · طلب مكته — طاولة',
+  cards:   'Cards requested at · طلب شده — طاولة',
+  clean:   'Clean table needed at · تنظيف طاولة — طاولة',
 };
 
 const CALL_LABELS_AR = {
-  waiter:  '🙋 نادل مطلوب',
-  bill:    '💳 طلب الحساب',
-  napkins: '🧻 مناديل مطلوبة',
-  water:   '💧 ماء مطلوب',
-  coal:    '🪨 فحم مطلوب',
-  ashtray: '🫙 مكته مطلوبة',
-  cards:   '🃏 شده مطلوبة',
-  clean:   '🧹 تنظيف طاولة',
+  waiter:  'نادل مطلوب',
+  bill:    'طلب الحساب',
+  napkins: 'مناديل مطلوبة',
+  water:   'ماء مطلوب',
+  coal:    'فحم مطلوب',
+  ashtray: 'مكته مطلوبة',
+  cards:   'شده مطلوبة',
+  clean:   'تنظيف طاولة',
 };
 let callCooldowns = {}; // type -> timestamp
 
