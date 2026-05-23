@@ -2554,7 +2554,7 @@ function toggleItemEdit() {
   form.style.display = visible ? 'none' : 'block';
 }
 
-function saveItemEdit() {
+async function saveItemEdit() {
   if (!_currentPopupItemId) return;
   const en = document.getElementById('ipEditEn').value.trim();
   const ar = document.getElementById('ipEditAr').value.trim();
@@ -2565,6 +2565,19 @@ function saveItemEdit() {
   const res = findItemInMenu(_currentPopupItemId);
   if (!res) return;
   const {item} = res;
+
+  // Save to database first
+  try {
+    await apiFetch(`/api/menu/items/${item._dbId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ nameEn: en, nameAr: ar, descriptionEn: desc || null, price }),
+    });
+  } catch (e) {
+    toast('Failed to save · فشل الحفظ');
+    return;
+  }
+
+  // Update local state after successful save
   item.en = en; item.ar = ar; item.desc = desc || null; item.price = price;
   document.getElementById('ipTitleEn').textContent = en;
   document.getElementById('ipTitleAr').textContent = ar;
@@ -4283,8 +4296,8 @@ async function saveMMEdit(id, dbId) {
   const price = parseFloat(document.getElementById('mmpr-'+id).value);
   if (!en || isNaN(price)) { toast('Please fill in all fields · أكمل جميع الحقول'); return; }
   try {
-    const res = await apiFetch(`/api/menu/item/${dbId}`, {
-      method: 'PUT',
+    const res = await apiFetch(`/api/menu/items/${dbId}`, {
+      method: 'PATCH',
       body: JSON.stringify({ nameEn: en, nameAr: ar, price })
     });
     // Update local MENU data
