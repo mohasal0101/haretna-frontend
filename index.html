@@ -2800,22 +2800,10 @@ function selectAddonsItem(itemId) {
   const item = MENU.flatMap(c=>c.items).find(i=>i.id===itemId);
   if (!item) return;
   const dbItemId = item._dbId || itemId;
-  const looksLikeUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dbItemId);
 
-  document.getElementById('addonsSelectedName').innerHTML = stripEmoji(item.en) + ' — ' + stripEmoji(item.ar) +
-    (!looksLikeUUID ? `<span style="margin-left:10px;font-size:9px;color:#e06060;background:rgba(180,60,60,.15);border:1px solid rgba(180,60,60,.4);border-radius:4px;padding:2px 7px;font-family:'Rubik',sans-serif;letter-spacing:1px;">Not in DB — add via Menu Manager first · غير موجود في قاعدة البيانات</span>` : '');
+  document.getElementById('addonsSelectedName').textContent = stripEmoji(item.en) + ' — ' + stripEmoji(item.ar);
   document.getElementById('addonsEditor').style.display = 'block';
   document.getElementById('addonsNewOption').value = '';
-
-  if (!looksLikeUUID) {
-    // Item not in DB — show empty state, don't fetch
-    if (!ADDONS[itemId]) ADDONS[itemId] = { label: item.en, options: [], min: 0, max: 0 };
-    document.getElementById('addonsMin').value = 0;
-    document.getElementById('addonsMax').value = 0;
-    renderAddonsChips();
-    renderAddonsItemList(document.getElementById('addonsSearch').value);
-    return;
-  }
 
   // Load fresh from DB each time
   apiFetch(`/api/addons/${dbItemId}`).then(dbAddons => {
@@ -2861,11 +2849,8 @@ async function updateAddonsLimits() {
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { options: [], min: 0, max: 0 };
   ADDONS[_addonsSelectedId].min = min;
   ADDONS[_addonsSelectedId].max = max;
-  // Resolve backend DB UUID
   const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
   const dbItemId = menuItem?._dbId || _addonsSelectedId;
-  const looksLikeUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dbItemId);
-  if (!looksLikeUUID) return; // silently skip — item not in DB yet
   try {
     await apiFetch(`/api/menu/items/${dbItemId}`, {
       method: 'PATCH',
@@ -2883,16 +2868,8 @@ async function addAddonOption() {
   if (!_addonsSelectedId) return;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { label: '', options: [] };
 
-  // Resolve the backend DB UUID for this item
   const menuItem = MENU.flatMap(c => c.items).find(i => i.id === _addonsSelectedId);
   const dbItemId = menuItem?._dbId || _addonsSelectedId;
-
-  // Guard: if this item was never saved to DB (hardcoded fallback), its ID won't be a UUID
-  const looksLikeUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dbItemId);
-  if (!looksLikeUUID) {
-    toast('This item is not saved in the database yet. Please add it via Menu Manager first. · هذا العنصر غير محفوظ في قاعدة البيانات. أضفه عبر إدارة القائمة أولاً.');
-    return;
-  }
 
   const newOpts = val.split(',').map(v=>v.trim()).filter(Boolean);
   for (const name of newOpts) {
@@ -2906,7 +2883,7 @@ async function addAddonOption() {
         ADDONS[_addonsSelectedId].options.push({ id: res.id, name, oos: false });
       } catch(e) {
         console.error('Failed to save addon:', e);
-        toast('Error saving addon: ' + e.message);
+        toast('Could not save — this item may not exist in the database yet. · لم يتم الحفظ، قد لا يكون هذا العنصر في قاعدة البيانات بعد.');
       }
     }
   }
