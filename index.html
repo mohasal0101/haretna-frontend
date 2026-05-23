@@ -742,6 +742,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
   justify-content:center;
   padding:0 16px;
   pointer-events:none;
+  transition:opacity .2s ease;
 }
 #cartBar.visible{display:flex;pointer-events:all;}
 #cartBarInner{
@@ -2306,6 +2307,12 @@ function closeCatView() {
 // =====================================================================
 function addItem(itemId) {
   if (outOfStock.has(itemId)) { toast('Item is out of stock · هذا العنصر غير متوفر'); return; }
+  // If item has add-ons configured, open the popup so the customer can choose
+  const flavors = getFlavorsForItem(MENU.flatMap(c=>c.items).find(i=>i.id===itemId)?.en||'', itemId);
+  if (flavors.length > 0) {
+    openItemPopup(itemId);
+    return;
+  }
   const res = findItem(itemId);
   if (!res) return;
   const {item} = res;
@@ -2321,7 +2328,6 @@ function addItem(itemId) {
     if (qs) { qs.textContent=`×${qty}`; qs.classList.toggle('on',qty>0); }
     if (card) card.classList.toggle('in-cart',qty>0);
   }
-
 }
 
 let _currentPopupOfferId = null;
@@ -2819,13 +2825,22 @@ function renderAddonsChips() {
   }).join('');
 }
 
-function updateAddonsLimits() {
+async function updateAddonsLimits() {
   if (!_addonsSelectedId) return;
   const min = parseInt(document.getElementById('addonsMin').value) || 0;
   const max = parseInt(document.getElementById('addonsMax').value) || 0;
   if (!ADDONS[_addonsSelectedId]) ADDONS[_addonsSelectedId] = { options: [], min: 0, max: 0 };
   ADDONS[_addonsSelectedId].min = min;
   ADDONS[_addonsSelectedId].max = max;
+  // Persist to backend immediately
+  try {
+    await apiFetch(`/api/menu/items/${_addonsSelectedId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ addonsMin: min, addonsMax: max }),
+    });
+  } catch(e) {
+    console.warn('Could not save addon limits to DB:', e.message);
+  }
 }
 
 async function addAddonOption() {
@@ -3080,8 +3095,9 @@ function closeLightbox() {
 function openCart() {
   document.getElementById('cartOverlay').classList.add('open');
   document.getElementById('customerMenu').classList.add('no-fade');
-  // Hide floating category button and cart bar while cart is open
-
+  // Hide cart bar while cart sheet is open
+  const cartBar = document.getElementById('cartBar');
+  if (cartBar) cartBar.style.opacity = '0';
   // Reset cart-foot padding so cartBar's extra padding doesn't push Place Order out of view
   const cartFoot = document.querySelector('.cart-foot');
   if (cartFoot) cartFoot.style.paddingBottom = '';
@@ -3090,8 +3106,9 @@ function openCart() {
 function closeCart() {
   document.getElementById('cartOverlay').classList.remove('open');
   document.getElementById('customerMenu').classList.remove('no-fade');
-  // Restore floating category button and cart bar
-
+  // Restore cart bar
+  const cartBar = document.getElementById('cartBar');
+  if (cartBar) cartBar.style.opacity = '';
 }
 function renderCart() {
   const bodyEl = document.getElementById('cartBody');
@@ -3989,7 +4006,7 @@ async function submitEditOffer() {
       method: 'PATCH',
       body: JSON.stringify({
         titleEn, titleAr: titleAr||titleEn,
-        descriptionEn: desc||o.desc||' ',
+        descriptionEn: desc||o.desc||null,
         descriptionAr: desc||o.descAr||' ',
         price, itemIds: dbItemIds,
       }),
@@ -4060,7 +4077,7 @@ async function addOffer() {
       method: 'POST',
       body: JSON.stringify({
         titleEn: t, titleAr: ta||t,
-        descriptionEn: d, descriptionAr: d,
+        descriptionEn: d || null, descriptionAr: d || null,
         price: p, isActive: true,
         itemIds: dbItemIds,
         expiresAt,
