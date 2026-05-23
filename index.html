@@ -748,7 +748,14 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
 }
 #cartBar.visible{transform:translateY(0);pointer-events:all;}
 
-#cartBarInner{
+#floatCatWrap{
+  position:fixed;
+  bottom:16px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1001;
+  pointer-events:all;
+}
   width:100%;
   max-width:500px;
   margin-top:10px;
@@ -1163,12 +1170,16 @@ body.cart-bar-visible #floatCatBtn{display:flex;}
   </div>
 </div>
 
-<!-- STICKY CART BAR -->
-<div id="cartBar">
+<!-- ALWAYS VISIBLE CATEGORIES BUTTON -->
+<div id="floatCatWrap">
   <button id="floatCatBtn" onclick="openCatPicker()">
     <span class="fcb-label">Categories · الأقسام</span>
     <span class="fcb-arrow">▲</span>
   </button>
+</div>
+
+<!-- STICKY CART BAR -->
+<div id="cartBar">
   <div id="cartBarInner" onclick="openCart()">
     <div class="cb-left">
       <div class="cb-badge" id="cbCount">0</div>
@@ -2606,9 +2617,11 @@ function syncCartFootPadding() {
 function updateCartBar() {
   const count = cartCount();
   const bar = document.getElementById('cartBar');
+  const catWrap = document.getElementById('floatCatWrap');
   if (!bar) return;
   if (count > 0) {
     bar.classList.add('visible');
+    if (catWrap) catWrap.style.bottom = '108px'; // move above cart bar
     const sub = cartSub();
     const countEl = document.getElementById('cbCount');
     const totalEl = document.getElementById('cbTotal');
@@ -2623,6 +2636,7 @@ function updateCartBar() {
   } else {
     bar.classList.remove('visible');
     bar.classList.remove('pulse');
+    if (catWrap) catWrap.style.bottom = '16px'; // back to default
     syncCartFootPadding();
   }
 }
