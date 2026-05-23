@@ -4367,17 +4367,35 @@ function compressImage(file, maxWidth, quality) {
 }
 
 // ── Upload debug overlay ────────────────────────────────────────────
+function closeUploadDebug() {
+  const b = document.getElementById('uploadDebugBox');
+  if (b) b.remove();
+}
 function showUploadDebug(lines) {
   let box = document.getElementById('uploadDebugBox');
   if (!box) {
     box = document.createElement('div');
     box.id = 'uploadDebugBox';
     box.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1208;border:1px solid #c8952a;border-radius:8px;padding:14px 18px;font-family:monospace;font-size:11px;color:#f0e8d8;max-width:90vw;min-width:320px;line-height:1.7;box-shadow:0 8px 32px rgba(0,0,0,.7);';
-    box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b style="color:#c8952a;letter-spacing:1px;">UPLOAD DEBUG</b><button onclick="this.closest('#uploadDebugBox').remove()" style="background:none;border:none;color:#c8952a;cursor:pointer;font-size:16px;line-height:1;">✕</button></div><div id="uploadDebugLines"></div>';
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+    const title = document.createElement('b');
+    title.style.cssText = 'color:#c8952a;letter-spacing:1px;';
+    title.textContent = 'UPLOAD DEBUG';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = 'background:none;border:none;color:#c8952a;cursor:pointer;font-size:16px;line-height:1;';
+    closeBtn.onclick = closeUploadDebug;
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    const linesDiv = document.createElement('div');
+    linesDiv.id = 'uploadDebugLines';
+    box.appendChild(header);
+    box.appendChild(linesDiv);
     document.body.appendChild(box);
   }
   const el = document.getElementById('uploadDebugLines');
-  el.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+  el.innerHTML = lines.map(l => '<div>' + l + '</div>').join('');
 }
 // ────────────────────────────────────────────────────────────────────
 
