@@ -1872,6 +1872,7 @@ let cdTimer = null;
 let cdRemaining = 3;
 let pendingOrderData = null;
 let isLoggedIn = false;
+let mmPendingUploads = {};  // itemId -> blob, pending image uploads
 
 // Admin-editable offers and trending
 let OFFERS = []; // Loaded from DB via loadMenuFromAPI
