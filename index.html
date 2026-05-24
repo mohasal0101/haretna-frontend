@@ -649,21 +649,46 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 /* ============================================================
    ITEM DETAIL POPUP
    ============================================================ */
-#itemPopupOverlay{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;}
+#itemPopupOverlay{
+  position:fixed;inset:0;z-index:6000;
+  background:rgba(0,0,0,.82);backdrop-filter:blur(6px);
+  display:none;align-items:flex-end;justify-content:center;
+  touch-action:none; /* freeze background scroll */
+}
 #itemPopupOverlay.open{display:flex;}
-#itemPopup{background:var(--chalk);border:1px solid var(--border2);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:88vh;display:flex;flex-direction:column;animation:shUp .28s ease;overflow:hidden;}
+#itemPopup{
+  background:var(--chalk);border:1px solid var(--border2);
+  border-radius:18px 18px 0 0;
+  width:100%;max-width:540px;
+  max-height:92vh;
+  display:flex;flex-direction:column;
+  animation:shUp .28s cubic-bezier(.32,0,.67,0);
+  overflow:hidden;
+}
+/* Drag handle */
 .ip-handle{width:40px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;}
+/* Image — fixed, never scrolls */
 .ip-img-wrap{width:100%;height:220px;overflow:hidden;flex-shrink:0;position:relative;background:var(--chalk3);}
 .ip-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:opacity .2s;}
 .ip-img-wrap.no-img{height:0;display:none;}
 .ip-img-empty{width:100%;height:0;display:none;}
 .ip-img-empty svg{opacity:.2;}
+/* Title/price — fixed */
 .ip-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .ip-title-en{font-family:'Rubik',sans-serif;font-size:16px;font-weight:700;color:var(--cream2);letter-spacing:.5px;margin-bottom:2px;}
 .ip-title-ar{font-family:'Rubik',sans-serif;font-size:18px;color:var(--cream3);margin-bottom:6px;}
 .ip-desc{font-size:12px;color:var(--text3);line-height:1.5;}
 .ip-price{font-family:'Rubik',sans-serif;font-size:20px;font-weight:700;color:var(--gold2);margin-top:6px;}
-.ip-footer{padding:14px 16px 18px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+/* Scrollable middle zone — flavors + note */
+.ip-scroll-body{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  min-height:0;
+}
+/* Footer — fixed at bottom */
+.ip-footer{padding:14px 16px env(safe-area-inset-bottom,18px);border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;background:var(--chalk);}
 .ip-qty-ctrl{display:flex;align-items:center;gap:10px;background:var(--chalk2);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 8px;}
 .ip-qty-btn{background:none;border:none;color:var(--gold2);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;-webkit-tap-highlight-color:transparent;}
 .ip-qty-n{font-family:'Rubik',sans-serif;font-size:16px;color:var(--cream);min-width:20px;text-align:center;}
@@ -671,20 +696,20 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 .ip-add-btn:disabled{opacity:.5;cursor:not-allowed;}
 .ip-close-btn{background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 .ip-oos-badge{position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;padding:4px 10px;border-radius:20px;text-transform:uppercase;}
-.ip-note-wrap{padding:0 16px 10px;flex-shrink:0;}
+/* Note wrap — inside scrollable zone */
+.ip-note-wrap{padding:0 16px 14px;}
 .ip-note-toggle{background:none;border:1px dashed var(--border2);color:var(--text3);width:100%;padding:8px 12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-align:left;transition:all .2s;-webkit-tap-highlight-color:transparent;}
 .ip-note-toggle:hover,.ip-note-toggle.active{border-color:var(--gold);color:var(--gold2);background:rgba(200,149,42,.06);}
 .ip-note-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);border-radius:var(--radius);padding:8px 12px;font-size:12px;font-family:'Rubik',sans-serif;resize:none;outline:none;transition:border-color .2s;box-sizing:border-box;margin-top:6px;display:none;}
 .ip-note-input:focus{border-color:var(--gold);}
 .ip-note-input::placeholder{color:var(--text3);opacity:.7;}
-
-/* Flavor selector */
-.ip-flavors-wrap{padding:0 16px 10px;flex-shrink:0;}
+/* Flavor selector — inside scrollable zone */
+.ip-flavors-wrap{padding:0 16px 10px;}
 .ip-flavors-label{font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;display:block;}
 .ip-flavors-grid{display:flex;flex-direction:column;gap:0;}
-.ip-flavor-chip{display:flex;align-items:center;gap:12px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--cream3);font-family:'Rubik',sans-serif;font-size:12px;padding:12px 4px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;width:100%;text-align:left;}
+.ip-flavor-chip{display:flex;align-items:center;gap:12px;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--cream3);font-family:'Rubik',sans-serif;font-size:14px;padding:14px 4px;cursor:pointer;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent;width:100%;text-align:left;}
 .ip-flavor-chip:first-child{border-top:1px solid var(--border2);}
-.ip-flavor-chip .flavor-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.ip-flavor-chip .flavor-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
 .ip-flavor-chip .flavor-check svg{opacity:0;transition:opacity .15s;}
 .ip-flavor-chip.selected{color:var(--gold2);}
 .ip-flavor-chip.selected .flavor-check{background:var(--gold);border-color:var(--gold);}
@@ -1132,6 +1157,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <div class="ip-price" id="ipPrice"></div>
     </div>
     <!-- Flavor selector (shown only for items with flavors) -->
+    <div class="ip-scroll-body">
     <div class="ip-flavors-wrap" id="ipFlavorsWrap" style="display:none;">
       <span class="ip-flavors-label">Choose a Flavor · اختر النكهة</span>
       <div class="ip-flavors-grid" id="ipFlavorsGrid"></div>
@@ -1140,6 +1166,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-note-toggle" id="ipNoteToggle" onclick="toggleIpNote()">+ Add a note · أضف ملاحظة</button>
       <textarea class="ip-note-input" id="ipNoteInput" rows="2" placeholder="e.g. no onions, extra sauce… · مثال: بدون بصل، صوص إضافي"></textarea>
     </div>
+    </div><!-- end ip-scroll-body -->
     <div class="ip-footer">
       <button class="ip-close-btn" onclick="closeItemPopup()">✕</button>
       <div class="ip-qty-ctrl" id="ipQtyCtrl">
@@ -2416,6 +2443,10 @@ function openItemPopup(itemId) {
   _currentPopupItemId = itemId;
   _ipQty = 1;
 
+  // Freeze background scroll
+  document.body.style.overflow = 'hidden';
+  document.body.style.touchAction = 'none';
+
   const adminBar = document.getElementById('ipAdminBar');
   const editForm = document.getElementById('ipEditForm');
   if (isLoggedIn) { adminBar.style.display='flex'; } else { adminBar.style.display='none'; }
@@ -2488,6 +2519,9 @@ function closeItemPopup() {
   document.getElementById('itemPopupOverlay').classList.remove('open');
   document.getElementById('customerMenu').classList.remove('no-fade');
   document.getElementById('ipEditForm').style.display = 'none';
+  // Restore background scroll
+  document.body.style.overflow = '';
+  document.body.style.touchAction = '';
   _currentPopupItemId = null;
 }
 
