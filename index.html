@@ -1150,11 +1150,14 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <button class="ip-edit-save" onclick="saveItemEdit()">Save Changes · حفظ</button>
     </div>
     <div id="ipImgWrap" class="ip-img-wrap"><div class="ip-handle"></div></div>
-    <div class="ip-header">
+    <div class="ip-header" style="padding-top:20px;">
       <div class="ip-title-en" id="ipTitleEn"></div>
       <div class="ip-title-ar" id="ipTitleAr"></div>
       <div class="ip-desc" id="ipDesc"></div>
-      <div class="ip-price" id="ipPrice"></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px;">
+        <div class="ip-price" id="ipPrice" style="margin-top:0;"></div>
+        <span id="ipOosBadge" class="ip-oos-badge" style="position:static;display:none;">Out of Stock · نفد المخزون</span>
+      </div>
     </div>
     <!-- Flavor selector (shown only for items with flavors) -->
     <div class="ip-scroll-body">
@@ -2242,18 +2245,10 @@ function openItemPopup(itemId) {
   editForm.style.display = 'none';
 
   const imgWrap = document.getElementById('ipImgWrap');
-  const imgSrc = customImages[itemId];
   const oos = outOfStock.has(itemId);
-  if (imgSrc) {
-    imgWrap.classList.remove('no-img');
-    imgWrap.innerHTML = `<img src="${imgSrc}" alt="${item.en}" onload="this.style.opacity=1" style="opacity:0;">${oos?'<div class="ip-oos-badge" style="position:absolute;top:12px;right:12px;">Out of Stock · نفد المخزون</div>':''}`;
-    // Fade in once loaded (already started above via onload)
-    const img = imgWrap.querySelector('img');
-    if (img.complete) img.style.opacity = '1';
-  } else {
-    imgWrap.classList.add('no-img');
-    imgWrap.innerHTML = oos ? '<div class="ip-oos-badge" style="position:relative;display:inline-block;margin:8px;">Out of Stock · نفد المخزون</div>' : '';
-  }
+  // Always hide image — no photos in popup
+  imgWrap.classList.add('no-img');
+  imgWrap.innerHTML = '';
 
   document.getElementById('ipTitleEn').textContent = stripEmoji(item.en);
   document.getElementById('ipTitleAr').textContent = stripEmoji(item.ar);
@@ -2261,6 +2256,9 @@ function openItemPopup(itemId) {
   document.getElementById('ipDesc').style.display = item.desc ? 'block' : 'none';
   document.getElementById('ipPrice').textContent = 'JD ' + item.price.toFixed(2);
   document.getElementById('ipQtyN').textContent = _ipQty;
+  // Show OOS badge in header if out of stock
+  const oosBadgeEl = document.getElementById('ipOosBadge');
+  if (oosBadgeEl) oosBadgeEl.style.display = oos ? 'inline-block' : 'none';
 
   // Reset note
   const noteInput = document.getElementById('ipNoteInput');
