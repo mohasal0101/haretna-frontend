@@ -3646,15 +3646,15 @@ function renderAdmin() {
           }
           const _catRes = findItemInMenu(i.id);
           const _cat = _catRes ? MENU.find(c=>c.id===_catRes.catId) : null;
-          const catLabel = _cat ? `<span style="font-size:10px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;">${_cat.ar}</span>` : '';
+          const catLabel = _cat ? `<span style="font-size:9px;color:var(--text3);font-family:'Rubik',sans-serif;flex-shrink:0;opacity:.7;">${_cat.ar}</span>` : '';
           const nameBlock = `<div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:${(flavorTags||freeNote)?'4px':'0'};">
               ${catLabel}<span class="oc-item-name">${stripEmoji(i.en)}${i.ar?` <span style="color:var(--text3);font-size:10px;font-family:'Rubik',sans-serif;">- ${stripEmoji(i.ar)}</span>`:''}</span>
               ${i.isNew?`<span style="font-size:8px;color:var(--gold2);background:rgba(200,149,42,.12);border-radius:4px;padding:1px 5px;font-family:'Rubik',sans-serif;letter-spacing:1px;">NEW · x${i.qty}</span>`:''}
               ${i.addedAt?`<span style="font-size:8px;color:var(--text3);font-family:'Rubik',sans-serif;">${i.addedAt}</span>`:''}
             </div>
-            ${flavorTags?`<div style="margin-top:4px;">${flavorTags}</div>`:''}
-            ${freeNote?`<span class="oc-item-note">${freeNote}</span>`:''}
+            ${flavorTags?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:${freeNote?'3px':'0'};">${flavorTags}</div>`:''}
+            ${freeNote?`<div style="display:flex;align-items:flex-start;gap:5px;background:rgba(200,149,42,.1);border-left:2px solid var(--gold);border-radius:0 4px 4px 0;padding:3px 7px;margin-top:2px;"><span style="font-size:9px;color:var(--gold2);font-family:'Rubik',sans-serif;font-weight:700;flex-shrink:0;letter-spacing:.5px;">📝</span><span style="font-size:10px;color:var(--gold2);font-family:'Rubik',sans-serif;line-height:1.4;">${freeNote}</span></div>`:''}
           </div>`;
           return `<div class="oc-item-row${i.isNew?' oc-item-new':''}" style="align-items:flex-start;">
             <span class="oc-item-qty" style="min-width:28px;font-weight:700;color:var(--gold2);padding-top:1px;">x${i.qty}</span>
@@ -3664,7 +3664,7 @@ function renderAdmin() {
           </div>`;
         }).join('')}
       </div>
-      ${o.note?`<div class="oc-note">${o.note}</div>`:''}
+      ${o.note?`<div class="oc-note" style="display:flex;align-items:flex-start;gap:6px;background:rgba(200,149,42,.08);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;margin:0 12px 8px;padding:7px 10px;"><span style="font-size:10px;color:var(--gold2);font-weight:700;flex-shrink:0;font-family:'Rubik',sans-serif;">Note:</span><span style="font-size:11px;color:var(--gold2);font-family:'Rubik',sans-serif;line-height:1.5;">${o.note.replace(/ \| /g,'<br>')}</span></div>`:''}
       <div class="oc-foot">
         <div class="oc-total-txt">JD ${o.grand.toFixed(2)}</div>
         <div class="oc-action-btns">
@@ -3922,7 +3922,7 @@ function openOffersPanel() {
   // Populate category filter for item picker
   const sel = document.getElementById('newOfferCatFilter');
   sel.innerHTML = '<option value="">All Categories · كل الأقسام</option>' +
-    MENU.map(c=>`<option value="${c.id}">${c.icon} ${c.en}</option>`).join('');
+    MENU.map(c=>`<option value="${c.id}">${c.en} · ${c.ar}</option>`).join('');
   renderOfferItemPicker();
   updateSelectedOfferItems();
   document.getElementById('offersPanel').style.display='block';
@@ -3949,7 +3949,7 @@ function renderOffersList() {
           <div style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--gold2);margin-bottom:2px;">${o.title} — <span style="color:var(--cream2);">JD ${(o.price||0).toFixed(2)}</span></div>
           <div style="font-family:'Rubik',sans-serif;font-size:14px;color:var(--cream3);margin-bottom:4px;">${o.titleAr}</div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">${o.desc||''}</div>
-          <div style="font-size:10px;color:var(--text3);">${offerItems.map(i=>`${i.icon} ${i.en}`).join(' + ')||'No items set'}</div>
+          <div style="font-size:10px;color:var(--text3);">${offerItems.map(i=>`${stripEmoji(i.en)} · ${stripEmoji(i.ar)}`).join(' + ')||'No items set'}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
           <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);cursor:pointer;">
@@ -4010,11 +4010,13 @@ function renderEditOfferItemPicker() {
   const allItems = MENU.flatMap(c => c.items);
   el.innerHTML = allItems.map(i => {
     const sel = _editOfferItemIds.includes(i.id);
-    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="font-size:15px;">${i.icon}</span>
-      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
-      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};">${sel?'✓':'+'}</span>
+    return `<div onclick="toggleEditOfferItem('${i.id}')" id="eopick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);line-height:1.3;">${stripEmoji(i.en)}</div>
+        <div style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);line-height:1.3;direction:rtl;text-align:right;">${stripEmoji(i.ar)}</div>
+      </div>
+      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};flex-shrink:0;">${sel?'✓':'+'}</span>
     </div>`;
   }).join('');
 }
@@ -4063,13 +4065,17 @@ async function submitEditOffer() {
 function renderOfferItemPicker() {
   const catFilter = document.getElementById('newOfferCatFilter').value;
   const source = catFilter ? (MENU.find(c=>c.id===catFilter)?.items||[]) : MENU.flatMap(c=>c.items);
-  document.getElementById('offerItemPicker').innerHTML = source.map(i=>`
-    <div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${_newOfferItemIds.includes(i.id)?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${_newOfferItemIds.includes(i.id)?'var(--gold)':'transparent'};transition:all .15s;">
-      <span style="font-size:16px;">${i.icon}</span>
-      <span style="font-family:'Rubik',sans-serif;font-size:10px;color:var(--cream2);flex:1;">${i.en}</span>
-      <span style="font-size:11px;color:var(--gold2);">JD ${i.price.toFixed(2)}</span>
-      <span style="font-size:14px;color:${_newOfferItemIds.includes(i.id)?'var(--gold)':'var(--text3)'};">${_newOfferItemIds.includes(i.id)?'✓':'+'}</span>
-    </div>`).join('');
+  document.getElementById('offerItemPicker').innerHTML = source.map(i=>{
+    const sel = _newOfferItemIds.includes(i.id);
+    return `<div onclick="toggleOfferItem('${i.id}')" id="opick-${i.id}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;margin-bottom:2px;background:${sel?'rgba(200,149,42,.15)':'transparent'};border:1px solid ${sel?'var(--gold)':'transparent'};transition:all .15s;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Rubik',sans-serif;font-size:11px;color:var(--cream2);line-height:1.3;">${stripEmoji(i.en)}</div>
+        <div style="font-family:'Rubik',sans-serif;font-size:12px;color:var(--text3);line-height:1.3;direction:rtl;text-align:right;">${stripEmoji(i.ar)}</div>
+      </div>
+      <span style="font-size:11px;color:var(--gold2);flex-shrink:0;">JD ${i.price.toFixed(2)}</span>
+      <span style="font-size:14px;color:${sel?'var(--gold)':'var(--text3)'};flex-shrink:0;">${sel?'✓':'+'}</span>
+    </div>`;
+  }).join('');
 }
 function toggleOfferItem(id) {
   const idx = _newOfferItemIds.indexOf(id);
@@ -4082,7 +4088,7 @@ function updateSelectedOfferItems() {
   if (!_newOfferItemIds.length) { el.innerHTML='<span style="font-size:11px;color:var(--text3);">No items selected yet</span>'; return; }
   el.innerHTML = _newOfferItemIds.map(id=>{
     const item = findItem(id)?.item;
-    return item ? `<span style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.3);color:var(--cream2);font-size:11px;padding:3px 8px;border-radius:20px;">${item.icon} ${item.en}</span>` : '';
+    return item ? `<span style="background:rgba(200,149,42,.15);border:1px solid rgba(200,149,42,.3);color:var(--cream2);font-size:11px;padding:3px 8px;border-radius:20px;font-family:'Rubik',sans-serif;">${stripEmoji(item.en)} · ${stripEmoji(item.ar)}</span>` : '';
   }).join('');
 }
 
