@@ -3541,12 +3541,13 @@ async function loadAdminOrders() {
       const { flavorEntries, cleanNote } = parseItemNotesFromOrderNote(o.note || '', items);
       const hydratedItems = applyFlavorNotes(items, flavorEntries);
       const hydratedGrand = hydratedItems.reduce((s,i)=>s+i.price*i.qty, 0);
+      const calculatedGrand = hydratedGrand > 0 ? hydratedGrand : items.reduce((s,i)=>s+i.price*i.qty, 0);
       return {
         id: o.id,
         table: String(o.tableNumber),
         items: hydratedItems,
         note: cleanNote,
-        sub: o.subtotal, tax: o.tax, grand: hydratedGrand || o.total,
+        sub: calculatedGrand, tax: 0, grand: calculatedGrand,
         status: o.status.toLowerCase(),
         time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         date: new Date(o.createdAt).toISOString().split('T')[0],
@@ -3626,7 +3627,7 @@ async function loadHistory(date) {
       table: String(o.tableNumber),
       items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
       note: o.note || '',
-      sub: o.subtotal, tax: o.tax, grand: o.total,
+      sub: o.subtotal, tax: 0, grand: o.items.reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
       status: 'cashed',
       time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
       date: new Date(o.createdAt).toISOString().split('T')[0],
@@ -3797,7 +3798,8 @@ async function removeOrderItem(orderId, itemId) {
           const ord = orders.find(o=>o.id===orderId);
           if (ord) {
             ord.items = ord.items.filter(i=>(i._itemId||i.id)!==itemId);
-            ord.sub = result.subtotal; ord.tax = result.tax; ord.grand = result.total;
+            const recalc = ord.items.reduce((s,i)=>s+i.price*i.qty, 0);
+            ord.sub = recalc; ord.tax = 0; ord.grand = recalc;
           }
         }
         renderAdmin();
@@ -5162,7 +5164,7 @@ async function openSalesModal() {
       id: o.id,
       table: String(o.tableNumber),
       items: (o.items||[]).map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
-      grand: o.total,
+      grand: (o.items||[]).reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
       status: 'cashed',
       time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', hour12: true }),
       date: today,
@@ -5273,7 +5275,7 @@ function connectAdminSocket() {
         existing.items.push({...newItem, isNew: true, _newQty: newItem.qty});
       });
       // Recalculate totals
-      existing.sub   = order.subtotal !== undefined ? existing.sub + order.subtotal : existing.items.reduce((s,i)=>s+i.price*i.qty,0);
+      existing.sub   = existing.items.reduce((s,i)=>s+i.price*i.qty,0);
       existing.tax   = 0;
       existing.grand = existing.sub;
       existing.isNew = true;
@@ -5291,12 +5293,13 @@ function connectAdminSocket() {
       renderAdmin();
       toast('New items added — Table ' + order.tableNumber + '! · عناصر جديدة — طاولة ' + order.tableNumber);
     } else {
+      const calcGrand = incomingItems.reduce((s,i)=>s+i.price*i.qty, 0);
       const mapped = {
         id: order.id,
         table: String(order.tableNumber),
         items: incomingItems,
         note: order.note || '',
-        sub: order.subtotal, tax: order.tax, grand: order.total,
+        sub: calcGrand, tax: 0, grand: calcGrand,
         status: 'new',
         time: new Date(order.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         date: new Date(order.createdAt).toISOString().split('T')[0],
