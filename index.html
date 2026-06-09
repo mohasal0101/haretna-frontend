@@ -1682,27 +1682,41 @@ function _saveHidden() {
     localStorage.setItem('haretna_hidden_cats',  JSON.stringify([...hiddenCategories]));
   } catch(e) {}
 }
-function _broadcastVisibility() {
-  if (adminSocket) {
-    adminSocket.emit('menu:visibility', {
-      hiddenItems: [...hiddenItems],
-      hiddenCategories: [...hiddenCategories],
-    });
-  }
-}
-function toggleHiddenItem(itemId) {
-  hiddenItems.has(itemId) ? hiddenItems.delete(itemId) : hiddenItems.add(itemId);
+async function toggleHiddenItem(itemId) {
+  const wasHidden = hiddenItems.has(itemId);
+  wasHidden ? hiddenItems.delete(itemId) : hiddenItems.add(itemId);
   _saveHidden();
   renderMMGrid(_mmActiveCat);
   renderMenu();
-  _broadcastVisibility();
+  // Use stock API so backend's menu:updated socket event propagates to all customer browsers
+  const menuItem = MENU.flatMap(c => c.items).find(i => i.id === itemId);
+  if (menuItem && menuItem._dbId) {
+    try {
+      await apiFetch(`/api/menu/items/${menuItem._dbId}/stock`, {
+        method: 'PATCH', body: JSON.stringify({ isInStock: wasHidden }),
+      });
+    } catch(e) { toast('Visibility update failed: ' + e.message); }
+  }
 }
-function toggleHiddenCategory(catId) {
-  hiddenCategories.has(catId) ? hiddenCategories.delete(catId) : hiddenCategories.add(catId);
+async function toggleHiddenCategory(catId) {
+  const wasHidden = hiddenCategories.has(catId);
+  wasHidden ? hiddenCategories.delete(catId) : hiddenCategories.add(catId);
   _saveHidden();
   renderMMSidebar();
   renderMenu();
-  _broadcastVisibility();
+  const cat = MENU.find(c => c.id === catId);
+  if (cat) {
+    for (const item of cat.items) {
+      // Also sync hiddenItems set for each item in this category
+      wasHidden ? hiddenItems.delete(item.id) : hiddenItems.add(item.id);
+      try {
+        await apiFetch(`/api/menu/items/${item._dbId}/stock`, {
+          method: 'PATCH', body: JSON.stringify({ isInStock: wasHidden }),
+        });
+      } catch(e) { /* silent */ }
+    }
+    _saveHidden();
+  }
 }
 let customImages = {};  // itemId -> base64 or Cloudinary URL
 let mmPendingUploads = {};  // itemId -> compressed Blob (retry queue for failed uploads)
@@ -1909,7 +1923,7 @@ function renderMenu() {
         <div style="text-align:center;"><div class="cat-en">${cat.en}</div><div class="cat-ar">${cat.ar}</div></div>
         <div class="cat-line cat-line-r"></div>
       </div>
-      ${cat.items.filter(item => !hiddenItems.has(item.id)).map(item => renderItemHTML(item, isAdmin)).join('')}
+      ${cat.items.filter(item => !hiddenItems.has(item.id) && (isAdmin || !outOfStock.has(item.id))).map(item => renderItemHTML(item, isAdmin)).join('')}
     </div>
   `).join('');
 
@@ -2569,6 +2583,16 @@ async function startCustomerSync() {
         if (isLoggedIn) return;
         hiddenItems = new Set(hi || []);
         hiddenCategories = new Set(hc || []);
+        renderMenu();
+      });
+      // Listen for stock/visibility changes from admin
+      _customerSocket.on('menu:updated', ({ id: dbId, isInStock }) => {
+        if (isLoggedIn) return;
+        const item = MENU.flatMap(c => c.items).find(i => i._dbId === dbId);
+        if (!item) return;
+        if (isInStock !== undefined) {
+          if (!isInStock) outOfStock.add(item.id); else outOfStock.delete(item.id);
+        }
         renderMenu();
       });
     } catch(e) { /* socket not available */ }
@@ -5025,8 +5049,7 @@ function connectAdminSocket() {
   adminSocket.on('connect', () => {
     adminSocket.emit('admin:join');
     console.log('[HARETNA] Admin socket joined admin-room');
-    // Broadcast current hidden state to any customers already on the menu
-    _broadcastVisibility();
+
   });
 
   adminSocket.on('order:new', (order) => {
