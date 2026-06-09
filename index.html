@@ -2611,7 +2611,7 @@ async function startCustomerSync() {
   // Also listen for instant menu:reloaded events (triggered by admin reorder/delete)
   if (!_customerSocket) {
     try {
-      _customerSocket = io(API_URL, { transports: ['websocket'], reconnection: true });
+      _customerSocket = io(API_URL, { reconnection: true });
       _customerSocket.on('menu:reloaded', async ({ catOrder, itemOrder } = {}) => {
         if (isLoggedIn) return;
         try {
