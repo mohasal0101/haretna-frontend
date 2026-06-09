@@ -1916,7 +1916,15 @@ function renderMenu() {
     </div>`;
   }
 
-  html += MENU.filter(cat => !hiddenCategories.has(cat.id)).map(cat => `
+  html += MENU.filter(cat => {
+    if (hiddenCategories.has(cat.id)) return false;
+    // For customers: hide the whole section if no visible items remain
+    if (!isAdmin) {
+      const visibleItems = cat.items.filter(item => !hiddenItems.has(item.id) && !outOfStock.has(item.id));
+      if (visibleItems.length === 0) return false;
+    }
+    return true;
+  }).map(cat => `
     <div class="cat-section" id="sect-${cat.id}">
       <div class="cat-heading">
         <div class="cat-line cat-line-l"></div>
