@@ -1682,19 +1682,27 @@ function _saveHidden() {
     localStorage.setItem('haretna_hidden_cats',  JSON.stringify([...hiddenCategories]));
   } catch(e) {}
 }
+function _broadcastVisibility() {
+  if (adminSocket) {
+    adminSocket.emit('menu:visibility', {
+      hiddenItems: [...hiddenItems],
+      hiddenCategories: [...hiddenCategories],
+    });
+  }
+}
 function toggleHiddenItem(itemId) {
   hiddenItems.has(itemId) ? hiddenItems.delete(itemId) : hiddenItems.add(itemId);
   _saveHidden();
   renderMMGrid(_mmActiveCat);
   renderMenu();
-  if (adminSocket) adminSocket.emit('menu:reloaded', {});
+  _broadcastVisibility();
 }
 function toggleHiddenCategory(catId) {
   hiddenCategories.has(catId) ? hiddenCategories.delete(catId) : hiddenCategories.add(catId);
   _saveHidden();
   renderMMSidebar();
   renderMenu();
-  if (adminSocket) adminSocket.emit('menu:reloaded', {});
+  _broadcastVisibility();
 }
 let customImages = {};  // itemId -> base64 or Cloudinary URL
 let mmPendingUploads = {};  // itemId -> compressed Blob (retry queue for failed uploads)
@@ -2556,6 +2564,12 @@ async function startCustomerSync() {
           await loadMenuFromAPI();
           renderMenu();
         } catch(e) { /* silent fail */ }
+      });
+      _customerSocket.on('menu:visibility', ({ hiddenItems: hi, hiddenCategories: hc }) => {
+        if (isLoggedIn) return;
+        hiddenItems = new Set(hi || []);
+        hiddenCategories = new Set(hc || []);
+        renderMenu();
       });
     } catch(e) { /* socket not available */ }
   }
@@ -5011,6 +5025,8 @@ function connectAdminSocket() {
   adminSocket.on('connect', () => {
     adminSocket.emit('admin:join');
     console.log('[HARETNA] Admin socket joined admin-room');
+    // Broadcast current hidden state to any customers already on the menu
+    _broadcastVisibility();
   });
 
   adminSocket.on('order:new', (order) => {
