@@ -3352,10 +3352,10 @@ function startOrderCountdown() {
   const entries = Object.values(cart).filter(e=>e.qty>0);
   if (!entries.length) { toast('Add items first!'); return; }
   const note = document.getElementById('cartNote').value.trim();
-  const sub = cartSub(), tax = 0, grand = sub;
+  const sub = cartSub(), grand = sub;
   pendingOrderData = {
     entries: entries.map(e=>({...e.item, qty:e.qty, note:e.note||'', isBundle:e.isBundle||false, bundleItems:e.bundleItems||null})),
-    note, sub, tax, grand
+    note, sub, grand
   };
   closeCart();
   document.getElementById('orderCountdown').classList.add('open');
