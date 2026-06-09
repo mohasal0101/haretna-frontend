@@ -1651,6 +1651,7 @@ async function moveMenuItem(catId, itemId, dir) {
     ]);
   } catch(e) { console.warn('item order save failed:', e.message); }
   renderMMGrid(catId);
+  renderMenu(); /* also update customer view */
 }
 
 /* ── category reorder ─────────────────────────────────── */
@@ -1660,17 +1661,17 @@ async function moveCat(catId, dir) {
   var newIdx = idx + dir;
   if (idx < 0 || newIdx < 0 || newIdx >= MENU.length) return;
   var tmp = MENU[idx]; MENU[idx] = MENU[newIdx]; MENU[newIdx] = tmp;
-  /* best-effort API — backend may not have this route */
   try {
     await Promise.all([
       apiFetch('/api/menu/categories/' + MENU[idx]._dbId, {method:'PATCH', body:JSON.stringify({displayOrder: idx})}),
       apiFetch('/api/menu/categories/' + MENU[newIdx]._dbId, {method:'PATCH', body:JSON.stringify({displayOrder: newIdx})})
     ]);
-  } catch(e) { console.warn('cat order not saved to DB (route may not exist):', e.message); }
-  patchMMSidebar();   /* re-render sidebar with arrows */
+  } catch(e) { console.warn('cat reorder not saved (backend route missing):', e.message); }
+  patchMMSidebar();
+  renderMenu(); /* also update customer view */
 }
 
-/* ── category delete ──────────────────────────────────── */
+/* ── category delete — needs backend route ─────────────── */
 async function deleteCategory(catId) {
   var cat = null;
   for (var i = 0; i < MENU.length; i++) { if (MENU[i].id === catId) { cat = MENU[i]; break; } }
@@ -1682,71 +1683,51 @@ async function deleteCategory(catId) {
     msg: 'All items inside will also be deleted.',
     okLabel: 'Delete · حذف',
     onOk: async function() {
-      /* try numeric _dbId first, then slug id */
-      var deleted = false;
       try {
         await apiFetch('/api/menu/categories/' + cat._dbId, {method: 'DELETE'});
-        deleted = true;
+        MENU = MENU.filter(function(c) { return c.id !== catId; });
+        if (_mmActiveCat === catId) { _mmActiveCat = MENU.length ? MENU[0].id : null; }
+        renderMenuManager();
+        renderMenu();
+        toast('"' + label + '" deleted · تم الحذف');
       } catch(e) {
-        console.warn('DELETE by _dbId failed:', e.message);
-        try {
-          await apiFetch('/api/menu/categories/' + cat.id, {method: 'DELETE'});
-          deleted = true;
-        } catch(e2) {
-          console.warn('DELETE by id failed too:', e2.message);
-          toast('Backend route not found — removed locally only.');
-          deleted = false;
-        }
+        toast('Backend error: ' + e.message);
       }
-      /* remove from local MENU regardless */
-      MENU = MENU.filter(function(c) { return c.id !== catId; });
-      if (_mmActiveCat === catId) { _mmActiveCat = MENU.length ? MENU[0].id : null; }
-      renderMenuManager();
-      toast('"' + label + '" ' + (deleted ? 'deleted · تم الحذف' : 'removed locally'));
     }
   });
 }
 
-/* ── inject arrows into the sidebar AFTER original renders ─ */
+/* ── rebuild sidebar with arrows injected ─────────────── */
 function patchMMSidebar() {
   var sidebar = document.getElementById('mmSidebar');
   if (!sidebar) return;
-  /* wrap each .mm-cat-btn that isn't already wrapped */
-  var btns = sidebar.querySelectorAll('.mm-cat-btn');
-  /* rebuild entirely so positions are correct */
   var html = '';
   for (var i = 0; i < MENU.length; i++) {
     var cat = MENU[i];
     var isActive = (cat.id === _mmActiveCat) ? 'active' : '';
-    var upDis = (i === 0) ? ' disabled' : '';
-    var dnDis = (i === MENU.length - 1) ? ' disabled' : '';
-    var catId  = cat.id.replace(/'/g, "\\'");
+    var upDis  = (i === 0) ? ' disabled' : '';
+    var dnDis  = (i === MENU.length - 1) ? ' disabled' : '';
+    var cid    = cat.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     html +=
       '<div class="mm-cat-wrap">' +
-        '<button class="mm-cat-btn ' + isActive + '" onclick="selectMMCat(\'' + catId + '\')">' +
+        '<button class="mm-cat-btn ' + isActive + '" onclick="selectMMCat(\'' + cid + '\')">' +
           '<div class="mm-cat-icon">' + cat.icon + '</div>' +
           '<div class="mm-cat-label">' + cat.en + '</div>' +
         '</button>' +
-        '<button class="mm-cat-arr mm-cat-arr-up" onclick="event.stopPropagation();moveCat(\'' + catId + '\',-1)"' + upDis + '>&#9650;</button>' +
-        '<button class="mm-cat-arr mm-cat-arr-dn" onclick="event.stopPropagation();moveCat(\'' + catId + '\',1)"' + dnDis + '>&#9660;</button>' +
-        '<button class="mm-cat-del" onclick="event.stopPropagation();deleteCategory(\'' + catId + '\')" title="Delete category">&#x2715;</button>' +
+        '<button class="mm-cat-arr mm-cat-arr-up" onclick="event.stopPropagation();moveCat(\'' + cid + '\',-1)"' + upDis + '>&#9650;</button>' +
+        '<button class="mm-cat-arr mm-cat-arr-dn" onclick="event.stopPropagation();moveCat(\'' + cid + '\',1)"' + dnDis + '>&#9660;</button>' +
+        '<button class="mm-cat-del" onclick="event.stopPropagation();deleteCategory(\'' + cid + '\')" title="Delete">&#x2715;</button>' +
       '</div>';
   }
-  /* keep the original "New Category" button at the end */
-  var addBtn = sidebar.querySelector('.mm-cat-btn:last-child');
-  if (addBtn && addBtn.getAttribute('onclick') && addBtn.getAttribute('onclick').indexOf('showAddCategoryPanel') !== -1) {
-    html += addBtn.outerHTML;
-  } else {
-    html +=
-      '<button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;">' +
-        '<div class="mm-cat-icon">&#10133;</div>' +
-        '<div class="mm-cat-label">New Category</div>' +
-      '</button>';
-  }
+  html +=
+    '<button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;">' +
+      '<div class="mm-cat-icon">&#10133;</div>' +
+      '<div class="mm-cat-label">New Category</div>' +
+    '</button>';
   sidebar.innerHTML = html;
 }
 
-/* ── inject ▲▼ into grid cards AFTER original renders ──── */
+/* ── inject ▲▼ into grid cards ───────────────────────── */
 function patchMMGrid(catId) {
   var cat = null;
   for (var i = 0; i < MENU.length; i++) { if (MENU[i].id === catId) { cat = MENU[i]; break; } }
@@ -1757,8 +1738,8 @@ function patchMMGrid(catId) {
     if (!card || card.querySelector('.mm-reorder-btns')) continue;
     var upDis = (i === 0) ? ' disabled' : '';
     var dnDis = (i === cat.items.length - 1) ? ' disabled' : '';
-    var cid = catId.replace(/'/g, "\\'");
-    var iid = item.id.replace(/'/g, "\\'");
+    var cid = catId.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    var iid = item.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     var btns = document.createElement('div');
     btns.className = 'mm-reorder-btns';
     btns.innerHTML =
@@ -1768,22 +1749,21 @@ function patchMMGrid(catId) {
   }
 }
 
-/* ── hook renderMenuManager so patches run after originals ─ */
+/* ── hook renderMenuManager ───────────────────────────── */
 (function() {
-  var _origMM = renderMenuManager;
+  var _orig = renderMenuManager;
   renderMenuManager = function() {
-    _origMM();
-    /* origMM calls renderMMSidebar + renderMMGrid internally */
+    _orig();
     patchMMSidebar();
     patchMMGrid(_mmActiveCat);
   };
 })();
 
-/* ── hook selectMMCat so arrows are patched on tab switch ── */
+/* ── hook selectMMCat ─────────────────────────────────── */
 (function() {
-  var _origSel = selectMMCat;
+  var _orig = selectMMCat;
   selectMMCat = function(catId) {
-    _origSel(catId);
+    _orig(catId);
     patchMMSidebar();
     patchMMGrid(catId);
   };
