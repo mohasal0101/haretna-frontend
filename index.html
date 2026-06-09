@@ -878,6 +878,10 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 #menuManagerPage{animation:fadeIn .3s ease;}
 .mm-layout{display:flex;height:calc(100vh - 58px);overflow:hidden;}
 .mm-sidebar{width:140px;flex-shrink:0;background:var(--chalk);border-right:1px solid var(--border);overflow-y:auto;padding:8px 6px;}
+.mm-cat-row{display:flex;align-items:center;gap:2px;width:100%;margin-bottom:4px;border-radius:var(--radius);border:1px solid transparent;transition:border-color .15s;}
+.mm-cat-row.active{border-color:var(--gold);}
+.mm-cat-row:hover .mm-cat-actions{opacity:1;}
+.mm-cat-actions{display:flex;flex-direction:column;gap:1px;padding:2px 3px;opacity:0;transition:opacity .15s;flex-shrink:0;}
 .mm-cat-btn{width:100%;background:none;border:none;border-radius:8px;padding:8px 6px;cursor:pointer;text-align:center;margin-bottom:4px;transition:background .15s;-webkit-tap-highlight-color:transparent;}
 .mm-cat-btn:hover{background:var(--chalk2);}
 .mm-cat-btn.active{background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.3);}
@@ -2475,6 +2479,7 @@ function findItemInMenu(id) {
 // Polls every 30s so customers always see latest offers and trending
 // =====================================================================
 let _customerSyncInterval = null;
+let _customerSocket = null;
 
 async function startCustomerSync() {
   if (_customerSyncInterval) clearInterval(_customerSyncInterval);
@@ -2509,6 +2514,20 @@ async function startCustomerSync() {
       }
     } catch(e) { /* silent fail */ }
   }, 30000); // every 30 seconds
+
+  // Also listen for instant menu:reloaded events (triggered by admin reorder/delete)
+  if (!_customerSocket) {
+    try {
+      _customerSocket = io(API_URL, { transports: ['websocket'], reconnection: true });
+      _customerSocket.on('menu:reloaded', async () => {
+        if (isLoggedIn) return;
+        try {
+          await loadMenuFromAPI();
+          renderMenu();
+        } catch(e) { /* silent fail */ }
+      });
+    } catch(e) { /* socket not available */ }
+  }
 }
 
 function stopCustomerSync() {
@@ -4117,12 +4136,19 @@ function renderMenuManager() {
 
 function renderMMSidebar() {
   const sidebar = document.getElementById('mmSidebar');
-  sidebar.innerHTML = MENU.map(cat=>`
-    <button class="mm-cat-btn ${cat.id===_mmActiveCat?'active':''}" onclick="selectMMCat('${cat.id}')">
-      <div class="mm-cat-icon">${cat.icon}</div>
-      <div class="mm-cat-label">${cat.en}</div>
-    </button>`).join('') + `
-    <button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;">
+  sidebar.innerHTML = MENU.map((cat, idx) => `
+    <div class="mm-cat-row ${cat.id===_mmActiveCat?'active':''}" id="mmcatrow-${cat.id}">
+      <button class="mm-cat-btn ${cat.id===_mmActiveCat?'active':''}" onclick="selectMMCat('${cat.id}')" style="flex:1;border:none;">
+        <div class="mm-cat-icon">${cat.icon}</div>
+        <div class="mm-cat-label">${cat.en}</div>
+      </button>
+      <div class="mm-cat-actions">
+        <button onclick="moveCat('${cat.id}',-1)" title="Move up" ${idx===0?'disabled':''} style="background:none;border:none;color:${idx===0?'var(--border2)':'var(--gold2)'};font-size:13px;cursor:${idx===0?'default':'pointer'};padding:2px 4px;line-height:1;">▲</button>
+        <button onclick="moveCat('${cat.id}',1)" title="Move down" ${idx===MENU.length-1?'disabled':''} style="background:none;border:none;color:${idx===MENU.length-1?'var(--border2)':'var(--gold2)'};font-size:13px;cursor:${idx===MENU.length-1?'default':'pointer'};padding:2px 4px;line-height:1;">▼</button>
+        <button onclick="deleteCategory('${cat.id}','${cat._dbId}','${cat.en}')" title="Delete category" style="background:none;border:none;color:var(--red,#c0392b);font-size:13px;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+      </div>
+    </div>`).join('') + `
+    <button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;width:100%;">
       <div class="mm-cat-icon">➕</div>
       <div class="mm-cat-label">New Category</div>
     </button>`;
@@ -4146,7 +4172,7 @@ function renderMMGrid(catId) {
     <span style="font-size:11px;color:var(--text3);margin-left:auto;">${cat.items.length} items · عنصر</span>
     <button onclick="showAddItemPanel('${cat.id}')" style="margin-left:12px;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:7px 14px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">+ Add Item · إضافة</button>`;
 
-  document.getElementById('mmGrid').innerHTML = cat.items.map(item=>{
+  document.getElementById('mmGrid').innerHTML = cat.items.map((item, idx) => {
     const src = customImages[item.id];
     const imgEl = src
       ? `<img class="mm-item-img" src="${src}" alt="${item.en}">
@@ -4174,7 +4200,13 @@ function renderMMGrid(catId) {
         </button>
         <button onclick="toggleMMEdit('${item.id}')" style="flex:1;background:rgba(200,149,42,.12);border:1px solid rgba(200,149,42,.4);color:var(--gold2);font-family:'Rubik',sans-serif;font-size:10px;letter-spacing:1px;padding:6px;border-radius:var(--radius);cursor:pointer;">✏️ Edit · تعديل</button>
       </div>
-      <button onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item" style="position:absolute;top:5px;left:5px;background:rgba(180,30,30,.85);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2;">✕</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 6px 4px;">
+        <div style="display:flex;gap:4px;">
+          <button onclick="moveItem('${cat.id}','${item.id}',-1)" title="Move up" ${idx===0?'disabled':''} style="background:none;border:1px solid var(--border2);border-radius:4px;color:${idx===0?'var(--border2)':'var(--gold2)'};font-size:12px;cursor:${idx===0?'default':'pointer'};padding:2px 7px;line-height:1;">▲</button>
+          <button onclick="moveItem('${cat.id}','${item.id}',1)" title="Move down" ${idx===cat.items.length-1?'disabled':''} style="background:none;border:1px solid var(--border2);border-radius:4px;color:${idx===cat.items.length-1?'var(--border2)':'var(--gold2)'};font-size:12px;cursor:${idx===cat.items.length-1?'default':'pointer'};padding:2px 7px;line-height:1;">▼</button>
+        </div>
+        <button onclick="deleteMenuItem('${item.id}','${item._dbId}','${item.en}')" title="Delete item" style="background:rgba(180,30,30,.85);border:none;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;">✕ Delete</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -4209,7 +4241,90 @@ async function saveMMEdit(id, dbId) {
 
 
 
-function mmEnableSave() {
+// ── Reorder item within its category ──────────────────────────────
+async function moveItem(catId, itemId, dir) {
+  const cat = MENU.find(c => c.id === catId);
+  if (!cat) return;
+  const idx = cat.items.findIndex(i => i.id === itemId);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= cat.items.length) return;
+  // Swap locally
+  [cat.items[idx], cat.items[newIdx]] = [cat.items[newIdx], cat.items[idx]];
+  renderMMGrid(catId);
+  // Persist new order to DB
+  try {
+    const orderedIds = cat.items.map(i => i._dbId).filter(Boolean);
+    await apiFetch('/api/menu/items/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify({ categoryId: cat._dbId, orderedIds }),
+    });
+    // Broadcast to customers
+    if (adminSocket) adminSocket.emit('menu:reloaded', {});
+    renderMenu(); // update customer view if admin is also on customer page
+  } catch(e) {
+    toast('Reorder failed · فشل الترتيب: ' + e.message);
+  }
+}
+
+// ── Reorder category ──────────────────────────────────────────────
+async function moveCat(catId, dir) {
+  const idx = MENU.findIndex(c => c.id === catId);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= MENU.length) return;
+  // Swap locally
+  [MENU[idx], MENU[newIdx]] = [MENU[newIdx], MENU[idx]];
+  renderMMSidebar();
+  // Persist new order to DB
+  try {
+    const orderedIds = MENU.map(c => c._dbId).filter(Boolean);
+    await apiFetch('/api/menu/categories/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify({ orderedIds }),
+    });
+    // Broadcast to customers
+    if (adminSocket) adminSocket.emit('menu:reloaded', {});
+    renderMenu();
+  } catch(e) {
+    toast('Reorder failed · فشل الترتيب: ' + e.message);
+  }
+}
+
+// ── Delete category ───────────────────────────────────────────────
+function deleteCategory(catId, dbId, name) {
+  const overlay = document.createElement('div');
+  overlay.id = 'deleteCatOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:28px 24px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">🗂️</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:15px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete Category · حذف القسم</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">Delete category and ALL its items? · حذف القسم وجميع عناصره؟</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;color:var(--gold2);margin-bottom:20px;">"${name}"</div>
+      <div style="font-size:11px;color:var(--red);margin-bottom:24px;opacity:.8;">This cannot be undone · لا يمكن التراجع.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('deleteCatOverlay').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">Cancel · إلغاء</button>
+        <button id="confirmDeleteCatBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;">Delete · حذف</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('confirmDeleteCatBtn').onclick = async () => {
+    overlay.remove();
+    try {
+      await apiFetch(`/api/menu/categories/${dbId}`, { method: 'DELETE' });
+      const removedIdx = MENU.findIndex(c => c.id === catId);
+      MENU.splice(removedIdx, 1);
+      // Switch to adjacent category
+      _mmActiveCat = MENU[Math.max(0, removedIdx - 1)]?.id || MENU[0]?.id;
+      renderMenuManager();
+      if (adminSocket) adminSocket.emit('menu:reloaded', {});
+      renderMenu();
+      toast(`"${name}" deleted · تم الحذف ✓`);
+    } catch(e) {
+      toast('Error: ' + e.message);
+    }
+  };
+}
   const btn = document.getElementById('mmSaveBtn');
   if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
 }
