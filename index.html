@@ -4384,11 +4384,13 @@ async function moveItem(catId, itemId, dir) {
   // Persist to DB (authenticated) so customers see the new order on refresh/reload
   try {
     const orderedIds = cat.items.map(i => i._dbId).filter(Boolean);
-    await apiFetch('/api/menu/items/reorder', {
+    console.log('[REORDER] items payload:', { categoryId: cat._dbId, orderedIds });
+    const r = await apiFetch('/api/menu/items/reorder', {
       method: 'PATCH',
       body: JSON.stringify({ categoryId: cat._dbId, orderedIds }),
     });
-  } catch(e) { /* order saved locally, DB sync failed silently */ }
+    console.log('[REORDER] items result:', r);
+  } catch(e) { console.error('[REORDER] items failed:', e.message); }
   if (adminSocket) adminSocket.emit('menu:reloaded', {});
   renderMenu();
 }
@@ -4405,11 +4407,13 @@ async function moveCat(catId, dir) {
   // Persist to DB (authenticated) so customers see the new order on refresh/reload
   try {
     const orderedIds = MENU.map(c => c._dbId).filter(Boolean);
-    await apiFetch('/api/menu/categories/reorder', {
+    console.log('[REORDER] cats payload:', { orderedIds });
+    const r = await apiFetch('/api/menu/categories/reorder', {
       method: 'PATCH',
       body: JSON.stringify({ orderedIds }),
     });
-  } catch(e) { /* order saved locally, DB sync failed silently */ }
+    console.log('[REORDER] cats result:', r);
+  } catch(e) { console.error('[REORDER] cats failed:', e.message); }
   if (adminSocket) adminSocket.emit('menu:reloaded', {});
   renderMenu();
 }
