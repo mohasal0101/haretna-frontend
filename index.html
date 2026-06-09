@@ -4330,19 +4330,9 @@ async function moveItem(catId, itemId, dir) {
   // Swap locally
   [cat.items[idx], cat.items[newIdx]] = [cat.items[newIdx], cat.items[idx]];
   renderMMGrid(catId);
-  // Persist new order to DB
-  try {
-    const orderedIds = cat.items.map(i => i._dbId).filter(Boolean);
-    await apiFetch('/api/menu/items/reorder', {
-      method: 'PATCH',
-      body: JSON.stringify({ categoryId: cat._dbId, orderedIds }),
-    });
-    // Broadcast to customers
-    if (adminSocket) adminSocket.emit('menu:reloaded', {});
-    renderMenu(); // update customer view if admin is also on customer page
-  } catch(e) {
-    toast('Reorder failed · فشل الترتيب: ' + e.message);
-  }
+  // Broadcast to customers and update customer view
+  if (adminSocket) adminSocket.emit('menu:reloaded', {});
+  renderMenu();
 }
 
 // ── Reorder category ──────────────────────────────────────────────
@@ -4353,19 +4343,9 @@ async function moveCat(catId, dir) {
   // Swap locally
   [MENU[idx], MENU[newIdx]] = [MENU[newIdx], MENU[idx]];
   renderMMSidebar();
-  // Persist new order to DB
-  try {
-    const orderedIds = MENU.map(c => c._dbId).filter(Boolean);
-    await apiFetch('/api/menu/categories/reorder', {
-      method: 'PATCH',
-      body: JSON.stringify({ orderedIds }),
-    });
-    // Broadcast to customers
-    if (adminSocket) adminSocket.emit('menu:reloaded', {});
-    renderMenu();
-  } catch(e) {
-    toast('Reorder failed · فشل الترتيب: ' + e.message);
-  }
+  // Broadcast to customers and update customer view
+  if (adminSocket) adminSocket.emit('menu:reloaded', {});
+  renderMenu();
 }
 
 // ── Delete category ───────────────────────────────────────────────
