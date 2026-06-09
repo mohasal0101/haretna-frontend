@@ -65,17 +65,79 @@
 /* ══ WC2026 JORDAN THEME OVERRIDES ══ */
 body::before{content:'';display:block;position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(to right,#000 0% 33.3%,#fff 33.3% 66.6%,#007a3d 66.6% 100%);z-index:9999;pointer-events:none;}
 body::after{content:'';display:block;position:fixed;top:4px;left:0;width:3px;height:100%;background:linear-gradient(to bottom,#ce1126 0%,transparent 70%);z-index:9998;pointer-events:none;}
-.land-page{background:radial-gradient(ellipse at 50% -10%,rgba(0,122,61,0.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(206,17,38,0.10) 0%,transparent 50%),var(--bg) !important;}
-.menu-view,.cart-view,.cat-view{background:repeating-linear-gradient(to bottom,transparent 0px,transparent 59px,rgba(46,125,50,0.04) 60px,rgba(46,125,50,0.04) 61px),var(--bg);}
-.cart-badge{background:#c0392b !important;box-shadow:0 0 8px rgba(192,57,43,0.5);}
-.notif-count{background:#c0392b !important;}
-.cat-grid-item.selected,.cat-grid-item:active,.cpm-item.current{border-color:#007a3d !important;background:rgba(0,122,61,0.12) !important;}
-.item-card:hover{border-left-color:#c0392b !important;}
+
+/* ─── TICKER SCOREBOARD ─── */
+.wc-ticker-wrap{width:100%;background:#000;border-top:1px solid #ce1126;border-bottom:1px solid #007a3d;overflow:hidden;display:flex;align-items:center;margin-bottom:18px;height:28px;}
+.wc-ticker-label{background:#ce1126;color:#fff;font-size:9px;font-weight:700;letter-spacing:1.5px;padding:0 10px;white-space:nowrap;height:100%;display:flex;align-items:center;flex-shrink:0;}
+.wc-ticker-scroll{flex:1;overflow:hidden;display:flex;align-items:center;}
+.wc-ticker-scroll span{display:inline-block;white-space:nowrap;font-size:10px;letter-spacing:1px;color:#f0cc60;animation:tickerMove 22s linear infinite;padding-right:0;}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ─── TROPHY ─── */
+.wc-trophy-wrap{position:relative;width:80px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;}
+.wc-trophy{width:80px;height:100px;filter:drop-shadow(0 0 14px rgba(240,204,96,0.55));animation:trophyPulse 3s ease-in-out infinite;}
+.wc-trophy-glow{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:60px;height:12px;background:radial-gradient(ellipse,rgba(240,204,96,0.4) 0%,transparent 70%);border-radius:50%;}
+@keyframes trophyPulse{0%,100%{filter:drop-shadow(0 0 10px rgba(240,204,96,0.4))}50%{filter:drop-shadow(0 0 22px rgba(240,204,96,0.8))}}
+
+/* ─── JORDAN FLAG ─── */
+.wc-flag-strip{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 10px;}
+.wc-flag-jordan{width:54px;height:32px;border-radius:3px;overflow:hidden;position:relative;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.5);display:grid;grid-template-rows:1fr 1fr 1fr;}
+.jf-black{background:#000;}
+.jf-white{background:#fff;display:flex;align-items:center;justify-content:flex-start;padding-left:6px;}
+.jf-green{background:#007a3d;}
+/* Red triangle chevron drawn via CSS */
+.wc-flag-jordan::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;height:0;border-style:solid;border-width:16px 0 16px 20px;border-color:transparent transparent transparent #ce1126;}
+.jf-star{width:12px;height:12px;margin-left:14px;}
+.wc-flag-label{font-size:12px;font-weight:700;color:#f0cc60;letter-spacing:.5px;}
+
+/* ─── PARTICIPATING NATIONS ─── */
+.wc-nations{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px 0 16px;padding:8px 12px;background:rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(240,204,96,.12);}
+.wc-nations span{font-size:22px;line-height:1;cursor:default;transition:transform .15s;border-radius:3px;}
+.wc-nations span:hover{transform:scale(1.3);}
+
+/* ─── CAFE BADGE LINE ─── */
+.wc-cafe-badge{font-size:10px !important;letter-spacing:2px !important;color:#f0cc60 !important;opacity:1 !important;}
+
+/* ─── LANDING BG: pitch-night with flag glow ─── */
+#landing{
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(0,122,61,0.15) 0%,transparent 50%),
+    radial-gradient(ellipse at 20% 100%,rgba(206,17,38,0.08) 0%,transparent 40%),
+    radial-gradient(ellipse at 80% 80%,rgba(201,168,76,0.06) 0%,transparent 40%),
+    var(--bg) !important;
+}
+#landing::before,#landing::after{border-color:rgba(0,122,61,0.1) !important;}
+
+/* ─── MENU HEADER: WC badge ─── */
+.cust-header{border-bottom:2px solid transparent !important;border-image:linear-gradient(to right,#000,#007a3d,#ce1126,#007a3d,#000) 1 !important;}
+
+/* ─── ITEM CARDS: pitch green left border on hover ─── */
+.item-card:hover{border-left-color:#007a3d !important;}
+.item-card.in-cart{border-left-color:#c9a84c !important;}
+
+/* ─── ACTIVE STATES ─── */
+.cat-grid-item:active,.cpm-item.current{border-color:#007a3d !important;background:rgba(0,122,61,0.12) !important;}
+.cart-badge{background:#ce1126 !important;box-shadow:0 0 8px rgba(206,17,38,0.5);}
+.notif-count{background:#ce1126 !important;}
+
+/* ─── BUTTONS ─── */
 .btn-enter{background:linear-gradient(135deg,#007a3d,#c9a84c,#007a3d) !important;background-size:200% !important;box-shadow:0 4px 20px rgba(0,122,61,0.4) !important;}
 .btn-login{background:linear-gradient(135deg,#007a3d,#c9a84c) !important;}
 .h-tbl-num{color:#f0cc60 !important;}
-.land-qr-card{box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px rgba(0,122,61,0.15) inset !important;}
-@media(max-width:480px){body::before{height:3px;}.cust-header{height:52px;padding:0 10px;}.h-logo-ar{font-size:20px;}.land-logo-ar{font-size:40px;}.land-qr-card{padding:18px 16px 12px;max-width:90vw;}.btn-enter{padding:13px 32px;font-size:13px;}.menu-content,.cart-view,.cat-view{padding-bottom:72px;}}
+
+/* ─── PITCH LINE TEXTURE on menu ─── */
+.menu-view,.cat-view{background:repeating-linear-gradient(to bottom,transparent 0,transparent 59px,rgba(0,122,61,0.035) 60px,rgba(0,122,61,0.035) 61px),var(--bg);}
+
+@media(max-width:480px){
+  body::before{height:3px;}
+  .wc-trophy{width:64px;height:80px;}
+  .wc-nations span{font-size:18px;}
+  .cust-header{height:52px;padding:0 10px;}
+  .h-logo-ar{font-size:20px;}
+  .land-logo-ar{font-size:36px;}
+  .land-qr-card{padding:16px 14px 10px;max-width:88vw;}
+  .btn-enter{padding:13px 28px;font-size:13px;}
+}
 /* ══ END WC2026 ══ */
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow-x:hidden;}
@@ -1263,27 +1325,75 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 <!-- ===== LANDING ===== -->
 <div id="landing" class="view flex-view active">
   <div style="width:100%;max-width:400px;padding:30px 20px 50px;">
-    <svg class="land-ornament" viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="#c8952a" stroke-width=".7" opacity=".7">
-        <circle cx="150" cy="60" r="50"/><circle cx="150" cy="60" r="40"/><circle cx="150" cy="60" r="28"/><circle cx="150" cy="60" r="15"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(0 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(45 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(90 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(135 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(180 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(225 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(270 150 60)"/>
-        <ellipse cx="150" cy="20" rx="7" ry="17" transform="rotate(315 150 60)"/>
-        <polygon points="150,31 153,41 164,41 155,47 158,57 150,51 142,57 145,47 136,41 147,41" fill="rgba(200,149,42,.18)"/>
-        <path d="M8,8 Q38,8 38,38"/><path d="M292,8 Q262,8 262,38"/>
-        <path d="M8,112 Q38,112 38,82"/><path d="M292,112 Q262,112 262,82"/>
-        <circle cx="8" cy="8" r="3" fill="#c8952a"/><circle cx="292" cy="8" r="3" fill="#c8952a"/>
-        <circle cx="8" cy="112" r="3" fill="#c8952a"/><circle cx="292" cy="112" r="3" fill="#c8952a"/>
-      </g>
-    </svg>
+    <!-- ⚽ WC2026 SCOREBOARD TICKER -->
+    <div class="wc-ticker-wrap">
+      <div class="wc-ticker-label">⚽ FIFA WORLD CUP 2026</div>
+      <div class="wc-ticker-scroll">
+        <span>🇯🇴 Jordan · Official Supporters Café &nbsp;★&nbsp; أهوة حارتنا الرسمية &nbsp;★&nbsp; 🏆 Road to Glory · طريق المجد &nbsp;★&nbsp; 🇯🇴 نسور الأردن &nbsp;★&nbsp; Eat · Cheer · Win &nbsp;★&nbsp; </span>
+        <span aria-hidden="true">🇯🇴 Jordan · Official Supporters Café &nbsp;★&nbsp; أهوة حارتنا الرسمية &nbsp;★&nbsp; 🏆 Road to Glory · طريق المجد &nbsp;★&nbsp; 🇯🇴 نسور الأردن &nbsp;★&nbsp; Eat · Cheer · Win &nbsp;★&nbsp; </span>
+      </div>
+    </div>
+
+    <!-- 🏆 WC TROPHY SVG -->
+    <div class="wc-trophy-wrap">
+      <svg class="wc-trophy" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#c9a84c"/>
+            <stop offset="50%" style="stop-color:#f0cc60"/>
+            <stop offset="100%" style="stop-color:#a07828"/>
+          </linearGradient>
+        </defs>
+        <!-- Cup body -->
+        <path d="M28,8 L52,8 L58,38 Q60,55 40,62 Q20,55 22,38 Z" fill="url(#trophyGrad)" opacity=".95"/>
+        <!-- Cup handles -->
+        <path d="M22,18 Q8,18 8,32 Q8,44 22,44" fill="none" stroke="url(#trophyGrad)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M58,18 Q72,18 72,32 Q72,44 58,44" fill="none" stroke="url(#trophyGrad)" stroke-width="4" stroke-linecap="round"/>
+        <!-- Stem -->
+        <rect x="36" y="62" width="8" height="14" fill="url(#trophyGrad)" rx="1"/>
+        <!-- Base -->
+        <rect x="24" y="76" width="32" height="6" fill="url(#trophyGrad)" rx="2"/>
+        <rect x="20" y="82" width="40" height="5" fill="url(#trophyGrad)" rx="2"/>
+        <!-- Star on cup -->
+        <polygon points="40,20 42,27 49,27 44,31 46,38 40,34 34,38 36,31 31,27 38,27" fill="rgba(255,255,255,0.5)"/>
+        <!-- Shine -->
+        <path d="M32,12 Q36,10 40,10" stroke="rgba(255,255,255,0.6)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="wc-trophy-glow"></div>
+    </div>
+
+    <!-- 🇯🇴 JORDAN FLAG STRIP -->
+    <div class="wc-flag-strip">
+      <div class="wc-flag-jordan">
+        <div class="jf-black"></div>
+        <div class="jf-white">
+          <svg class="jf-star" viewBox="0 0 20 20"><polygon points="10,2 12,8 18,8 13,12 15,18 10,14 5,18 7,12 2,8 8,8" fill="#007a3d"/></svg>
+        </div>
+        <div class="jf-green"></div>
+        <div class="jf-red"></div>
+      </div>
+      <div class="wc-flag-label">🇯🇴 المنتخب الوطني الأردني</div>
+    </div>
+
+    <!-- PARTICIPATING NATIONS MINI FLAGS -->
+    <div class="wc-nations">
+      <span title="Jordan">🇯🇴</span>
+      <span title="USA">🇺🇸</span>
+      <span title="Canada">🇨🇦</span>
+      <span title="Mexico">🇲🇽</span>
+      <span title="Brazil">🇧🇷</span>
+      <span title="France">🇫🇷</span>
+      <span title="Argentina">🇦🇷</span>
+      <span title="Germany">🇩🇪</span>
+      <span title="Spain">🇪🇸</span>
+      <span title="England">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+      <span title="Portugal">🇵🇹</span>
+      <span title="Morocco">🇲🇦</span>
+    </div>
+
     <div class="land-logo-ar">أهوة حارتنا</div>
-    <div class="land-logo-en">Haretna Café</div>
-    <div class="land-tagline">Est. in the heart of the quarter<br><span style="font-family:'Rubik',sans-serif;font-size:0.9em;">في قلب الحارة</span></div>
+    <div class="land-logo-en wc-cafe-badge">⚽ Haretna Café · Official WC2026 Spot ⚽</div>
+    <div class="land-tagline">في قلب الحارة · Watch. Cheer. Order.</div>
     <div class="land-qr-card">
       <canvas id="landQR" width="160" height="160" class="qr-canvas"></canvas>
       <div class="land-qr-sub">Scan to Order · امسح للطلب</div>
