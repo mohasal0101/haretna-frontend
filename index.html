@@ -1961,6 +1961,7 @@ async function doLogin() {
     showView('admin');
     await loadAdminOrders();
     await loadAdminCalls();
+    await loadHistory(null);
     renderAdmin();
     toast('Welcome back · أهلاً وسهلاً');
   } catch (e) {
@@ -5387,7 +5388,10 @@ function connectAdminSocket() {
 
   adminSocket.on('order:cashed', ({ id }) => {
     const o = orders.find(o=>o.id===id);
-    if (o) { history.unshift({...o, status:'cashed'}); orders = orders.filter(x=>x.id!==id); renderAdmin(); }
+    if (o) {
+      orders = orders.filter(x=>x.id!==id);
+      loadHistory(null).then(() => renderAdmin());
+    }
   });
 
   adminSocket.on('menu:updated', ({ id: dbId, isInStock, imageUrl }) => {
