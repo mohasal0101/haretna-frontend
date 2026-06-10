@@ -3835,8 +3835,8 @@ async function cashOut(id) {
     ));
     // Remove table from active orders immediately
     orders = orders.filter(x => x.table !== o.table || x.isCall);
-    // Reload history from DB so revenue is accurate (avoids double-counting
-    // the stacked/merged grand total vs individual DB order totals)
+    // Cancel any pending socket-triggered reload, then do one clean reload
+    clearTimeout(window._cashDebounce);
     await loadHistory(new Date().toISOString().split('T')[0]);
     renderAdmin();
     toast(`طاولة ${o.table} — تم السداد`);
@@ -5387,11 +5387,14 @@ function connectAdminSocket() {
   });
 
   adminSocket.on('order:cashed', ({ id }) => {
-    const o = orders.find(o=>o.id===id);
-    if (o) {
-      orders = orders.filter(x=>x.id!==id);
+    // Remove from active orders; avoid reloading history on every individual
+    // order:cashed event (a table with multiple orders fires this N times).
+    // Instead debounce the history reload.
+    orders = orders.filter(x => x.id !== id);
+    clearTimeout(window._cashDebounce);
+    window._cashDebounce = setTimeout(() => {
       loadHistory(new Date().toISOString().split('T')[0]).then(() => renderAdmin());
-    }
+    }, 800);
   });
 
   adminSocket.on('menu:updated', ({ id: dbId, isInStock, imageUrl }) => {
