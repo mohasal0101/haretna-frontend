@@ -3630,16 +3630,19 @@ async function loadHistory(date) {
   try {
     const url = date ? `/api/orders/history?date=${date}` : '/api/orders/history';
     const data = await apiFetch(url);
-    history = data.orders.map(o => ({
-      id: o.id,
-      table: String(o.tableNumber),
-      items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
-      note: o.note || '',
-      sub: o.subtotal, tax: 0, grand: o.items.reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
-      status: 'cashed',
-      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
-      date: new Date(o.createdAt).toISOString().split('T')[0],
-    }));
+    const seen = new Set();
+    history = data.orders
+      .filter(o => { if (seen.has(o.id)) return false; seen.add(o.id); return true; })
+      .map(o => ({
+        id: o.id,
+        table: String(o.tableNumber),
+        items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
+        note: o.note || '',
+        sub: o.subtotal, tax: 0, grand: o.items.reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
+        status: 'cashed',
+        time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+        date: new Date(o.createdAt).toISOString().split('T')[0],
+      }));
     return data;
   } catch (e) {
     console.error('Failed to load history:', e.message);
@@ -3817,11 +3820,13 @@ async function removeOrderItem(orderId, itemId) {
   });
 }
 
+let _cashingOut = false;
 async function cashOut(id) {
+  if (_cashingOut) return;
+  _cashingOut = true;
   try {
     const o = orders.find(ord=>ord.id===id);
     if (!o) return;
-    // Fetch all non-cashed orders for this table from DB and cash them out
     const allOrders = await apiFetch('/api/orders');
     const tableDbOrders = allOrders.filter(dbO =>
       String(dbO.tableNumber) === String(o.table) &&
@@ -3833,14 +3838,13 @@ async function cashOut(id) {
         body: JSON.stringify({ status: 'CASHED' })
       }).catch(()=>{})
     ));
-    // Remove table from active orders immediately
     orders = orders.filter(x => x.table !== o.table || x.isCall);
-    // Cancel any pending socket-triggered reload, then do one clean reload
     clearTimeout(window._cashDebounce);
     await loadHistory(new Date().toISOString().split('T')[0]);
     renderAdmin();
     toast(`طاولة ${o.table} — تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
+  finally { _cashingOut = false; }
 }
 
 // =====================================================================
@@ -5387,14 +5391,10 @@ function connectAdminSocket() {
   });
 
   adminSocket.on('order:cashed', ({ id }) => {
-    // Remove from active orders; avoid reloading history on every individual
-    // order:cashed event (a table with multiple orders fires this N times).
-    // Instead debounce the history reload.
+    // Just remove from active list — loadHistory is handled by cashOut() directly.
+    // Never reload history here to avoid race conditions multiplying revenue.
     orders = orders.filter(x => x.id !== id);
-    clearTimeout(window._cashDebounce);
-    window._cashDebounce = setTimeout(() => {
-      loadHistory(new Date().toISOString().split('T')[0]).then(() => renderAdmin());
-    }, 800);
+    renderAdmin();
   });
 
   adminSocket.on('menu:updated', ({ id: dbId, isInStock, imageUrl }) => {
