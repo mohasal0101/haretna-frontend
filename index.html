@@ -1871,27 +1871,30 @@ async function toggleHiddenItem(itemId) {
 }
 async function toggleHiddenCategory(catId) {
   const wasHidden = hiddenCategories.has(catId);
-  const nowVisible = wasHidden; // toggling: if was hidden, now becoming visible
   wasHidden ? hiddenCategories.delete(catId) : hiddenCategories.add(catId);
-  // Sync hiddenItems locally for immediate UI update
-  const cat = MENU.find(c => c.id === catId);
-  if (cat) {
-    for (const item of cat.items) {
-      wasHidden ? hiddenItems.delete(item.id) : hiddenItems.add(item.id);
-    }
-  }
   _saveHidden();
   renderMMSidebar();
   renderMenu();
-  // Persist to DB using isVisible on the Category model
-  try {
-    await apiFetch(`/api/menu/categories/${cat._dbId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isVisible: nowVisible }),
+  const cat = MENU.find(c => c.id === catId);
+  if (cat) {
+    for (const item of cat.items) {
+      // Sync hiddenItems set for each item in this category
+      wasHidden ? hiddenItems.delete(item.id) : hiddenItems.add(item.id);
+      try {
+        await apiFetch(`/api/menu/items/${item._dbId}/stock`, {
+          method: 'PATCH', body: JSON.stringify({ isInStock: wasHidden }),
+        });
+      } catch(e) { /* silent */ }
+    }
+    _saveHidden();
+  }
+  // Broadcast visibility state to all customer browsers
+  if (adminSocket) {
+    adminSocket.emit('menu:visibility', {
+      hiddenItems: [...hiddenItems],
+      hiddenCategories: [...hiddenCategories],
     });
-  } catch(e) { toast('Visibility sync failed: ' + e.message); }
-  // Broadcast to customer browsers so they see the change live without refreshing
-  if (adminSocket) adminSocket.emit('menu:reloaded', {});
+  }
 }
 let customImages = {};  // itemId -> base64 or Cloudinary URL
 let mmPendingUploads = {};  // itemId -> compressed Blob (retry queue for failed uploads)
