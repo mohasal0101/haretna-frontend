@@ -1961,7 +1961,7 @@ async function doLogin() {
     showView('admin');
     await loadAdminOrders();
     await loadAdminCalls();
-    await loadHistory(new Date().toISOString().split('T')[0]);
+    await loadHistory(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }));
     renderAdmin();
     toast('Welcome back · أهلاً وسهلاً');
   } catch (e) {
@@ -3628,10 +3628,11 @@ async function loadAdminCalls() {
 // Load order history
 async function loadHistory(date) {
   try {
-    const url = date ? `/api/orders/history?date=${date}` : '/api/orders/history';
-    const data = await apiFetch(url);
+    // Always fetch all cashed orders; filter by date client-side to avoid
+    // backend timezone/nullfield issues with cashedAt filter
+    const data = await apiFetch('/api/orders/history');
     const seen = new Set();
-    history = data.orders
+    const allOrders = data.orders
       .filter(o => { if (seen.has(o.id)) return false; seen.add(o.id); return true; })
       .map(o => ({
         id: o.id,
@@ -3641,11 +3642,16 @@ async function loadHistory(date) {
         sub: o.subtotal, tax: o.tax || 0, grand: o.subtotal,
         status: 'cashed',
         time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
-        date: new Date(o.createdAt).toISOString().split('T')[0],
+        date: new Date(o.createdAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }),
       }));
-    // Store API-computed total directly so renderAdmin uses it
-    history._apiTotal = data.total || 0;
-    return data;
+    if (date) {
+      // Filter client-side using Jordan timezone date
+      history = allOrders.filter(o => o.date === date);
+    } else {
+      history = allOrders;
+    }
+    history._apiTotal = history.reduce((s, o) => s + o.grand, 0);
+    return { orders: history, total: history._apiTotal, count: history.length };
   } catch (e) {
     console.error('Failed to load history:', e.message);
     return { orders: [], total: 0, count: 0 };
@@ -3842,7 +3848,7 @@ async function cashOut(id) {
     ));
     orders = orders.filter(x => x.table !== o.table || x.isCall);
     clearTimeout(window._cashDebounce);
-    await loadHistory(new Date().toISOString().split('T')[0]);
+    await loadHistory(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }));
     renderAdmin();
     toast(`طاولة ${o.table} — تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
@@ -5228,7 +5234,7 @@ async function openSalesModal() {
   document.getElementById('smKpis').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px;">Loading · جاري التحميل...</div>';
 
   // Always fetch fresh from DB
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' });
   let todayDbOrders = [];
   try {
     const data = await apiFetch(`/api/orders/history?date=${today}`);
