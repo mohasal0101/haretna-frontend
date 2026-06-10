@@ -4414,7 +4414,8 @@ function renderMMSidebar() {
         <button onclick="moveCat('${cat.id}',-1)" title="Move up" ${idx===0?'disabled':''} style="background:none;border:none;color:${idx===0?'var(--border2)':'var(--gold2)'};font-size:13px;cursor:${idx===0?'default':'pointer'};padding:2px 4px;line-height:1;">▲</button>
         <button onclick="moveCat('${cat.id}',1)" title="Move down" ${idx===MENU.length-1?'disabled':''} style="background:none;border:none;color:${idx===MENU.length-1?'var(--border2)':'var(--gold2)'};font-size:13px;cursor:${idx===MENU.length-1?'default':'pointer'};padding:2px 4px;line-height:1;">▼</button>
         <button onclick="event.stopPropagation();toggleHiddenCategory('${cat.id}')" title="${hiddenCategories.has(cat.id)?'Show category':'Hide category'}" style="background:none;border:none;color:${hiddenCategories.has(cat.id)?'var(--gold)':'var(--text3)'};font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;">${hiddenCategories.has(cat.id)?'👁️':'🚫'}</button>
-        <button onclick="deleteCategory('${cat.id}','${cat._dbId}','${cat.en}')" title="Delete category" style="background:none;border:none;color:var(--red,#c0392b);font-size:13px;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+        <button onclick="event.stopPropagation();editCategory(\'${cat.id}\',\'${cat._dbId}\')" title="Edit name" style="background:none;border:none;color:var(--gold2);font-size:13px;cursor:pointer;padding:2px 4px;line-height:1;">✏️</button>
+        <button onclick="deleteCategory(\'${cat.id}\',\'${cat._dbId}\',\'${cat.en}\')" title="Delete category" style="background:none;border:none;color:var(--red,#c0392b);font-size:13px;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
       </div>
     </div>`).join('') + `
     <button class="mm-cat-btn" onclick="showAddCategoryPanel()" style="border:1px dashed var(--border2);opacity:.7;width:100%;">
@@ -4560,6 +4561,58 @@ async function moveCat(catId, dir) {
 }
 
 // ── Delete category ───────────────────────────────────────────────
+
+// ── Edit category name ────────────────────────────────────────────
+function editCategory(catId, dbId) {
+  const cat = MENU.find(c => c.id === catId);
+  if (!cat) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'editCatOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:420px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);">✏️ Edit Category · تعديل القسم</div>
+        <button onclick="document.getElementById('editCatOverlay').remove()" style="background:var(--chalk2);border:1px solid var(--border2);color:var(--text3);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;">✕</button>
+      </div>
+      <input id="ecNameEn" value="${cat.en.replace(/"/g,'&quot;')}" placeholder="Category name in English" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;outline:none;font-family:'Rubik',sans-serif;"/>
+      <input id="ecNameAr" value="${(cat.ar||'').replace(/"/g,'&quot;')}" placeholder="اسم التصنيف بالعربي" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:7px;box-sizing:border-box;outline:none;font-family:'Rubik',sans-serif;direction:rtl;"/>
+      <input id="ecIcon" value="${cat.icon||''}" placeholder="Icon emoji e.g. 🍕" style="width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--cream);padding:9px 12px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;box-sizing:border-box;outline:none;font-family:'Rubik',sans-serif;"/>
+      <button id="ecSaveBtn" onclick="submitEditCategory('${catId}','${dbId}')" style="width:100%;background:linear-gradient(135deg,#6b3f0e,var(--gold2));color:var(--bg);border:none;padding:12px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;">Save · حفظ</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('ecNameEn').focus();
+}
+
+async function submitEditCategory(catId, dbId) {
+  const nameEn = document.getElementById('ecNameEn').value.trim();
+  const nameAr = document.getElementById('ecNameAr').value.trim();
+  const icon   = document.getElementById('ecIcon').value.trim();
+  if (!nameEn) { toast('Please enter English name · أدخل الاسم بالإنجليزي'); return; }
+  if (!nameAr) { toast('Please enter Arabic name · أدخل الاسم بالعربي'); return; }
+  const btn = document.getElementById('ecSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    await apiFetch(`/api/menu/categories/${dbId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ nameEn, nameAr, icon: icon || '🍽️' }),
+    });
+    // Update local MENU
+    const cat = MENU.find(c => c.id === catId);
+    if (cat) { cat.en = nameEn; cat.ar = nameAr; cat.icon = icon || '🍽️'; }
+    document.getElementById('editCatOverlay').remove();
+    renderMenuManager();
+    if (adminSocket) adminSocket.emit('menu:reloaded', {});
+    renderMenu();
+    toast('Category updated · تم تحديث القسم ✅');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Save · حفظ';
+    toast('Error: ' + e.message);
+  }
+}
+
 function deleteCategory(catId, dbId, name) {
   const overlay = document.createElement('div');
   overlay.id = 'deleteCatOverlay';
