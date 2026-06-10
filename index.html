@@ -3638,11 +3638,13 @@ async function loadHistory(date) {
         table: String(o.tableNumber),
         items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
         note: o.note || '',
-        sub: o.subtotal, tax: 0, grand: o.items.reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
+        sub: o.subtotal, tax: o.tax || 0, grand: o.subtotal,
         status: 'cashed',
         time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         date: new Date(o.createdAt).toISOString().split('T')[0],
       }));
+    // Store API-computed total directly so renderAdmin uses it
+    history._apiTotal = data.total || 0;
     return data;
   } catch (e) {
     console.error('Failed to load history:', e.message);
@@ -3658,7 +3660,7 @@ function renderAdmin() {
   }, 0);
   const prepO = orders.filter(o=>o.status==='preparing' && !o.isCall).length;
   const doneO = orders.filter(o=>['ready','sent','done'].includes(o.status) && !o.isCall).length;
-  const rev = history.reduce((s,o)=>s+o.grand,0);
+  const rev = history._apiTotal != null ? history._apiTotal : history.reduce((s,o)=>s+o.grand,0);
   document.getElementById('sNew').textContent = newO;
   const sNewItems = document.getElementById('sNewItems');
   if (sNewItems) sNewItems.textContent = newItemsQty;
