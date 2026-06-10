@@ -1961,7 +1961,7 @@ async function doLogin() {
     showView('admin');
     await loadAdminOrders();
     await loadAdminCalls();
-    await loadHistory(null);
+    await loadHistory(new Date().toISOString().split('T')[0]);
     renderAdmin();
     toast('Welcome back · أهلاً وسهلاً');
   } catch (e) {
@@ -3837,7 +3837,7 @@ async function cashOut(id) {
     orders = orders.filter(x => x.table !== o.table || x.isCall);
     // Reload history from DB so revenue is accurate (avoids double-counting
     // the stacked/merged grand total vs individual DB order totals)
-    await loadHistory(null);
+    await loadHistory(new Date().toISOString().split('T')[0]);
     renderAdmin();
     toast(`طاولة ${o.table} — تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
@@ -5390,7 +5390,7 @@ function connectAdminSocket() {
     const o = orders.find(o=>o.id===id);
     if (o) {
       orders = orders.filter(x=>x.id!==id);
-      loadHistory(null).then(() => renderAdmin());
+      loadHistory(new Date().toISOString().split('T')[0]).then(() => renderAdmin());
     }
   });
 
