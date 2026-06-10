@@ -4391,11 +4391,14 @@ async function submitAddCategory() {
         displayOrder: MENU.length,
       }),
     });
-    // Add to local MENU
-    MENU.push({ id: res.id, _dbId: res.id, en: nameEn, ar: nameAr, icon, slug, items: [] });
+    // Add to local MENU — id must be slug (matches loadMenuFromAPI mapping)
+    MENU.push({ id: slug, _dbId: res.id, en: nameEn, ar: nameAr, icon, slug, items: [] });
     document.getElementById('addCatOverlay').remove();
-    _mmActiveCat = res.id;
+    _mmActiveCat = slug;
     renderMenuManager();
+    renderMenu();
+    // Notify all customer browsers
+    if (adminSocket) adminSocket.emit('menu:reloaded', {});
     toast('Category added! ✓ · تمت الإضافة');
   } catch(e) {
     console.error('Add category failed:', e);
