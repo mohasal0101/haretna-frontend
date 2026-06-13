@@ -4965,26 +4965,37 @@ function closeTrendingPanel() {
   document.getElementById('trendingPanel').style.display='none';
 }
 async function saveTrendingAndClose() {
-  // Save each trending item to DB with its order
-  try {
-    const allItems = MENU.flatMap(c => c.items);
-    await Promise.all(allItems.map(item => {
-      const isTrending = ADMIN_TRENDING_IDS.includes(item.id);
-      const trendingOrder = ADMIN_TRENDING_IDS.indexOf(item.id);
-      return apiFetch(`/api/menu/items/${item._dbId}/trending`, {
+  // Save each trending item to DB with its order.
+  // Track failures so a silently-broken backend route doesn't look like
+  // "the change didn't take" — if a PATCH fails, the DB keeps the old
+  // trending list and the 30s customer-sync poller will re-add the item.
+  const allItems = MENU.flatMap(c => c.items);
+  let failed = 0;
+  await Promise.all(allItems.map(async item => {
+    const isTrending = ADMIN_TRENDING_IDS.includes(item.id);
+    const trendingOrder = ADMIN_TRENDING_IDS.indexOf(item.id);
+    try {
+      await apiFetch(`/api/menu/items/${item._dbId}/trending`, {
         method: 'PATCH',
         body: JSON.stringify({
           isTrending,
           trendingOrder: isTrending ? trendingOrder : null,
         }),
-      }).catch(() => {});
-    }));
-  } catch(e) { console.warn('Failed to save trending to DB:', e.message); }
+      });
+    } catch (e) {
+      failed++;
+      console.warn(`Trending PATCH failed for ${item.en} (dbId=${item._dbId}):`, e.message);
+    }
+  }));
   // Broadcast to customers via socket
   if (adminSocket) adminSocket.emit('trending:updated', { ids: ADMIN_TRENDING_IDS });
   closeTrendingPanel();
   renderMenu();
-  toast('Trending updated! · تم تحديث الأكثر طلباً');
+  if (failed > 0) {
+    toast(`⚠️ ${failed} item(s) failed to save — check the backend /trending route · لم يتم الحفظ`);
+  } else {
+    toast('Trending updated! · تم تحديث الأكثر طلباً');
+  }
 }
 function renderTrendingItemList() {
   const catFilter = document.getElementById('trendCatFilter').value;
