@@ -1009,7 +1009,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
 .hs-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:3px;font-family:'Rubik',sans-serif;}
 .history-table{background:var(--chalk);border:1px solid var(--border2);border-radius:5px;overflow:hidden;}
 .ht-head{display:grid;grid-template-columns:60px 1fr auto auto;gap:10px;padding:10px 14px;background:var(--chalk2);border-bottom:1px solid var(--border);font-family:'Rubik',sans-serif;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
-.ht-row{display:grid;grid-template-columns:60px 1fr auto auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;transition:background .15s;}
+.ht-row{display:grid;grid-template-columns:60px 1fr auto auto auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;transition:background .15s;}.ht-del-btn{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;transition:color .15s;}.ht-del-btn:hover{color:#c0392b;}
 .ht-row:last-child{border:none;}
 .ht-row:hover{background:var(--chalk2);}
 .ht-row .ht-table{font-family:'Rubik',sans-serif;font-size:12px;color:var(--gold2);font-weight:700;}
@@ -1420,11 +1420,6 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
         <option value="107">Table 107</option><option value="108">Table 108</option>
         <option value="109">Table 109</option><option value="110">Table 110</option>
         <option value="111">Table 111</option><option value="112">Table 112</option>
-        <option value="113">Table 113</option><option value="114">Table 114</option>
-        <option value="115">Table 115</option><option value="116">Table 116</option>
-        <option value="117">Table 117</option><option value="118">Table 118</option>
-        <option value="119">Table 119</option><option value="120">Table 120</option>
-        <option value="121">Table 121</option><option value="122">Table 122</option>
         <option value="1111">VIP · 1111</option>
       </select>
     </div>
@@ -1694,6 +1689,7 @@ body.cart-bar-visible .cv-body{padding-bottom:130px;}
       <label>Filter by Date · تصفية بالتاريخ:</label>
       <input type="date" class="date-input" id="historyDate" onchange="renderHistory()"/>
       <button class="at-btn" onclick="document.getElementById('historyDate').value='';renderHistory()">Clear · مسح</button>
+      <button class="at-btn" onclick="confirmDeleteAllHistory()" style="color:#c0392b;border-color:#c0392b;">🗑 Delete All · حذف الكل</button>
     </div>
     <div class="history-summary" id="historySummary"></div>
     <div class="history-table" id="historyTable"></div>
@@ -1966,6 +1962,7 @@ async function doLogin() {
     showView('admin');
     await loadAdminOrders();
     await loadAdminCalls();
+    await loadHistory(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }));
     renderAdmin();
     toast('Welcome back · أهلاً وسهلاً');
   } catch (e) {
@@ -3632,19 +3629,30 @@ async function loadAdminCalls() {
 // Load order history
 async function loadHistory(date) {
   try {
-    const url = date ? `/api/orders/history?date=${date}` : '/api/orders/history';
-    const data = await apiFetch(url);
-    history = data.orders.map(o => ({
-      id: o.id,
-      table: String(o.tableNumber),
-      items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
-      note: o.note || '',
-      sub: o.subtotal, tax: 0, grand: o.items.reduce((s,i)=>s+(i.unitPrice*i.quantity),0),
-      status: 'cashed',
-      time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
-      date: new Date(o.createdAt).toISOString().split('T')[0],
-    }));
-    return data;
+    // Always fetch all cashed orders; filter by date client-side to avoid
+    // backend timezone/nullfield issues with cashedAt filter
+    const data = await apiFetch('/api/orders/history');
+    const seen = new Set();
+    const allOrders = data.orders
+      .filter(o => { if (seen.has(o.id)) return false; seen.add(o.id); return true; })
+      .map(o => ({
+        id: o.id,
+        table: String(o.tableNumber),
+        items: o.items.map(i => ({ id: i.menuItemId, en: i.nameEn, ar: i.nameAr, icon: i.icon, price: i.unitPrice, qty: i.quantity })),
+        note: o.note || '',
+        sub: o.subtotal, tax: o.tax || 0, grand: o.subtotal,
+        status: 'cashed',
+        time: new Date(o.createdAt).toLocaleTimeString('en-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+        date: new Date(o.createdAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }),
+      }));
+    if (date) {
+      // Filter client-side using Jordan timezone date
+      history = allOrders.filter(o => o.date === date);
+    } else {
+      history = allOrders;
+    }
+    history._apiTotal = history.reduce((s, o) => s + o.grand, 0);
+    return { orders: history, total: history._apiTotal, count: history.length };
   } catch (e) {
     console.error('Failed to load history:', e.message);
     return { orders: [], total: 0, count: 0 };
@@ -3659,7 +3667,7 @@ function renderAdmin() {
   }, 0);
   const prepO = orders.filter(o=>o.status==='preparing' && !o.isCall).length;
   const doneO = orders.filter(o=>['ready','sent','done'].includes(o.status) && !o.isCall).length;
-  const rev = history.reduce((s,o)=>s+o.grand,0);
+  const rev = history._apiTotal != null ? history._apiTotal : history.reduce((s,o)=>s+o.grand,0);
   document.getElementById('sNew').textContent = newO;
   const sNewItems = document.getElementById('sNewItems');
   if (sNewItems) sNewItems.textContent = newItemsQty;
@@ -3821,11 +3829,13 @@ async function removeOrderItem(orderId, itemId) {
   });
 }
 
+let _cashingOut = false;
 async function cashOut(id) {
+  if (_cashingOut) return;
+  _cashingOut = true;
   try {
     const o = orders.find(ord=>ord.id===id);
     if (!o) return;
-    // Fetch all non-cashed orders for this table from DB and cash them out
     const allOrders = await apiFetch('/api/orders');
     const tableDbOrders = allOrders.filter(dbO =>
       String(dbO.tableNumber) === String(o.table) &&
@@ -3837,11 +3847,13 @@ async function cashOut(id) {
         body: JSON.stringify({ status: 'CASHED' })
       }).catch(()=>{})
     ));
-    history.unshift({...o, status:'cashed'});
     orders = orders.filter(x => x.table !== o.table || x.isCall);
+    clearTimeout(window._cashDebounce);
+    await loadHistory(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }));
     renderAdmin();
     toast(`طاولة ${o.table} — تم السداد`);
   } catch (e) { toast('Error: ' + e.message); }
+  finally { _cashingOut = false; }
 }
 
 // =====================================================================
@@ -3918,6 +3930,70 @@ async function renderHistory() {
       <span class="ht-time">${o.time}</span>
       <span class="ht-total">JD ${o.grand.toFixed(2)}</span>
     </div>`).join('')}`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// HISTORY DELETE
+// ─────────────────────────────────────────────────────────────
+function confirmDeleteOrder(id) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:28px 24px;width:100%;max-width:340px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">🗑️</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete Order · حذف الطلب</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px;">This will permanently delete this order from the database.<br>لا يمكن التراجع.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;cursor:pointer;">Cancel · إلغاء</button>
+        <button id="confirmDelOrdBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Delete · حذف</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('confirmDelOrdBtn').onclick = async () => {
+    overlay.remove();
+    try {
+      await apiFetch(`/api/orders/${id}`, { method: 'DELETE' });
+      history = history.filter(o => o.id !== id);
+      renderHistory();
+      toast('Order deleted · تم حذف الطلب ✓');
+    } catch(e) { toast('Error: ' + e.message); }
+  };
+}
+
+function confirmDeleteAllHistory() {
+  const dateFilter = document.getElementById('historyDate').value;
+  const targetLabel = dateFilter ? `orders on ${dateFilter}` : 'ALL order history';
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:var(--chalk);border:1px solid var(--border2);border-radius:14px;padding:28px 24px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+      <div style="font-family:'Rubik',sans-serif;font-size:14px;font-weight:700;color:var(--cream);margin-bottom:8px;">Delete All History · حذف كل السجل</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">This will permanently delete <strong style="color:var(--gold2)">${targetLabel}</strong> from the database.</div>
+      <div style="font-size:11px;color:#c0392b;margin-bottom:20px;">This cannot be undone · لا يمكن التراجع</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;background:var(--chalk2);border:1px solid var(--border2);color:var(--cream2);padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;cursor:pointer;">Cancel · إلغاء</button>
+        <button id="confirmDelAllBtn" style="flex:1;background:linear-gradient(135deg,#7a1a1a,#c0392b);border:none;color:#fff;padding:11px;border-radius:var(--radius);font-family:'Rubik',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Delete All · حذف الكل</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('confirmDelAllBtn').onclick = async () => {
+    overlay.remove();
+    try {
+      if (dateFilter) {
+        // Delete only the filtered (visible) orders one by one
+        const ids = history.map(o => o.id);
+        await Promise.all(ids.map(id => apiFetch(`/api/orders/${id}`, { method: 'DELETE' }).catch(()=>{})));
+        toast(`Deleted ${ids.length} orders · تم الحذف ✓`);
+      } else {
+        // Delete all cashed orders at once
+        await apiFetch('/api/orders', { method: 'DELETE' });
+        toast('All history deleted · تم حذف كل السجل ✓');
+      }
+      history = [];
+      renderHistory();
+    } catch(e) { toast('Error: ' + e.message); }
+  };
 }
 
 // =====================================================================
@@ -5223,7 +5299,7 @@ async function openSalesModal() {
   document.getElementById('smKpis').innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px;">Loading · جاري التحميل...</div>';
 
   // Always fetch fresh from DB
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' });
   let todayDbOrders = [];
   try {
     const data = await apiFetch(`/api/orders/history?date=${today}`);
@@ -5388,8 +5464,10 @@ function connectAdminSocket() {
   });
 
   adminSocket.on('order:cashed', ({ id }) => {
-    const o = orders.find(o=>o.id===id);
-    if (o) { history.unshift({...o, status:'cashed'}); orders = orders.filter(x=>x.id!==id); renderAdmin(); }
+    // Just remove from active list — loadHistory is handled by cashOut() directly.
+    // Never reload history here to avoid race conditions multiplying revenue.
+    orders = orders.filter(x => x.id !== id);
+    renderAdmin();
   });
 
   adminSocket.on('menu:updated', ({ id: dbId, isInStock, imageUrl }) => {
